@@ -11,6 +11,7 @@ use App\Http\Controllers\App\EquipamentoController;
 use App\Http\Controllers\App\EstoqueController;
 use App\Http\Controllers\App\FinanceiroController;
 use App\Http\Controllers\App\NotificacaoController;
+use App\Http\Controllers\App\OrdemArquivoController;
 use App\Http\Controllers\App\OrdemServicoController;
 use App\Http\Controllers\App\RelatorioController;
 use App\Http\Controllers\App\UsuarioController;
@@ -69,6 +70,17 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
             Route::put('/{ordemServico}',         'update')->name('update');
             Route::delete('/{ordemServico}',      'destroy')->name('destroy');
             Route::put('/{ordemServico}/status',  'updateStatus')->name('status.update');
+            Route::get('/{ordemServico}/imprimir', 'print')->name('print');
+
+        });
+
+    /** Arquivos da OS **/
+    Route::prefix('ordens-servico/{ordemServico}/arquivos')->name('os.arquivos.')
+        ->controller(OrdemArquivoController::class)
+        ->group(function () {
+            Route::post('/',                      'store')->name('store');
+            Route::get('/{arquivo}/download',     'download')->name('download');
+            Route::delete('/{arquivo}',           'destroy')->name('destroy');
         });
 
     /** Financeiro **/

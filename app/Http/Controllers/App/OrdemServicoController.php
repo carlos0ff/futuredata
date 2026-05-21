@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cliente;
 use App\Models\Equipamento;
 use App\Models\Ordem;
+use App\Models\OrdemArquivo;
 use App\Models\OrdemHistorico;
 use App\Models\User;
 use App\Notifications\OrdemCriada;
@@ -129,12 +130,20 @@ class OrdemServicoController extends Controller
 
     public function show(Ordem $ordemServico): View
     {
-        $ordemServico->load(['cliente', 'equipamento', 'tecnico', 'historico.usuario']);
+        $ordemServico->load(['cliente', 'equipamento', 'tecnico', 'historico.usuario', 'arquivos.usuario']);
 
         return view('app.ordens.show', [
             'ordem'  => $ordemServico,
             'status' => Ordem::STATUS,
+            'tipos'  => OrdemArquivo::TIPOS,
         ]);
+    }
+
+    public function print(Ordem $ordemServico): View
+    {
+        $ordemServico->load(['cliente', 'equipamento', 'tecnico']);
+
+        return view('app.ordens.print', ['ordem' => $ordemServico]);
     }
 
     public function edit(Ordem $ordemServico): View

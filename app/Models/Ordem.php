@@ -106,6 +106,11 @@ class Ordem extends Model
         return $this->hasMany(Mensagem::class)->oldest();
     }
 
+    public function arquivos(): HasMany
+    {
+        return $this->hasMany(OrdemArquivo::class)->latest();
+    }
+
     public function getTotalAttribute(): float
     {
         return (float) $this->valor_servico
