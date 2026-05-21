@@ -7,101 +7,152 @@
     <title>Portal do Cliente — Future Data</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <style>
+        .input-base {
+            width: 100%;
+            border-radius: 0.75rem;
+            border: 1.5px solid #e2e8f0;
+            background: #fff;
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+            color: #1e293b;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .input-base::placeholder { color: #94a3b8; }
+        .input-base:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96,165,250,.15);
+        }
+        .input-base.error { border-color: #fca5a5; background: #fff5f5; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp .3s ease both; }
+    </style>
 </head>
-<body class="min-h-screen bg-slate-50 [font-family:'DM_Sans',sans-serif]" x-data>
+<body class="min-h-screen bg-[#f8fafc] [font-family:'DM_Sans',sans-serif]" x-data>
 
 <div class="flex min-h-screen">
 
-    {{-- ── Painel lateral escuro (desktop) ──────────────────── --}}
-    <div class="hidden lg:flex lg:w-[400px] shrink-0 flex-col justify-between bg-[#0d0f16] px-12 py-14">
-        <div>
-            <img src="{{ asset('images/futuredata.png') }}" class="h-9 w-auto brightness-0 invert" alt="Future Data">
+    {{-- ═══ LADO ESQUERDO — visual / branding ═══════════════════ --}}
+    <div class="relative hidden lg:flex lg:w-[440px] xl:w-[500px] shrink-0 flex-col overflow-hidden bg-[#0d0f16]">
+
+        {{-- Gradiente decorativo --}}
+        <div class="pointer-events-none absolute inset-0">
+            <div class="absolute -top-32 -left-32 h-80 w-80 rounded-full bg-blue-600/20 blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-indigo-600/10 blur-3xl"></div>
         </div>
 
-        <div>
-            <div class="mb-5 flex h-13 w-13 items-center justify-center rounded-2xl bg-blue-500/10 ring-1 ring-blue-500/20 p-3">
-                <svg class="h-7 w-7 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2M9 12h6M9 16h4"/>
-                </svg>
-            </div>
-            <h2 class="text-2xl font-bold text-white leading-snug">
-                Acompanhe sua<br>ordem de serviço
-            </h2>
-            <p class="mt-3 text-[13.5px] leading-relaxed text-slate-500">
-                Acesse com seu CPF e data de nascimento para ver o status do reparo do seu equipamento.
-            </p>
+        {{-- Conteúdo --}}
+        <div class="relative flex flex-1 flex-col justify-between px-12 py-12">
 
-            <div class="mt-8 space-y-4">
-                @foreach([
-                    ['icon' => 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11', 'text' => 'Status da OS em tempo real'],
-                    ['icon' => 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',            'text' => 'Converse com a equipe técnica'],
-                    ['icon' => 'M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',                           'text' => 'Histórico completo do serviço'],
-                ] as $item)
-                    <div class="flex items-start gap-3">
-                        <div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/10">
-                            <svg class="h-3.5 w-3.5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
-                            </svg>
-                        </div>
-                        <p class="text-[12.5px] text-slate-400">{{ $item['text'] }}</p>
-                    </div>
-                @endforeach
-            </div>
+            {{-- Topo: logo --}}
+            <img src="{{ asset('images/futuredata.png') }}" class="h-8 w-auto brightness-0 invert opacity-90" alt="Future Data">
 
-            {{-- Dica: acesso por token --}}
-            <div class="mt-10 rounded-xl border border-white/[0.07] bg-white/[0.03] px-4 py-3.5">
-                <p class="text-[11.5px] font-semibold text-slate-500">Acesso rápido por link</p>
-                <p class="mt-0.5 text-[11.5px] text-slate-600 leading-relaxed">
-                    Se recebeu um link por WhatsApp ou e-mail, pode clicar diretamente nele para ver sua OS sem precisar fazer login.
+            {{-- Centro: headline --}}
+            <div>
+                {{-- Ícone --}}
+                <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10">
+                    <svg class="h-7 w-7 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2M9 12h6M9 16h4"/>
+                    </svg>
+                </div>
+
+                <h1 class="text-3xl font-bold leading-snug text-white">
+                    Acompanhe sua<br>
+                    <span class="text-blue-400">ordem de serviço</span>
+                </h1>
+                <p class="mt-4 text-[14px] leading-relaxed text-slate-400">
+                    Veja em tempo real o status do reparo do seu equipamento sem complicação.
                 </p>
-            </div>
-        </div>
 
-        <p class="text-[11px] text-slate-700">© {{ date('Y') }} Future Data.</p>
+                {{-- Features --}}
+                <div class="mt-9 space-y-4">
+                    @foreach([
+                        ['icon' => 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
+                         'label' => 'Status atualizado pela equipe técnica'],
+                        ['icon' => 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+                         'label' => 'Troca de mensagens com o técnico'],
+                        ['icon' => 'M9 12h6M9 16h4M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2m-4-2a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2',
+                         'label' => 'Histórico completo da OS'],
+                    ] as $f)
+                        <div class="flex items-center gap-3.5">
+                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.05] ring-1 ring-white/[0.08]">
+                                <svg class="h-4 w-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $f['icon'] }}"/>
+                                </svg>
+                            </div>
+                            <span class="text-[13px] text-slate-400">{{ $f['label'] }}</span>
+                        </div>
+                    @endforeach
+                </div>
+
+                {{-- Dica token --}}
+                <div class="mt-10 rounded-xl border border-white/[0.07] bg-white/[0.03] p-4">
+                    <div class="flex items-start gap-3">
+                        <svg class="mt-0.5 h-4 w-4 shrink-0 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                        </svg>
+                        <div>
+                            <p class="text-[12px] font-semibold text-slate-400">Acesso por link</p>
+                            <p class="mt-0.5 text-[12px] leading-relaxed text-slate-600">
+                                Se recebeu um link pelo WhatsApp ou e-mail, clique diretamente nele — não precisa de login.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Rodapé --}}
+            <p class="text-[11px] text-slate-700">© {{ date('Y') }} Future Data. Todos os direitos reservados.</p>
+        </div>
     </div>
 
-    {{-- ── Formulário ────────────────────────────────────────── --}}
+    {{-- ═══ LADO DIREITO — formulário ══════════════════════════════ --}}
     <div class="flex flex-1 flex-col items-center justify-center px-6 py-14">
-        <div class="w-full max-w-[380px]">
+        <div class="fade-up w-full max-w-[400px]">
 
             {{-- Mobile: logo --}}
             <div class="mb-10 text-center lg:hidden">
                 <img src="{{ asset('images/futuredata.png') }}" class="mx-auto h-9 w-auto" alt="Future Data">
             </div>
 
+            {{-- Cabeçalho do form --}}
             <div class="mb-8">
-                <h1 class="text-[22px] font-bold text-slate-900">Portal do Cliente</h1>
-                <p class="mt-1 text-[13.5px] text-slate-500">
-                    Acesse com seu <strong class="font-semibold text-slate-700">CPF</strong> e
-                    <strong class="font-semibold text-slate-700">data de nascimento</strong>.
+                <h2 class="text-[26px] font-bold text-slate-900">Entrar no portal</h2>
+                <p class="mt-1.5 text-[14px] text-slate-500">
+                    Use seu <span class="font-medium text-slate-700">CPF</span> e
+                    <span class="font-medium text-slate-700">data de nascimento</span> para acessar.
                 </p>
             </div>
 
-            {{-- Flash / info --}}
+            {{-- Alertas --}}
             @if (session('info'))
-                <div class="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-[12.5px] text-blue-700">
-                    {{ session('info') }}
+                <div class="mb-5 flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                    <svg class="mt-0.5 h-4 w-4 shrink-0 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <p class="text-[13px] text-blue-700">{{ session('info') }}</p>
                 </div>
             @endif
 
-            {{-- Erros --}}
             @if ($errors->any())
                 <div class="mb-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-                    <svg class="mt-0.5 h-4 w-4 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                    <p class="text-[12.5px] font-medium text-red-700">{{ $errors->first() }}</p>
+                    <svg class="mt-0.5 h-4 w-4 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <p class="text-[13px] font-medium text-red-700">{{ $errors->first() }}</p>
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('portal.entrar.post') }}" class="space-y-5" x-data>
+            {{-- Formulário --}}
+            <form method="POST" action="{{ route('portal.entrar.post') }}" class="space-y-5">
                 @csrf
 
                 {{-- CPF / CNPJ --}}
-                <div class="space-y-1.5">
-                    <label for="cpf_cnpj" class="block text-[13px] font-semibold text-slate-700">
+                <div>
+                    <label for="cpf_cnpj" class="mb-1.5 block text-[13.5px] font-semibold text-slate-700">
                         CPF ou CNPJ
                     </label>
                     <input
@@ -113,29 +164,28 @@
                         autofocus
                         placeholder="000.000.000-00"
                         inputmode="numeric"
+                        maxlength="18"
                         x-on:input="
-                            let v = $el.value.replace(/\D/g,'');
+                            let v = $el.value.replace(/\D/g, '');
                             if (v.length <= 11) {
-                                v = v.replace(/(\d{3})(\d)/,'$1.$2')
-                                     .replace(/(\d{3})(\d)/,'$1.$2')
-                                     .replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+                                v = v.replace(/(\d{3})(\d)/, '$1.$2')
+                                     .replace(/(\d{3})(\d)/, '$1.$2')
+                                     .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
                             } else {
-                                v = v.replace(/^(\d{2})(\d)/,'$1.$2')
-                                     .replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3')
-                                     .replace(/\.(\d{3})(\d)/,'.$1/$2')
-                                     .replace(/(\d{4})(\d)/,'$1-$2');
+                                v = v.replace(/^(\d{2})(\d)/, '$1.$2')
+                                     .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+                                     .replace(/\.(\d{3})(\d)/, '.$1/$2')
+                                     .replace(/(\d{4})(\d)/, '$1-$2');
                             }
                             $el.value = v;
                         "
-                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[13.5px] text-slate-800 placeholder-slate-400 shadow-sm outline-none transition
-                               focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20
-                               @error('cpf_cnpj') border-red-300 bg-red-50 @enderror"
+                        class="input-base @error('cpf_cnpj') error @enderror"
                     >
                 </div>
 
                 {{-- Data de nascimento --}}
-                <div class="space-y-1.5">
-                    <label for="data_nascimento" class="block text-[13px] font-semibold text-slate-700">
+                <div>
+                    <label for="data_nascimento" class="mb-1.5 block text-[13.5px] font-semibold text-slate-700">
                         Data de nascimento
                     </label>
                     <input
@@ -144,25 +194,41 @@
                         type="date"
                         value="{{ old('data_nascimento') }}"
                         max="{{ now()->toDateString() }}"
-                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[13.5px] text-slate-800 shadow-sm outline-none transition
-                               focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20
-                               @error('data_nascimento') border-red-300 bg-red-50 @enderror"
+                        class="input-base @error('data_nascimento') error @enderror"
                     >
                 </div>
 
+                {{-- Botão --}}
                 <button
                     type="submit"
-                    class="w-full rounded-xl bg-blue-600 px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-sm shadow-blue-600/20 outline-none transition
-                           hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    class="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-[14px] font-semibold text-white shadow-md shadow-blue-600/25 outline-none transition
+                           hover:bg-blue-700 active:scale-[.98] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                    Acessar minha OS
+                    Acessar portal
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m9 18 6-6-6-6"/>
+                    </svg>
                 </button>
             </form>
 
-            <p class="mt-8 text-center text-[12px] text-slate-400">
-                É da equipe?
-                <a href="{{ route('auth.entrar') }}" class="font-medium text-slate-600 transition hover:text-slate-900">
-                    Acesso interno →
+            {{-- Separador --}}
+            <div class="my-7 flex items-center gap-3">
+                <div class="h-px flex-1 bg-slate-200"></div>
+                <span class="text-[12px] text-slate-400">ou</span>
+                <div class="h-px flex-1 bg-slate-200"></div>
+            </div>
+
+            {{-- Acesso por link --}}
+            <div class="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+                <p class="text-[12.5px] font-semibold text-slate-700">Tem um link da sua OS?</p>
+                <p class="mt-1 text-[12px] text-slate-500">Cole o link que recebeu por WhatsApp ou e-mail na barra de endereço do navegador para acesso direto.</p>
+            </div>
+
+            {{-- Link equipe --}}
+            <p class="mt-7 text-center text-[12.5px] text-slate-400">
+                É da equipe técnica?
+                <a href="{{ route('auth.entrar') }}" class="font-medium text-slate-600 underline-offset-2 hover:underline hover:text-slate-900 transition">
+                    Acesso interno
                 </a>
             </p>
 
