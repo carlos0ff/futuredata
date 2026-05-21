@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\App;
+use App\Http\Controllers\Controller;
 
 use App\Models\Ordem;
 use Illuminate\Http\Request;

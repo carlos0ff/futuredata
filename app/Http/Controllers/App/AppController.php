@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\App;
+use App\Http\Controllers\Controller;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -10,6 +11,9 @@ use Illuminate\View\View;
 
 class AppController extends Controller
 {
+    /**
+     * 
+     */
     public function perfil(): View
     {
         return view('app.perfil.index', [
@@ -17,6 +21,9 @@ class AppController extends Controller
         ]);
     }
 
+    /**
+     * 
+     */
     public function atualizarPerfil(Request $request): RedirectResponse
     {
         $user = auth()->user();

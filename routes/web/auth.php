@@ -1,28 +1,58 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+declare(strict_types=1);
 
-/** Auth Controllers  **/
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 
+use App\Http\Controllers\Portal\LoginController as PortalLoginController;
+use App\Http\Controllers\Portal\PortalController;
+use App\Http\Controllers\Portal\MessageController;
 
-/**
- * Auth Routes - Grupo de rotas de autenticação
- * Todas as rotas deste grupo terão prefixo "auth"
+
+/*
+|--------------------------------------------------------------------------
+| Rotas de autenticação — staff (admin / gerente / técnico / atendente)
+|--------------------------------------------------------------------------
 */
-Route::prefix('auth')->middleware('guest')->group(function(){
+Route::prefix('auth')->name('auth.')->middleware('guest')->group(function () {
 
-    /**  Rota de login **/
-    Route::get('/entrar', [AuthController::class, "index"])->name('auth.login.form');
-    Route::post('/entrar', [AuthController::class, "authenticate"])->name('auth.login');
+    Route::get('/entrar',     [AuthController::class, 'index'])->name('entrar');
+    Route::post('/entrar',    [AuthController::class, 'authenticate'])->name('entrar.post');
 
-    /** Recuperação de senha **/
-    Route::get('/recuperar', [AuthController::class, "index"])->name('auth.forget.form');
-    Route::post('/recuperar', [AuthController::class, "index"])->name('auth.forget');
+    Route::get('/recuperar',  [AuthController::class, 'recuperar'])->name('recuperar');
+    Route::post('/recuperar', [AuthController::class, 'recuperarPost'])->name('recuperar.post');
 });
 
-// GET /auth/sair → redireciona para login (para links directos)
-Route::redirect('/auth/sair', '/auth/entrar');
-
-// POST /auth/sair → logout real (usado pelo formulário da sidebar)
 Route::post('/auth/sair', [AuthController::class, 'sair'])->name('auth.sair')->middleware('auth');
+
+/*
+|--------------------------------------------------------------------------
+| Rotas de autenticação — portal do cliente
+|--------------------------------------------------------------------------
+*/
+Route::prefix('portal')->name('portal.')->group(function () {
+
+    Route::middleware('guest')->group(function () {
+        Route::get('/entrar',  [PortalLoginController::class, 'index'])->name('entrar');
+        Route::post('/entrar', [PortalLoginController::class, 'authenticate'])->name('entrar.post');
+    });
+
+    Route::post('/sair', [PortalLoginController::class, 'sair'])
+        ->name('sair')
+        ->middleware('auth');
+
+    /** Dashboard do portal (autenticado) */
+    Route::middleware('auth')->group(function () {
+        Route::get('/dashboard', [PortalController::class, 'index'])->name('index');
+        Route::get('/os/{ordemServico}', [PortalController::class, 'show'])->name('show');
+
+        Route::prefix('mensagens')->name('mensagens.')->group(function () {
+            Route::get('/', [MessageController::class, 'index'])->name('index');
+            Route::post('/', [MessageController::class, 'store'])->name('store');
+        });
+    });
+});
+
+/** Acesso público via token curto (sem login) */
+Route::get('/r/{token}', [PortalController::class, 'showByToken'])->name('portal.token');
