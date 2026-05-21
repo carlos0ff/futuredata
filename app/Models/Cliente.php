@@ -15,11 +15,16 @@ class Cliente extends Model
         'email',
         'telefone',
         'cpf_cnpj',
+        'data_nascimento',
         'endereco',
         'cidade',
         'estado',
         'cep',
         'observacoes',
+    ];
+
+    protected $casts = [
+        'data_nascimento' => 'date',
     ];
 
     public function ordens(): HasMany

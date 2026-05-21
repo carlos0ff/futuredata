@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cliente;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class LoginController extends Controller
 {
     public function index(): View|RedirectResponse
     {
-        if (Auth::check()) {
+        if (session()->has('portal_cliente_id')) {
             return redirect()->route('portal.index');
         }
 
@@ -24,26 +23,37 @@ class LoginController extends Controller
 
     public function authenticate(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email'    => ['required', 'email'],
-            'password' => ['required', 'string'],
+        $request->validate([
+            'cpf_cnpj'        => ['required', 'string'],
+            'data_nascimento' => ['required', 'date'],
+        ], [
+            'cpf_cnpj.required'        => 'Informe o CPF ou CNPJ.',
+            'data_nascimento.required' => 'Informe a data de nascimento.',
+            'data_nascimento.date'     => 'Data de nascimento inválida.',
         ]);
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
-            throw ValidationException::withMessages([
-                'email' => 'E-mail ou senha inválidos. Verifique seus dados de acesso.',
-            ]);
+        // Normalizar CPF/CNPJ removendo máscara
+        $cpf = preg_replace('/\D/', '', $request->cpf_cnpj);
+
+        $cliente = Cliente::whereRaw("REGEXP_REPLACE(cpf_cnpj, '[^0-9]', '') = ?", [$cpf])
+            ->whereDate('data_nascimento', $request->data_nascimento)
+            ->first();
+
+        if (! $cliente) {
+            return back()
+                ->withInput($request->only('cpf_cnpj', 'data_nascimento'))
+                ->withErrors(['cpf_cnpj' => 'CPF/CNPJ ou data de nascimento incorretos.']);
         }
 
-        $request->session()->regenerate();
+        session()->regenerate();
+        session(['portal_cliente_id' => $cliente->id]);
 
         return redirect()->route('portal.index');
     }
 
     public function sair(Request $request): RedirectResponse
     {
-        Auth::logout();
-        $request->session()->invalidate();
+        $request->session()->forget('portal_cliente_id');
         $request->session()->regenerateToken();
 
         return redirect()->route('portal.entrar');

@@ -1,135 +1,113 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cliente;
-use App\Models\Mensagem;
 use App\Models\Ordem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 
 class PortalController extends Controller
 {
-    /** Portal autenticado — lista de OS do cliente */
-    public function index(Request $request): View
+    /** Resolve o cliente logado via sessão do portal */
+    private function clienteAtual(): ?Cliente
     {
-        $user    = auth()->user();
-        $cliente = Cliente::where('email', $user->email)->first();
+        $id = session('portal_cliente_id');
+        return $id ? Cliente::find($id) : null;
+    }
 
-        $ordens = $cliente
-            ? Ordem::with(['equipamento', 'historico'])
-                ->where('cliente_id', $cliente->id)
-                ->when($request->filled('status'), fn ($q) =>
-                    $q->where('status', $request->status)
-                )
-                ->latest()
-                ->paginate(10)
-                ->withQueryString()
-            : new LengthAwarePaginator([], 0, 10);
+    /** Dashboard do portal — lista de OS do cliente */
+    public function index(Request $request): View|RedirectResponse
+    {
+        $cliente = $this->clienteAtual();
 
-        $stats = $cliente ? [
+        if (! $cliente) {
+            return redirect()->route('portal.entrar');
+        }
+
+        $ordens = Ordem::with(['equipamento', 'historico'])
+            ->where('cliente_id', $cliente->id)
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        $stats = [
             'total'       => Ordem::where('cliente_id', $cliente->id)->count(),
             'abertas'     => Ordem::where('cliente_id', $cliente->id)->whereNotIn('status', ['finalizado', 'cancelado'])->count(),
             'finalizadas' => Ordem::where('cliente_id', $cliente->id)->where('status', 'finalizado')->count(),
-        ] : ['total' => 0, 'abertas' => 0, 'finalizadas' => 0];
+        ];
 
         return view('portal.index', compact('ordens', 'cliente', 'stats'));
     }
 
-    /** Portal público — acesso via token curto /r/{token} */
-    public function show(Ordem $ordemServico)
-{
-    $cliente = $ordemServico->cliente;
+    /** Detalhe de uma OS (protegido — deve pertencer ao cliente logado) */
+    public function show(Ordem $ordem): View|RedirectResponse
+    {
+        $cliente = $this->clienteAtual();
 
-    $waUrl = null;
+        if (! $cliente || $ordem->cliente_id !== $cliente->id) {
+            return redirect()->route('portal.index');
+        }
 
-    if ($cliente?->telefone) {
-        $telefone = preg_replace('/\D/', '', $cliente->telefone);
-
-        $mensagem = urlencode(
-            "Olá {$cliente->nome}, sua ordem {$ordemServico->codigo_publico} está disponível no portal."
-        );
-
-        $waUrl = "https://wa.me/55{$telefone}?text={$mensagem}";
+        return view('portal.show', array_merge(
+            $this->buildShowData($ordem),
+            ['cliente' => $cliente]
+        ));
     }
 
-    $statusDot = [
-        'aberto'      => 'bg-sky-400',
-        'analise'     => 'bg-amber-400',
-        'aprovado'    => 'bg-emerald-400',
-        'andamento'   => 'bg-blue-400',
-        'finalizado'  => 'bg-green-400',
-        'cancelado'   => 'bg-red-400',
-    ];
+    /** Acesso público por token curto — /r/{token} — sem login */
+    public function showByToken(string $token): View|RedirectResponse
+    {
+        $ordem = Ordem::where('token', $token)
+            ->orWhere('codigo_publico', $token)
+            ->first();
 
-    $statusBg = [
-        'aberto'      => 'bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20',
-        'analise'     => 'bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20',
-        'aprovado'    => 'bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20',
-        'andamento'   => 'bg-blue-500/10 text-blue-300 ring-1 ring-blue-500/20',
-        'finalizado'  => 'bg-green-500/10 text-green-300 ring-1 ring-green-500/20',
-        'cancelado'   => 'bg-red-500/10 text-red-300 ring-1 ring-red-500/20',
-    ];
+        if (! $ordem) {
+            abort(404);
+        }
 
-    $isFinished = $ordemServico->status === 'finalizado';
-    $isCancelled = $ordemServico->status === 'cancelado';
+        $cliente = $ordem->cliente;
 
-    $steps = [
-    [
-        'key' => 'aberto',
-        'label' => 'Aberta',
-        'desc' => 'Ordem criada e aguardando análise técnica.',
-    ],
-    [
-        'key' => 'analise',
-        'label' => 'Análise',
-        'desc' => 'Equipamento em diagnóstico pela assistência.',
-    ],
-    [
-        'key' => 'aprovado',
-        'label' => 'Aprovado',
-        'desc' => 'Orçamento aprovado para execução do serviço.',
-    ],
-    [
-        'key' => 'andamento',
-        'label' => 'Em andamento',
-        'desc' => 'Reparo sendo realizado pela equipe técnica.',
-    ],
-    [
-        'key' => 'finalizado',
-        'label' => 'Finalizado',
-        'desc' => 'Serviço concluído e equipamento disponível.',
-    ],
-];
-
-    $currentStep = collect($steps)
-    ->search(fn ($step) => $step['key'] === $ordemServico->status);
-
-if ($currentStep === false) {
-    $currentStep = 0;
-}
-
-    if ($currentStep === false) {
-        $currentStep = 0;
+        return view('portal.show', array_merge(
+            $this->buildShowData($ordem),
+            ['cliente' => $cliente]
+        ));
     }
 
-    return view('portal.show', [
-        'ordemServico' => $ordemServico,
-        'ordem' => $ordemServico,
-        'waUrl' => $waUrl,
+    /** Monta os dados comuns da view de detalhe */
+    private function buildShowData(Ordem $ordem): array
+    {
+        $cliente = $ordem->cliente;
+        $waUrl   = null;
 
-        'statusDot' => $statusDot,
-        'statusBg' => $statusBg,
+        if ($cliente?->telefone) {
+            $tel      = preg_replace('/\D/', '', $cliente->telefone);
+            $mensagem = urlencode("Olá {$cliente->nome}, sua OS {$ordem->codigo_publico} está disponível no portal.");
+            $waUrl    = "https://wa.me/55{$tel}?text={$mensagem}";
+        }
 
-        'isFinished' => $isFinished,
-        'isCancelled' => $isCancelled,
+        $steps = [
+            ['key' => 'entrada',   'label' => 'Entrada',        'desc' => 'Equipamento recebido pela assistência.'],
+            ['key' => 'analise',   'label' => 'Em Análise',     'desc' => 'Diagnóstico técnico em andamento.'],
+            ['key' => 'execucao',  'label' => 'Em Execução',    'desc' => 'Reparo sendo realizado.'],
+            ['key' => 'em_teste',  'label' => 'Em Teste',       'desc' => 'Equipamento em testes finais.'],
+            ['key' => 'finalizado','label' => 'Finalizado',     'desc' => 'Pronto para retirada.'],
+        ];
 
-        'steps' => $steps,
-        'currentStep' => $currentStep,
-    ]);
-}
-    
+        $currentStep = collect($steps)->search(fn ($s) => $s['key'] === $ordem->status) ?: 0;
+
+        return [
+            'ordem'       => $ordem,
+            'waUrl'       => $waUrl,
+            'steps'       => $steps,
+            'currentStep' => $currentStep,
+            'isFinished'  => $ordem->status === 'finalizado',
+            'isCancelled' => $ordem->status === 'cancelado',
+        ];
+    }
 }
