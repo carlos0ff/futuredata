@@ -5,57 +5,39 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\Mensagem;
 use App\Models\Ordem;
+use App\Models\User;
+use App\Notifications\MensagemPortal;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\Notification;
 
 class MessageController extends Controller
 {
-    public function index(Request $request): View
+    /** Enviar mensagem via portal público */
+    public function store(Ordem $ordemServico, Request $request): RedirectResponse
     {
-        $ordens = Ordem::with(['mensagens' => fn ($q) => $q->latest()->limit(1)])
-            ->where('cliente_id', auth()->user()->cliente_id ?? null)
-            ->latest()
-            ->get();
-
-        $ordemAtiva = null;
-        $mensagens  = collect();
-
-        if ($request->filled('ordem')) {
-            $ordemAtiva = Ordem::with('mensagens.autor')
-                ->where('cliente_id', auth()->user()->cliente_id ?? null)
-                ->findOrFail($request->ordem);
-
-            $mensagens = $ordemAtiva->mensagens()
-                ->with('autor')
-                ->oldest()
-                ->get();
-
-            $ordemAtiva->mensagens()
-                ->whereNull('lida_em')
-                ->where('user_id', '!=', auth()->id())
-                ->update(['lida_em' => now()]);
-        }
-
-        return view('pages.client-portal.messages.index', compact('ordens', 'ordemAtiva', 'mensagens'));
-    }
-
-    public function store(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'ordem_id' => ['required', 'exists:ordens,id'],
-            'conteudo' => ['required', 'string', 'max:2000'],
+        $data = $request->validate([
+            'conteudo' => 'required|string|max:1000',
         ]);
 
         Mensagem::create([
-            'ordem_id' => $request->ordem_id,
-            'user_id'  => auth()->id(),
+            'ordem_id' => $ordemServico->id,
+            'user_id'  => null,
             'tipo'     => 'cliente',
-            'conteudo' => $request->conteudo,
+            'conteudo' => $data['conteudo'],
         ]);
 
+        $mensagem->load('ordem');
+        $gerentes = User::where('role', 'gerente')->get();
+        Notification::send($gerentes, new MensagemPortal($mensagem));
+
+        if ($ordemServico->tecnico_id) {
+            $ordemServico->tecnico->notify(new MensagemPortal($mensagem));
+        }
+
         return redirect()
-            ->route('portal.mensagens.index', ['ordem' => $request->ordem_id])
-            ->with('success', 'Mensagem enviada.');
+            ->route('portal.show', $ordemServico->token)
+            ->with('success', 'Mensagem enviada com sucesso!')
+            ->withFragment('mensagens');
     }
 }

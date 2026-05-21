@@ -11,7 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->redirectGuestsTo('/auth/entrar');
+        $middleware->redirectGuestsTo(fn () => route('auth.login.form'));
 
         $middleware->alias([
             'role'         => \App\Http\Middleware\RoleMiddleware::class,

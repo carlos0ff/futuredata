@@ -16,6 +16,7 @@ class Ordem extends Model
     protected $fillable = [
         'numero',
         'codigo_publico',
+        'token',
         'cliente_id',
         'equipamento_id',
         'tecnico_id',
@@ -57,6 +58,17 @@ class Ordem extends Model
                 $ano = ($ordem->created_at ?? now())->format('Y');
                 $seq = str_pad(static::max('id') + 1, 5, '0', STR_PAD_LEFT);
                 $ordem->numero = "OS{$ano}{$seq}";
+            }
+
+            if (empty($ordem->token)) {
+                $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                do {
+                    $token = '';
+                    for ($i = 0; $i < 7; $i++) {
+                        $token .= $chars[random_int(0, 35)];
+                    }
+                } while (static::where('token', $token)->exists());
+                $ordem->token = $token;
             }
         });
 

@@ -1,87 +1,33 @@
-{{-- ═══════════════════════════════════════════════════════
-     SIDEBAR — Future Data Admin
-═══════════════════════════════════════════════════════ --}}
-<aside
-    :class="[
-        collapsed ? 'w-[68px]' : 'w-[240px]',
-        mobileOpen ? 'translate-x-0 shadow-[24px_0_80px_rgba(0,0,0,.6)]' : '-translate-x-full lg:translate-x-0'
-    ]"
-    class="fixed inset-y-0 left-0 z-50 flex flex-col border-r border-white/[0.05] bg-[#0d0f16] transition-[width,transform] duration-300 ease-in-out"
->
-    {{-- ─── Marca ─── --}}
+<aside :class="[ collapsed ? 'w-[68px]' : 'w-[240px]', mobileOpen ? 'translate-x-0 shadow-[24px_0_80px_rgba(0,0,0,.6)]' : '-translate-x-full lg:translate-x-0']" class="fixed inset-y-0 left-0 z-50 flex flex-col border-r border-white/[0.05] bg-[#0d0f16] transition-[width,transform] duration-300 ease-in-out">
     <div class="relative flex h-[64px] shrink-0 items-center border-b border-white/[0.06] bg-gradient-to-b from-white/[0.02] to-transparent px-5 backdrop-blur-xl">
 
-        <a href="/" class="group flex min-w-0 items-center gap-3 transition-all duration-300">
-
-            <div class="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] shadow-lg shadow-black/20 transition-all duration-300 group-hover:scale-[1.03] group-hover:border-blue-500/30">
-                <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-cyan-400/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                <img
-                    src="{{ asset('images/futuredata.png') }}"
-                    class="relative h-8 w-auto object-contain brightness-0 invert transition duration-300 group-hover:scale-105"
-                    alt="Future Data"
-                />
-            </div>
-
-            <div
-                x-show="!collapsed"
-                x-transition:enter="transition duration-200 ease-out"
-                x-transition:enter-start="opacity-0 -translate-x-2"
-                x-transition:enter-end="opacity-100 translate-x-0"
-                x-transition:leave="transition duration-150 ease-in"
-                x-transition:leave-start="opacity-100 translate-x-0"
-                x-transition:leave-end="opacity-0 -translate-x-2"
-                class="min-w-0"
-            >
-                <h2 class="truncate text-[14px] font-semibold tracking-wide text-white">Future Data</h2>
-                <p class="text-[11px] font-medium text-slate-500">Painel Administrativo</p>
-            </div>
+        <a href="{{ route('app.dashboard') }}" class="group flex items-center justify-center">
+            <img
+                src="{{ asset('images/futuredata.png') }}"
+                class="relative h-8 w-auto object-contain brightness-0 invert transition duration-300 group-hover:scale-105"
+                alt="Future Data"
+            />
         </a>
 
         {{-- Collapse Button --}}
-        <button
-            @click="collapsed = !collapsed"
-            class="absolute -right-3 top-1/2 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.08] bg-[#0f1117] text-slate-500 shadow-[0_4px_20px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:scale-110 hover:border-blue-500/40 hover:bg-slate-900 hover:text-slate-200 lg:flex"
-        >
-            <svg
-                :class="collapsed ? 'rotate-180' : ''"
-                class="h-3.5 w-3.5 transition-transform duration-300"
-                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            >
+        <button @click="collapsed = !collapsed" class="absolute -right-3 top-1/2 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.08] bg-[#0f1117] text-slate-500 shadow-[0_4px_20px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:scale-110 hover:border-blue-500/40 hover:bg-slate-900 hover:text-slate-200 lg:flex" >
+            <svg :class="collapsed ? 'rotate-180' : ''" class="h-3.5 w-3.5 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" >
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
         </button>
     </div>
 
-    {{-- ─── Navegação ─── --}}
     <nav class="flex-1 overflow-y-auto overflow-x-hidden py-2.5 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,.05)_transparent]">
 
-        {{-- ·· Grupo: Principal ·· --}}
         <div class="mb-1 px-3.5">
             <span x-show="!collapsed" class="block px-1 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">Principal</span>
             <div x-show="collapsed" class="my-1 border-t border-white/[0.06]"></div>
         </div>
 
-        {{-- Plataforma (gerente only) --}}
-        @if(auth()->user()->isGerente())
-        @php $isApp = request()->is('app') || request()->is('app/*'); @endphp
-        <div class="px-2 mb-0.5">
-            <a href="{{ route('app.index') }}"
-               @mouseenter="showTooltip($el, 'Plataforma')" @mouseleave="hideTooltip()"
-               class="group relative flex items-center gap-3 rounded-xl px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150
-                   {{ $isApp ? 'bg-purple-600/[0.13] text-purple-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
-                @if($isApp)<div class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-purple-500 shadow-sm shadow-purple-500/50"></div>@endif
-                <svg class="h-[17px] w-[17px] shrink-0 transition-colors {{ $isApp ? 'text-purple-400' : 'text-slate-600 group-hover:text-slate-400' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
-                </svg>
-                <span x-show="!collapsed" class="whitespace-nowrap">Plataforma</span>
-            </a>
-        </div>
-        @endif
-
         {{-- Dashboard --}}
-        @php $isDash = request()->is('/') || request()->is('dashboard'); @endphp
+        @php $isDash = request()->routeIs('app.dashboard'); @endphp
         <div class="px-2 mb-0.5">
-            <a href="/"
+            <a href="{{ route('app.dashboard') }}"
                @mouseenter="showTooltip($el, 'Dashboard')" @mouseleave="hideTooltip()"
                class="group relative flex items-center gap-3 rounded-xl px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isDash ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
                 @if($isDash)<div class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>@endif
@@ -94,7 +40,7 @@
         </div>
 
         {{-- Ordens de Serviço (dropdown) --}}
-        @php $isOS = request()->is('ordens*'); @endphp
+        @php $isOS = request()->is('app/ordens-servico*'); @endphp
         <div x-data="{ open: {{ $isOS ? 'true' : 'false' }} }" class="px-2 mb-0.5">
             <button @click="!collapsed && (open = !open)"
                     @mouseenter="showTooltip($el, 'Ordens de Serviço')" @mouseleave="hideTooltip()"
@@ -114,13 +60,16 @@
                  x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
                  x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
                  class="mt-0.5 ml-[15px] space-y-0.5 border-l border-white/[0.07] pb-1 pl-3" style="display:none">
-                @foreach([
-                    ['href' => '/ordens',                  'label' => 'Todas as OS'],
-                    ['href' => '/ordens/nova',             'label' => 'Nova OS'],
-                    ['href' => '/ordens?status=aberto',    'label' => 'Em Aberto'],
-                    ['href' => '/ordens?status=concluido', 'label' => 'Concluídas'],
-                    ['href' => '/ordens?status=cancelado', 'label' => 'Canceladas'],
-                ] as $sub)
+                @php
+                $osSubItems = [
+                    ['href' => route('app.os.index'),                              'label' => 'Todas as OS'],
+                    ['href' => route('app.os.create'),                             'label' => 'Nova OS'],
+                    ['href' => route('app.os.index') . '?status=aberto',           'label' => 'Em Aberto'],
+                    ['href' => route('app.os.index') . '?status=concluido',        'label' => 'Concluídas'],
+                    ['href' => route('app.os.index') . '?status=cancelado',        'label' => 'Canceladas'],
+                ];
+                @endphp
+                @foreach($osSubItems as $sub)
                 @php $subOn = request()->fullUrl() === url($sub['href']); @endphp
                 <a href="{{ $sub['href'] }}" class="flex items-center gap-2.5 rounded-lg px-2.5 py-[5px] text-[12.5px] font-medium transition-all duration-100 {{ $subOn ? 'text-blue-400' : 'text-slate-500 hover:bg-white/[0.04] hover:text-slate-200' }}">
                     <div class="h-[5px] w-[5px] rounded-full {{ $subOn ? 'bg-blue-400' : 'bg-slate-700' }}"></div>
@@ -130,12 +79,12 @@
             </div>
         </div>
 
-        {{-- Clientes — apenas gerente --}}
+        {{-- Clientes --}}
         @if(auth()->user()->isGerente())
-        @php $isCli = request()->is('clientes*'); @endphp
+        @php $isCli = request()->is('app/clientes*'); @endphp
         <div class="px-2 mb-0.5">
-            <a href="/clientes" @mouseenter="showTooltip($el, 'Clientes')" @mouseleave="hideTooltip()"
-               class="group relative flex items-center gap-3 rounded-xl px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isCli ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
+            <a href="{{ route('app.clientes.index') }}" @mouseenter="showTooltip($el, 'Clientes')" @mouseleave="hideTooltip()"
+               class="group relative flex items-center gap-3 rounded-md px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isCli ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
                 @if($isCli)<div class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>@endif
                 <svg class="h-[17px] w-[17px] shrink-0 transition-colors {{ $isCli ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-400' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
@@ -146,11 +95,11 @@
         </div>
         @endif
 
-        {{-- Equipamentos — apenas gerente --}}
+        {{-- Equipamentos --}}
         @if(auth()->user()->isGerente())
-        @php $isEq = request()->is('equipamentos*'); @endphp
+        @php $isEq = request()->is('app/equipamentos*'); @endphp
         <div class="px-2 mb-0.5">
-            <a href="/equipamentos" @mouseenter="showTooltip($el, 'Equipamentos')" @mouseleave="hideTooltip()"
+            <a href="{{ route('app.equipamentos.index') }}" @mouseenter="showTooltip($el, 'Equipamentos')" @mouseleave="hideTooltip()"
                class="group relative flex items-center gap-3 rounded-xl px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isEq ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
                 @if($isEq)<div class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>@endif
                 <svg class="h-[17px] w-[17px] shrink-0 transition-colors {{ $isEq ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-400' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -163,11 +112,11 @@
         </div>
         @endif
 
-        {{-- Estoque — apenas gerente --}}
+        {{-- Estoque --}}
         @if(auth()->user()->isGerente())
-        @php $isEst = request()->is('estoque*'); @endphp
+        @php $isEst = request()->is('app/estoque*'); @endphp
         <div class="px-2 mb-0.5">
-            <a href="/estoque" @mouseenter="showTooltip($el, 'Estoque')" @mouseleave="hideTooltip()"
+            <a href="/app/estoque" @mouseenter="showTooltip($el, 'Estoque')" @mouseleave="hideTooltip()"
                class="group relative flex items-center gap-3 rounded-xl px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isEst ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
                 @if($isEst)<div class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>@endif
                 <svg class="h-[17px] w-[17px] shrink-0 transition-colors {{ $isEst ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-400' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -179,15 +128,14 @@
         </div>
         @endif
 
-        {{-- ·· Grupo: Financeiro — apenas gerente ·· --}}
+        {{-- ·· Grupo: Financeiro ·· --}}
         @if(auth()->user()->isGerente())
         <div class="mb-1 mt-4 px-3.5">
             <span x-show="!collapsed" class="block px-1 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">Financeiro</span>
             <div x-show="collapsed" class="my-2 border-t border-white/[0.06]"></div>
         </div>
 
-        {{-- Financeiro (dropdown) --}}
-        @php $isFin = request()->is('financeiro*'); @endphp
+        @php $isFin = request()->is('app/financeiro*'); @endphp
         <div x-data="{ open: {{ $isFin ? 'true' : 'false' }} }" class="px-2 mb-0.5">
             <button @click="!collapsed && (open = !open)"
                     @mouseenter="showTooltip($el, 'Financeiro')" @mouseleave="hideTooltip()"
@@ -206,12 +154,15 @@
                  x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
                  x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
                  class="mt-0.5 ml-[15px] space-y-0.5 border-l border-white/[0.07] pb-1 pl-3" style="display:none">
-                @foreach([
-                    ['href' => '/financeiro',            'label' => 'Resumo'],
-                    ['href' => '/financeiro/receitas',   'label' => 'Receitas'],
-                    ['href' => '/financeiro/despesas',   'label' => 'Despesas'],
-                    ['href' => '/financeiro/relatorios', 'label' => 'Relatórios'],
-                ] as $sub)
+                @php
+                $finSubItems = [
+                    ['href' => route('app.financeiro.index'),    'label' => 'Resumo'],
+                    ['href' => route('app.financeiro.receitas'), 'label' => 'Receitas'],
+                    ['href' => route('app.financeiro.despesas'), 'label' => 'Despesas'],
+                    ['href' => route('app.relatorios.index'),    'label' => 'Relatórios'],
+                ];
+                @endphp
+                @foreach($finSubItems as $sub)
                 @php $subOn = request()->fullUrl() === url($sub['href']); @endphp
                 <a href="{{ $sub['href'] }}" class="flex items-center gap-2.5 rounded-lg px-2.5 py-[5px] text-[12.5px] font-medium transition-all duration-100 {{ $subOn ? 'text-blue-400' : 'text-slate-500 hover:bg-white/[0.04] hover:text-slate-200' }}">
                     <div class="h-[5px] w-[5px] rounded-full {{ $subOn ? 'bg-blue-400' : 'bg-slate-700' }}"></div>
@@ -220,7 +171,7 @@
                 @endforeach
             </div>
         </div>
-        @endif {{-- fim gerente: financeiro --}}
+        @endif
 
         {{-- ·· Grupo: Sistema ·· --}}
         @if(auth()->user()->isGerente())
@@ -230,9 +181,9 @@
         </div>
 
         {{-- Relatórios --}}
-        @php $isRel = request()->is('relatorios*'); @endphp
+        @php $isRel = request()->is('app/relatorios*'); @endphp
         <div class="px-2 mb-0.5">
-            <a href="/relatorios" @mouseenter="showTooltip($el, 'Relatórios')" @mouseleave="hideTooltip()"
+            <a href="{{ route('app.relatorios.index') }}" @mouseenter="showTooltip($el, 'Relatórios')" @mouseleave="hideTooltip()"
                class="group relative flex items-center gap-3 rounded-xl px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isRel ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
                 @if($isRel)<div class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>@endif
                 <svg class="h-[17px] w-[17px] shrink-0 transition-colors {{ $isRel ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-400' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -243,7 +194,7 @@
         </div>
 
         {{-- Configurações (dropdown) --}}
-        @php $isConf = request()->is('configuracoes*'); @endphp
+        @php $isConf = request()->is('app/configuracoes*') || request()->is('app/usuarios*'); @endphp
         <div x-data="{ open: {{ $isConf ? 'true' : 'false' }} }" class="px-2 mb-0.5">
             <button @click="!collapsed && (open = !open)"
                     @mouseenter="showTooltip($el, 'Configurações')" @mouseleave="hideTooltip()"
@@ -262,12 +213,14 @@
                  x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
                  x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
                  class="mt-0.5 ml-[15px] space-y-0.5 border-l border-white/[0.07] pb-1 pl-3" style="display:none">
-                @foreach([
-                    ['href' => '/configuracoes',             'label' => 'Empresa'],
-                    ['href' => '/configuracoes/usuarios',    'label' => 'Usuários'],
-                    ['href' => '/configuracoes/integracoes', 'label' => 'Integrações'],
-                ] as $sub)
-                @php $subOn = request()->fullUrl() === url($sub['href']); @endphp
+                @php
+                $confSubItems = [
+                    ['href' => route('app.configuracoes.index'), 'label' => 'Empresa'],
+                    ['href' => route('app.usuarios.index'),      'label' => 'Usuários'],
+                ];
+                @endphp
+                @foreach($confSubItems as $sub)
+                @php $subOn = request()->is(ltrim(parse_url($sub['href'], PHP_URL_PATH), '/')); @endphp
                 <a href="{{ $sub['href'] }}" class="flex items-center gap-2.5 rounded-lg px-2.5 py-[5px] text-[12.5px] font-medium transition-all duration-100 {{ $subOn ? 'text-blue-400' : 'text-slate-500 hover:bg-white/[0.04] hover:text-slate-200' }}">
                     <div class="h-[5px] w-[5px] rounded-full {{ $subOn ? 'bg-blue-400' : 'bg-slate-700' }}"></div>
                     {{ $sub['label'] }}
@@ -275,7 +228,7 @@
                 @endforeach
             </div>
         </div>
-        @endif {{-- fim gerente: sistema --}}
+        @endif
 
     </nav>
 
@@ -327,17 +280,13 @@
                     </div>
                 </div>
                 <div class="p-1.5 space-y-0.5">
-                    <a href="/perfil" class="flex items-center gap-3 rounded-xl px-3 py-[7px] text-[12.5px] font-medium text-slate-400 transition-all hover:bg-white/[0.06] hover:text-slate-100">
+                    <a href="{{ route('app.perfil.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-[7px] text-[12.5px] font-medium text-slate-400 transition-all hover:bg-white/[0.06] hover:text-slate-100">
                         <svg class="h-[15px] w-[15px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         Meu Perfil
                     </a>
-                    <a href="/configuracoes" class="flex items-center gap-3 rounded-xl px-3 py-[7px] text-[12.5px] font-medium text-slate-400 transition-all hover:bg-white/[0.06] hover:text-slate-100">
+                    <a href="{{ route('app.configuracoes.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-[7px] text-[12.5px] font-medium text-slate-400 transition-all hover:bg-white/[0.06] hover:text-slate-100">
                         <svg class="h-[15px] w-[15px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
                         Configurações
-                    </a>
-                    <a href="#" class="flex items-center gap-3 rounded-xl px-3 py-[7px] text-[12.5px] font-medium text-slate-400 transition-all hover:bg-white/[0.06] hover:text-slate-100">
-                        <svg class="h-[15px] w-[15px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
-                        Suporte
                     </a>
                 </div>
                 <div class="border-t border-white/[0.06] p-1.5">

@@ -13,6 +13,7 @@ use Illuminate\View\View;
 
 class PortalController extends Controller
 {
+    /** Portal autenticado — lista de OS do cliente */
     public function index(Request $request): View
     {
         $user    = auth()->user();
@@ -35,48 +36,100 @@ class PortalController extends Controller
             'finalizadas' => Ordem::where('cliente_id', $cliente->id)->where('status', 'finalizado')->count(),
         ] : ['total' => 0, 'abertas' => 0, 'finalizadas' => 0];
 
-        return view('pages.client-portal.index', compact('ordens', 'cliente', 'stats'));
+        return view('portal.index', compact('ordens', 'cliente', 'stats'));
     }
 
-    public function show(string $codigo): View
-    {
-        $ordem = Ordem::with(['cliente', 'equipamento', 'tecnico', 'historico', 'mensagens'])
-            ->where('codigo_publico', $codigo)
-            ->firstOrFail();
+    /** Portal público — acesso via token curto /r/{token} */
+    public function show(Ordem $ordemServico)
+{
+    $cliente = $ordemServico->cliente;
 
-        return view('pages.client-portal.show', compact('ordem'));
+    $waUrl = null;
+
+    if ($cliente?->telefone) {
+        $telefone = preg_replace('/\D/', '', $cliente->telefone);
+
+        $mensagem = urlencode(
+            "Olá {$cliente->nome}, sua ordem {$ordemServico->codigo_publico} está disponível no portal."
+        );
+
+        $waUrl = "https://wa.me/55{$telefone}?text={$mensagem}";
     }
 
-    public function storeMessage(string $codigo, Request $request): RedirectResponse
-    {
-        $ordem = Ordem::where('codigo_publico', $codigo)->firstOrFail();
+    $statusDot = [
+        'aberto'      => 'bg-sky-400',
+        'analise'     => 'bg-amber-400',
+        'aprovado'    => 'bg-emerald-400',
+        'andamento'   => 'bg-blue-400',
+        'finalizado'  => 'bg-green-400',
+        'cancelado'   => 'bg-red-400',
+    ];
 
-        $data = $request->validate(['mensagem' => 'required|string|max:1000']);
+    $statusBg = [
+        'aberto'      => 'bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20',
+        'analise'     => 'bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20',
+        'aprovado'    => 'bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20',
+        'andamento'   => 'bg-blue-500/10 text-blue-300 ring-1 ring-blue-500/20',
+        'finalizado'  => 'bg-green-500/10 text-green-300 ring-1 ring-green-500/20',
+        'cancelado'   => 'bg-red-500/10 text-red-300 ring-1 ring-red-500/20',
+    ];
 
-        Mensagem::create([
-            'ordem_id' => $ordem->id,
-            'user_id'  => null,
-            'tipo'     => 'cliente',
-            'conteudo' => $data['mensagem'],
-        ]);
+    $isFinished = $ordemServico->status === 'finalizado';
+    $isCancelled = $ordemServico->status === 'cancelado';
 
-        return redirect()->route('portal.show', $codigo)
-            ->with('success', 'Mensagem enviada com sucesso!')
-            ->withFragment('mensagens');
+    $steps = [
+    [
+        'key' => 'aberto',
+        'label' => 'Aberta',
+        'desc' => 'Ordem criada e aguardando análise técnica.',
+    ],
+    [
+        'key' => 'analise',
+        'label' => 'Análise',
+        'desc' => 'Equipamento em diagnóstico pela assistência.',
+    ],
+    [
+        'key' => 'aprovado',
+        'label' => 'Aprovado',
+        'desc' => 'Orçamento aprovado para execução do serviço.',
+    ],
+    [
+        'key' => 'andamento',
+        'label' => 'Em andamento',
+        'desc' => 'Reparo sendo realizado pela equipe técnica.',
+    ],
+    [
+        'key' => 'finalizado',
+        'label' => 'Finalizado',
+        'desc' => 'Serviço concluído e equipamento disponível.',
+    ],
+];
+
+    $currentStep = collect($steps)
+    ->search(fn ($step) => $step['key'] === $ordemServico->status);
+
+if ($currentStep === false) {
+    $currentStep = 0;
+}
+
+    if ($currentStep === false) {
+        $currentStep = 0;
     }
 
-    public function orcamento(string $codigo, Request $request): RedirectResponse
-    {
-        $ordem = Ordem::where('codigo_publico', $codigo)->firstOrFail();
+    return view('portal.show', [
+        'ordemServico' => $ordemServico,
+        'ordem' => $ordemServico,
+        'waUrl' => $waUrl,
 
-        $acao = $request->validate(['acao' => 'required|in:aprovado,recusado'])['acao'];
+        'statusDot' => $statusDot,
+        'statusBg' => $statusBg,
 
-        $ordem->update(['status_orcamento' => $acao]);
+        'isFinished' => $isFinished,
+        'isCancelled' => $isCancelled,
 
-        $msg = $acao === 'aprovado'
-            ? 'Orçamento aprovado! Em breve entraremos em contato.'
-            : 'Orçamento recusado. Nossa equipe entrará em contato.';
-
-        return redirect()->route('portal.show', $codigo)->with('success', $msg);
-    }
+        'steps' => $steps,
+        'currentStep' => $currentStep,
+    ]);
+}
+    
 }
