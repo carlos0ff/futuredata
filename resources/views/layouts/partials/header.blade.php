@@ -147,22 +147,15 @@
                 {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}
             </button>
 
-            <div
-                x-show="open"
-                @click.outside="open = false"
-                x-transition:enter="transition ease-out duration-150"
-                x-transition:enter-start="opacity-0 scale-[0.97] translate-y-1"
-                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-100"
-                x-transition:leave-start="opacity-100 scale-100"
-                x-transition:leave-end="opacity-0 scale-[0.97]"
-                class="absolute right-0 top-full mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-200/60"
-                style="display:none"
-            >
+            <div x-show="open" @click.outside="open = false" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-[0.97] translate-y-1"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-[0.97]" class="absolute right-0 top-full mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-200/60"
+                style="display:none" >
                 <div class="border-b border-slate-100 px-4 py-3">
                     <p class="text-[13px] font-semibold text-slate-900">{{ auth()->user()->name ?? 'Usuário' }}</p>
                     <p class="text-[11px] text-slate-500 truncate">{{ auth()->user()->email ?? '' }}</p>
                 </div>
+
                 <div class="p-1">
                     <a href="/perfil" class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900">
                         <svg class="h-[14px] w-[14px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -173,6 +166,7 @@
                         Configurações
                     </a>
                 </div>
+                
                 <div class="border-t border-slate-100 p-1">
                     <form action="{{ route('auth.sair') }}" method="POST">
                         @csrf

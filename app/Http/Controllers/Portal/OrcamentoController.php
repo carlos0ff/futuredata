@@ -13,7 +13,7 @@ class OrcamentoController extends Controller
         $ordemServico->update(['status_orcamento' => 'aprovado']);
 
         return redirect()
-            ->route('portal.show', $ordemServico->token)
+            ->route('portal.token', $ordemServico->token)
             ->with('success', 'Orçamento aprovado! Nossa equipe iniciará o serviço em breve.');
     }
 
@@ -22,7 +22,7 @@ class OrcamentoController extends Controller
         $ordemServico->update(['status_orcamento' => 'recusado']);
 
         return redirect()
-            ->route('portal.show', $ordemServico->token)
+            ->route('portal.token', $ordemServico->token)
             ->with('info', 'Orçamento recusado. Nossa equipe entrará em contacto para discutir outras opções.');
     }
 }

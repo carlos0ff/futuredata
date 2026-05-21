@@ -43,8 +43,7 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
         });
 
     /** Equipamentos **/
-    Route::prefix('equipamentos')->name('equipamentos.')
-        ->controller(EquipamentoController::class)
+    Route::prefix('equipamentos')->name('equipamentos.')->controller(EquipamentoController::class)
         ->group(function () {
             Route::get('/',                     'index')->name('index');
             Route::get('/novo',                 'create')->name('create');

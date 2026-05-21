@@ -21,9 +21,22 @@ class OrdemServicoController extends Controller
     {
         $user = auth()->user();
 
-        $ordens = Ordem::query()
+        $base = Ordem::query()
+            ->when($user->isTecnico(), fn ($q) => $q->where('tecnico_id', $user->id));
+
+        $stats = [
+            'total'     => (clone $base)->count(),
+            'abertas'   => (clone $base)->whereNotIn('status', ['finalizado', 'cancelado'])->count(),
+            'execucao'  => (clone $base)->where('status', 'execucao')->count(),
+            'atrasadas' => (clone $base)
+                ->whereNotIn('status', ['finalizado', 'cancelado'])
+                ->whereNotNull('previsao_entrega')
+                ->whereDate('previsao_entrega', '<', today())
+                ->count(),
+        ];
+
+        $ordens = (clone $base)
             ->with(['cliente', 'equipamento', 'tecnico'])
-            ->when($user->isTecnico(), fn ($q) => $q->where('tecnico_id', $user->id))
             ->when($request->filled('busca'), fn ($q) =>
                 $q->where(fn ($sub) =>
                     $sub->where('numero', 'like', "%{$request->busca}%")
@@ -39,6 +52,7 @@ class OrdemServicoController extends Controller
 
         return view('app.ordens.index', [
             'ordens'  => $ordens,
+            'stats'   => $stats,
             'status'  => Ordem::STATUS,
             'current' => $request->only('busca', 'status'),
         ]);

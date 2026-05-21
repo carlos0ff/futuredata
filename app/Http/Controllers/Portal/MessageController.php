@@ -20,7 +20,7 @@ class MessageController extends Controller
             'conteudo' => 'required|string|max:1000',
         ]);
 
-        Mensagem::create([
+        $mensagem = Mensagem::create([
             'ordem_id' => $ordemServico->id,
             'user_id'  => null,
             'tipo'     => 'cliente',
@@ -36,7 +36,7 @@ class MessageController extends Controller
         }
 
         return redirect()
-            ->route('portal.show', $ordemServico->token)
+            ->route('portal.token', $ordemServico->token)
             ->with('success', 'Mensagem enviada com sucesso!')
             ->withFragment('mensagens');
     }

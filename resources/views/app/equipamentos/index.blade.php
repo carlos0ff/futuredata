@@ -81,11 +81,11 @@
                         <th class="px-5 py-3 text-right text-[10.5px] font-semibold uppercase tracking-wider text-slate-500">Ações</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
+                <tbody class="divide-y divide-slate-100">
                     @foreach($equipamentos as $eq)
-                    <tr class="group transition-colors hover:bg-slate-50/60">
-                        <td class="px-5 py-3.5">
-                            <span class="inline-flex rounded-lg bg-slate-100 px-2.5 py-1 text-[11.5px] font-semibold text-slate-600">
+                    <tr class="group transition-all duration-150 hover:bg-blue-50/40">
+                        <td class="border-l-[3px] border-l-transparent px-5 py-3.5 transition-all duration-150 group-hover:border-l-blue-500">
+                            <span class="inline-flex rounded-lg bg-slate-100 px-2.5 py-1 text-[11.5px] font-semibold text-slate-600 transition-colors group-hover:bg-blue-100 group-hover:text-blue-700">
                                 {{ $eq->tipo }}
                             </span>
                         </td>
@@ -113,15 +113,32 @@
                             @endif
                         </td>
                         <td class="px-5 py-3.5 text-right">
-                            <div class="inline-flex items-center gap-1">
+                            <div class="inline-flex items-center gap-0.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                                 <a href="{{ route('app.equipamentos.show', $eq) }}"
-                                   class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-                                    Ver
+                                   title="Ver detalhes"
+                                   class="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-blue-100 hover:text-blue-600">
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                                    </svg>
                                 </a>
                                 <a href="{{ route('app.equipamentos.edit', $eq) }}"
-                                   class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-                                    Editar
+                                   title="Editar"
+                                   class="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-amber-100 hover:text-amber-600">
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
                                 </a>
+                                <form method="POST" action="{{ route('app.equipamentos.destroy', $eq) }}"
+                                      onsubmit="return confirm('Excluir o equipamento {{ $eq->marca }} {{ $eq->modelo }}?')"
+                                      class="inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" title="Excluir"
+                                            class="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-100 hover:text-red-600">
+                                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>
+                                        </svg>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>

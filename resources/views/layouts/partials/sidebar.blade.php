@@ -27,10 +27,8 @@
         {{-- Dashboard --}}
         @php $isDash = request()->routeIs('app.dashboard'); @endphp
         <div class="px-2 mb-0.5">
-            <a href="{{ route('app.dashboard') }}"
-               @mouseenter="showTooltip($el, 'Dashboard')" @mouseleave="hideTooltip()"
-               class="group relative flex items-center gap-3 rounded-xl px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isDash ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
-                @if($isDash)<div class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>@endif
+            <a href="{{ route('app.dashboard') }}" @mouseenter="showTooltip($el, 'Dashboard')" @mouseleave="hideTooltip()" class="group relative flex items-center gap-3 rounded-xl px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isDash ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
+                @if($isDash)<div class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-md bg-blue-500 shadow-sm shadow-blue-500/50"></div>@endif
                 <svg class="h-[17px] w-[17px] shrink-0 transition-colors {{ $isDash ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-400' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
                     <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
@@ -42,22 +40,21 @@
         {{-- Ordens de Serviço (dropdown) --}}
         @php $isOS = request()->is('app/ordens-servico*'); @endphp
         <div x-data="{ open: {{ $isOS ? 'true' : 'false' }} }" class="px-2 mb-0.5">
-            <button @click="!collapsed && (open = !open)"
-                    @mouseenter="showTooltip($el, 'Ordens de Serviço')" @mouseleave="hideTooltip()"
-                    class="group relative flex w-full items-center gap-3 rounded-xl px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isOS ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
+            <button @click="!collapsed && (open = !open)" @mouseenter="showTooltip($el, 'Ordens de Serviço')" @mouseleave="hideTooltip()" class="group relative flex w-full items-center gap-3 rounded-xl px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isOS ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
                 @if($isOS)<div class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>@endif
                 <svg class="h-[17px] w-[17px] shrink-0 transition-colors {{ $isOS ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-400' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2M9 12h6M9 16h4"/>
                 </svg>
+                
                 <span x-show="!collapsed" class="flex-1 text-left whitespace-nowrap">Ordens de Serviço</span>
+                
                 <svg x-show="!collapsed" :class="open ? 'rotate-180' : ''" class="h-3.5 w-3.5 shrink-0 text-slate-600 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
                 </svg>
                 @if($isOS)<span x-show="collapsed" class="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-blue-500"></span>@endif
             </button>
-            <div x-show="open && !collapsed"
-                 x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+            <div x-show="open && !collapsed" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
                  x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
                  class="mt-0.5 ml-[15px] space-y-0.5 border-l border-white/[0.07] pb-1 pl-3" style="display:none">
                 @php
