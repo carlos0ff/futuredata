@@ -65,7 +65,7 @@ class OrdemServicoController extends Controller
             ->get(['id', 'nome', 'telefone', 'cpf_cnpj', 'data_nascimento',
                    'email', 'cidade', 'estado', 'cep', 'endereco', 'numero', 'complemento', 'bairro']);
 
-        $clientesJson = $clientes->map(fn($c) => [
+        $clientesData = $clientes->map(fn($c) => [
             'id'             => $c->id,
             'nome'           => $c->nome,
             'telefone'       => $c->telefone ?? '',
@@ -81,10 +81,10 @@ class OrdemServicoController extends Controller
             'complemento'    => $c->complemento ?? '',
             'bairro'         => $c->bairro ?? '',
             'iniciais'       => strtoupper(substr($c->nome, 0, 2)),
-        ])->toJson();
+        ])->values()->all();
 
         return view('app.ordens.create', [
-            'clientesJson' => $clientesJson,
+            'clientesData' => $clientesData,
             'tecnicos'     => User::orderBy('name')->get(['id', 'name']),
             'status'       => Ordem::STATUS,
         ]);

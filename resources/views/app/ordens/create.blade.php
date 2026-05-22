@@ -34,7 +34,7 @@ $formas = [
     x-data="{
         /* CPF */
         cpf: '{{ old('cpf_cnpj', '') }}',
-        clientes: {!! $clientesJson !!},
+        clientes: @json($clientesData),
         found: null,
 
         get digits() { return this.cpf.replace(/\D/g,''); },
