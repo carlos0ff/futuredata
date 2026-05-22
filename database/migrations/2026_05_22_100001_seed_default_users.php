@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -10,6 +11,14 @@ return new class extends Migration
     {
         // Garantir que o enum aceita todos os valores necessários
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('gerente', 'tecnico', 'admin', 'atendente') NOT NULL DEFAULT 'tecnico'");
+
+        // Tornar colunas extras nullable caso existam com NOT NULL sem default
+        if (Schema::hasColumn('users', 'first_name')) {
+            DB::statement("ALTER TABLE users MODIFY COLUMN first_name VARCHAR(255) NULL DEFAULT NULL");
+        }
+        if (Schema::hasColumn('users', 'last_name')) {
+            DB::statement("ALTER TABLE users MODIFY COLUMN last_name VARCHAR(255) NULL DEFAULT NULL");
+        }
 
         $now = now();
 
