@@ -10,7 +10,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'carlos@futuredata.com.br'],
             [
                 'name'     => 'Carlos Junior',
@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'tecnico@futuredata.com.br'],
             [
                 'name'     => 'Técnico',
