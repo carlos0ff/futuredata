@@ -195,8 +195,7 @@ CREATE TABLE `equipamentos` (
     `observacoes`      TEXT            NULL DEFAULT NULL,
     `created_at`       TIMESTAMP       NULL DEFAULT NULL,
     `updated_at`       TIMESTAMP       NULL DEFAULT NULL,
-    `deleted_at`       TIMESTAMP       NULL DEFAULT NULL
-                       COMMENT 'Soft delete',
+    `deleted_at`       TIMESTAMP       NULL DEFAULT NULL, COMMENT 'Soft delete',
 
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_eq_cliente`
