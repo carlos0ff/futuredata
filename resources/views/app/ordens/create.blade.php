@@ -30,102 +30,30 @@ $formas = [
 @endphp
 
 @section('content')
-<div
-    x-data="{
-        /* CPF */
-        cpf: '{{ old('cpf_cnpj', '') }}',
-        clientes: @json($clientesData),
-        found: null,
+<script>
+window.__osClientes = @json($clientesData);
+window.__osOld = {
+    cpf:     @json(old('cpf_cnpj', '')),
+    nome:    @json(old('nome', '')),
+    tel:     @json(old('telefone', '')),
+    email:   @json(old('email', '')),
+    nasc:    @json(old('data_nascimento', '')),
+    cep:     @json(old('cep', '')),
+    rua:     @json(old('endereco', '')),
+    num:     @json(old('numero', '')),
+    comp:    @json(old('complemento', '')),
+    bairro:  @json(old('bairro', '')),
+    cidade:  @json(old('cidade', '')),
+    uf:      @json(old('estado', '')),
+    tipo:    @json(old('equipamento_tipo', '')),
+    marca:   @json(old('equipamento_marca', '')),
+    modelo:  @json(old('equipamento_modelo', '')),
+    defeito: @json(old('problema_relatado', '')),
+    endOpen: {{ (old('endereco') || old('cep')) ? 'true' : 'false' }},
+};
+</script>
 
-        get digits() { return this.cpf.replace(/\D/g,''); },
-        get valid() {
-            const d = this.digits;
-            if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false;
-            let s1=0, s2=0;
-            for(let i=0;i<9;i++) s1 += +d[i]*(10-i);
-            let r1=(s1*10)%11; if(r1>=10) r1=0;
-            if(r1!==+d[9]) return false;
-            for(let i=0;i<10;i++) s2 += +d[i]*(11-i);
-            let r2=(s2*10)%11; if(r2>=10) r2=0;
-            return r2===+d[10];
-        },
-
-        maskCpf(v) {
-            let n=v.replace(/\D/g,'').slice(0,11);
-            if(n.length>9) n=n.replace(/(\d{3})(\d{3})(\d{3})(\d+)/,'$1.$2.$3-$4');
-            else if(n.length>6) n=n.replace(/(\d{3})(\d{3})(\d+)/,'$1.$2.$3');
-            else if(n.length>3) n=n.replace(/(\d{3})(\d+)/,'$1.$2');
-            return n;
-        },
-
-        onCpf(e) {
-            this.cpf = this.maskCpf(e.target.value);
-            e.target.value = this.cpf;
-            if (this.valid) {
-                this.found = this.clientes.find(c=>c.cpf_limpo===this.digits)||null;
-                if (this.found) { this.fill(this.found); this.$nextTick(()=>this.$refs.nome&&this.$refs.nome.focus()); }
-            } else { this.found = null; }
-        },
-
-        fill(c) {
-            this.nome=c.nome||''; this.tel=c.telefone||''; this.email=c.email||'';
-            this.nasc=c.data_nascimento||''; this.cep=c.cep||'';
-            this.rua=c.endereco||''; this.num=c.numero||''; this.comp=c.complemento||'';
-            this.bairro=c.bairro||''; this.cidade=c.cidade||''; this.uf=c.estado||'';
-        },
-
-        /* Campos */
-        nome:   '{{ old('nome','') }}',
-        tel:    '{{ old('telefone','') }}',
-        email:  '{{ old('email','') }}',
-        nasc:   '{{ old('data_nascimento','') }}',
-        cep:    '{{ old('cep','') }}',
-        rua:    '{{ old('endereco','') }}',
-        num:    '{{ old('numero','') }}',
-        comp:   '{{ old('complemento','') }}',
-        bairro: '{{ old('bairro','') }}',
-        cidade: '{{ old('cidade','') }}',
-        uf:     '{{ old('estado','') }}',
-
-        endOpen: {{ old('endereco')||old('cep') ? 'true':'false' }},
-        cepBusy: false,
-        async fetchCep(v) {
-            const n=v.replace(/\D/g,'');
-            if(n.length!==8) return;
-            this.cepBusy=true;
-            try {
-                const d=await(await fetch('https://viacep.com.br/ws/'+n+'/json/')).json();
-                if(!d.erro){this.rua=d.logradouro||'';this.bairro=d.bairro||'';this.cidade=d.localidade||'';this.uf=d.uf||'';}
-            }catch(e){}
-            this.cepBusy=false;
-        },
-        maskTel(v) {
-            let n=v.replace(/\D/g,'').slice(0,11);
-            if(n.length>10) return n.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');
-            if(n.length>6)  return n.replace(/(\d{2})(\d{4})(\d+)/,'($1) $2-$3');
-            if(n.length>2)  return n.replace(/(\d{2})(\d+)/,'($1) $2');
-            return n;
-        },
-
-        /* Equipamento */
-        tipo:   '{{ old('equipamento_tipo','') }}',
-        marca:  '{{ old('equipamento_marca','') }}',
-        modelo: '{{ old('equipamento_modelo','') }}',
-
-        /* Defeito */
-        defeito: '{{ old('problema_relatado','') }}',
-        get chars() { return this.defeito.length; },
-
-        /* Fotos */
-        fotos: [],
-        addFotos(e) { Array.from(e.target.files).forEach(f=>this.fotos.push({name:f.name,url:URL.createObjectURL(f),size:f.size})); e.target.value=''; },
-        rmFoto(i) { this.fotos.splice(i,1); },
-
-        /* Submit */
-        busy: false,
-    }"
-    class="mx-auto max-w-[1080px]"
->
+<div x-data="osForm()" class="mx-auto max-w-[1080px]">
 
 {{-- HEADER --}}
 <div class="mb-7 flex items-center gap-4">
@@ -584,3 +512,119 @@ $formas = [
 </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function osForm() {
+    const d = window.__osOld;
+    return {
+        clientes: window.__osClientes,
+        found: null,
+        cpf:     d.cpf,
+        nome:    d.nome,
+        tel:     d.tel,
+        email:   d.email,
+        nasc:    d.nasc,
+        cep:     d.cep,
+        rua:     d.rua,
+        num:     d.num,
+        comp:    d.comp,
+        bairro:  d.bairro,
+        cidade:  d.cidade,
+        uf:      d.uf,
+        tipo:    d.tipo,
+        marca:   d.marca,
+        modelo:  d.modelo,
+        defeito: d.defeito,
+        endOpen: d.endOpen,
+        cepBusy: false,
+        fotos:   [],
+        busy:    false,
+
+        get digits() { return this.cpf.replace(/\D/g, ''); },
+        get chars()  { return this.defeito.length; },
+        get valid() {
+            const n = this.digits;
+            if (n.length !== 11 || /^(\d)\1+$/.test(n)) return false;
+            let s1 = 0, s2 = 0;
+            for (let i = 0; i < 9;  i++) s1 += +n[i] * (10 - i);
+            let r1 = (s1 * 10) % 11; if (r1 >= 10) r1 = 0;
+            if (r1 !== +n[9]) return false;
+            for (let i = 0; i < 10; i++) s2 += +n[i] * (11 - i);
+            let r2 = (s2 * 10) % 11; if (r2 >= 10) r2 = 0;
+            return r2 === +n[10];
+        },
+
+        maskCpf(v) {
+            let n = v.replace(/\D/g, '').slice(0, 11);
+            if (n.length > 9) return n.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4');
+            if (n.length > 6) return n.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+            if (n.length > 3) return n.replace(/(\d{3})(\d+)/, '$1.$2');
+            return n;
+        },
+
+        maskTel(v) {
+            let n = v.replace(/\D/g, '').slice(0, 11);
+            if (n.length > 10) return n.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            if (n.length > 6)  return n.replace(/(\d{2})(\d{4})(\d+)/,   '($1) $2-$3');
+            if (n.length > 2)  return n.replace(/(\d{2})(\d+)/,          '($1) $2');
+            return n;
+        },
+
+        onCpf(e) {
+            this.cpf = this.maskCpf(e.target.value);
+            e.target.value = this.cpf;
+            if (this.valid) {
+                this.found = this.clientes.find(c => c.cpf_limpo === this.digits) || null;
+                if (this.found) {
+                    this.fill(this.found);
+                    this.$nextTick(() => this.$refs.nome && this.$refs.nome.focus());
+                }
+            } else {
+                this.found = null;
+            }
+        },
+
+        fill(c) {
+            this.nome   = c.nome   || '';
+            this.tel    = c.telefone || '';
+            this.email  = c.email  || '';
+            this.nasc   = c.data_nascimento || '';
+            this.cep    = c.cep    || '';
+            this.rua    = c.endereco || '';
+            this.num    = c.numero || '';
+            this.comp   = c.complemento || '';
+            this.bairro = c.bairro || '';
+            this.cidade = c.cidade || '';
+            this.uf     = c.estado || '';
+        },
+
+        async fetchCep(v) {
+            const n = v.replace(/\D/g, '');
+            if (n.length !== 8) return;
+            this.cepBusy = true;
+            try {
+                const r = await fetch('https://viacep.com.br/ws/' + n + '/json/');
+                const data = await r.json();
+                if (!data.erro) {
+                    this.rua    = data.logradouro || '';
+                    this.bairro = data.bairro     || '';
+                    this.cidade = data.localidade  || '';
+                    this.uf     = data.uf          || '';
+                }
+            } catch (e) {}
+            this.cepBusy = false;
+        },
+
+        addFotos(e) {
+            Array.from(e.target.files).forEach(f => {
+                this.fotos.push({ name: f.name, url: URL.createObjectURL(f), size: f.size });
+            });
+            e.target.value = '';
+        },
+
+        rmFoto(i) { this.fotos.splice(i, 1); },
+    };
+}
+</script>
+@endpush
