@@ -32,7 +32,8 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (!Auth::attempt($credentials, $request->boolean('remember'))) 
+        {
             throw ValidationException::withMessages([
                 'email' => 'Credenciais inválidas. Verifique o e-mail e a senha.',
             ]);

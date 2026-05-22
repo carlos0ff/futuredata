@@ -589,83 +589,82 @@ $formas = [
 
 {{-- ══ PAINEL DIREITO (sticky) ════════════════════════════ --}}
 <div class="hidden lg:block">
-<div class="sticky top-[74px] space-y-4">
+    <div class="sticky top-[74px] space-y-4">
 
-    {{-- Resumo ao vivo --}}
-    <div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.06]">
-        <div class="border-b border-slate-100 px-5 py-3.5">
-            <p class="text-[10.5px] font-black uppercase tracking-widest text-slate-400">Resumo da OS</p>
+        {{-- Resumo ao vivo --}}
+        <div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.06]">
+            <div class="border-b border-slate-100 px-5 py-3.5">
+                <p class="text-[10.5px] font-black uppercase tracking-widest text-slate-400">Resumo da OS</p>
+            </div>
+            <div class="divide-y divide-slate-50 text-[12.5px]">
+
+                <div class="flex items-center justify-between px-5 py-3">
+                    <span class="text-slate-500">Status inicial</span>
+                    <span class="flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[10.5px] font-semibold text-slate-600">
+                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Entrada
+                    </span>
+                </div>
+
+                <div class="px-5 py-3.5">
+                    <p class="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Cliente</p>
+                    <div class="flex items-center gap-2.5">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-indigo-200 text-[11px] font-bold text-blue-700"
+                            x-text="nome?nome.trim().split(/\s+/).filter(p=>p).slice(0,2).map(p=>p[0].toUpperCase()).join(''):'?'">?</div>
+                        <div class="min-w-0">
+                            <p class="truncate font-semibold text-slate-900" x-text="nome||'—'"></p>
+                            <p class="truncate text-[11.5px] text-slate-400" x-text="tel||'—'"></p>
+                        </div>
+                    </div>
+                    <div x-show="cpf.length>8" class="mt-2 flex justify-between rounded-lg bg-slate-50 px-3 py-1.5" style="display:none">
+                        <span class="text-[10.5px] text-slate-400">CPF</span>
+                        <span class="font-mono text-[11.5px] font-semibold text-slate-700" x-text="cpf"></span>
+                    </div>
+                </div>
+
+                <div class="px-5 py-3.5">
+                    <p class="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Equipamento</p>
+                    <div class="flex items-center gap-2.5">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-black/[0.06]"
+                            :class="tipo?'bg-slate-900':'bg-slate-100'">
+                            <svg class="h-4 w-4" :class="tipo?'text-white':'text-slate-400'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-semibold text-slate-900" x-text="tipo||'Não selecionado'"></p>
+                            <p class="truncate text-[11.5px] text-slate-400" x-text="[marca,modelo].filter(Boolean).join(' ')||'—'"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2 px-5 py-3.5">
+                    <div x-show="defeito.trim()" class="rounded-lg bg-slate-50 p-2.5" style="display:none">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Defeito</p>
+                        <p class="text-[11.5px] leading-relaxed text-slate-600 line-clamp-3" x-text="defeito"></p>
+                    </div>
+                    <div x-show="fotos.length>0" class="flex items-center justify-between" style="display:none">
+                        <span class="text-slate-500">Fotos</span>
+                        <span class="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-blue-700" x-text="fotos.length+' foto'+(fotos.length!==1?'s':'')"></span>
+                    </div>
+                </div>
+
+            </div>
         </div>
-        <div class="divide-y divide-slate-50 text-[12.5px]">
 
-            <div class="flex items-center justify-between px-5 py-3">
-                <span class="text-slate-500">Status inicial</span>
-                <span class="flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[10.5px] font-semibold text-slate-600">
-                    <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Entrada
-                </span>
-            </div>
+        {{-- CTA --}}
+        <button type="submit" :disabled="busy" class="flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 disabled:opacity-60 active:scale-[0.98]">
+            <svg x-show="!busy" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <svg x-show="busy" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" style="display:none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+            <span x-text="busy?'Registrando…':'Registrar Entrada'"></span>
+        </button>
 
-            <div class="px-5 py-3.5">
-                <p class="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Cliente</p>
-                <div class="flex items-center gap-2.5">
-                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-indigo-200 text-[11px] font-bold text-blue-700"
-                         x-text="nome?nome.trim().split(/\s+/).filter(p=>p).slice(0,2).map(p=>p[0].toUpperCase()).join(''):'?'">?</div>
-                    <div class="min-w-0">
-                        <p class="truncate font-semibold text-slate-900" x-text="nome||'—'"></p>
-                        <p class="truncate text-[11.5px] text-slate-400" x-text="tel||'—'"></p>
-                    </div>
-                </div>
-                <div x-show="cpf.length>8" class="mt-2 flex justify-between rounded-lg bg-slate-50 px-3 py-1.5" style="display:none">
-                    <span class="text-[10.5px] text-slate-400">CPF</span>
-                    <span class="font-mono text-[11.5px] font-semibold text-slate-700" x-text="cpf"></span>
-                </div>
-            </div>
+        <a href="{{ route('app.os.index') }}" class="flex h-10 w-full items-center justify-center rounded-xl border border-slate-200 text-[13px] font-semibold text-slate-600 transition hover:bg-slate-50">Cancelar</a>
 
-            <div class="px-5 py-3.5">
-                <p class="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Equipamento</p>
-                <div class="flex items-center gap-2.5">
-                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-black/[0.06]"
-                         :class="tipo?'bg-slate-900':'bg-slate-100'">
-                        <svg class="h-4 w-4" :class="tipo?'text-white':'text-slate-400'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-                    </div>
-                    <div class="min-w-0">
-                        <p class="font-semibold text-slate-900" x-text="tipo||'Não selecionado'"></p>
-                        <p class="truncate text-[11.5px] text-slate-400" x-text="[marca,modelo].filter(Boolean).join(' ')||'—'"></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-2 px-5 py-3.5">
-                <div x-show="defeito.trim()" class="rounded-lg bg-slate-50 p-2.5" style="display:none">
-                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Defeito</p>
-                    <p class="text-[11.5px] leading-relaxed text-slate-600 line-clamp-3" x-text="defeito"></p>
-                </div>
-                <div x-show="fotos.length>0" class="flex items-center justify-between" style="display:none">
-                    <span class="text-slate-500">Fotos</span>
-                    <span class="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-blue-700" x-text="fotos.length+' foto'+(fotos.length!==1?'s':'')"></span>
-                </div>
-            </div>
-
+        <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3.5 text-[11.5px]">
+            <p class="font-bold text-blue-900">Portal do cliente</p>
+            <p class="mt-1 leading-relaxed text-blue-700">
+                Login com <strong>CPF</strong> e <strong>data de nascimento</strong>. Mensagem de boas-vindas enviada automaticamente pelo WhatsApp após a entrada.
+            </p>
         </div>
     </div>
-
-    {{-- CTA --}}
-    <button type="submit" :disabled="busy" class="flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 disabled:opacity-60 active:scale-[0.98]">
-        <svg x-show="!busy" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-        <svg x-show="busy" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" style="display:none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-        <span x-text="busy?'Registrando…':'Registrar Entrada'"></span>
-    </button>
-
-    <a href="{{ route('app.os.index') }}" class="flex h-10 w-full items-center justify-center rounded-xl border border-slate-200 text-[13px] font-semibold text-slate-600 transition hover:bg-slate-50">Cancelar</a>
-
-    <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3.5 text-[11.5px]">
-        <p class="font-bold text-blue-900">Portal do cliente</p>
-        <p class="mt-1 leading-relaxed text-blue-700">
-            Login com <strong>CPF</strong> e <strong>data de nascimento</strong>. Mensagem de boas-vindas enviada automaticamente pelo WhatsApp após a entrada.
-        </p>
-    </div>
-
-</div>
 </div>{{-- /direita --}}
 
 </form>

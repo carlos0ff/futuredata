@@ -6,14 +6,15 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    
     public function up(): void
     {
-        if (Schema::hasColumn('users', 'role')) {
-            return;
-        }
-
         Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['gerente', 'tecnico'])->default('tecnico')->after('email');
+            if (!Schema::hasColumn('users', 'role')) {
+                $table->enum('role', ['gerente', 'tecnico'])
+                    ->default('tecnico')
+                    ->after('email');
+            }
         });
     }
 
