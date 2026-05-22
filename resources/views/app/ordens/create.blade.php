@@ -31,26 +31,123 @@ $formas = [
 
 @section('content')
 <script>
-window.__osClientes = @json($clientesData);
-window.__osOld = {
-    cpf:     @json(old('cpf_cnpj', '')),
-    nome:    @json(old('nome', '')),
-    tel:     @json(old('telefone', '')),
-    email:   @json(old('email', '')),
-    nasc:    @json(old('data_nascimento', '')),
-    cep:     @json(old('cep', '')),
-    rua:     @json(old('endereco', '')),
-    num:     @json(old('numero', '')),
-    comp:    @json(old('complemento', '')),
-    bairro:  @json(old('bairro', '')),
-    cidade:  @json(old('cidade', '')),
-    uf:      @json(old('estado', '')),
-    tipo:    @json(old('equipamento_tipo', '')),
-    marca:   @json(old('equipamento_marca', '')),
-    modelo:  @json(old('equipamento_modelo', '')),
-    defeito: @json(old('problema_relatado', '')),
-    endOpen: {{ (old('endereco') || old('cep')) ? 'true' : 'false' }},
-};
+(function () {
+    var cl = @json($clientesData);
+    var d  = {
+        cpf:     @json(old('cpf_cnpj', '')),
+        nome:    @json(old('nome', '')),
+        tel:     @json(old('telefone', '')),
+        email:   @json(old('email', '')),
+        nasc:    @json(old('data_nascimento', '')),
+        cep:     @json(old('cep', '')),
+        rua:     @json(old('endereco', '')),
+        num:     @json(old('numero', '')),
+        comp:    @json(old('complemento', '')),
+        bairro:  @json(old('bairro', '')),
+        cidade:  @json(old('cidade', '')),
+        uf:      @json(old('estado', '')),
+        tipo:    @json(old('equipamento_tipo', '')),
+        marca:   @json(old('equipamento_marca', '')),
+        modelo:  @json(old('equipamento_modelo', '')),
+        defeito: @json(old('problema_relatado', '')),
+        endOpen: {{ (old('endereco') || old('cep')) ? 'true' : 'false' }},
+    };
+
+    window.osForm = function osForm() {
+        return {
+            clientes: cl, found: null,
+            busca: '', resultados: [], buscaAberta: false,
+            cpf: d.cpf, nome: d.nome, tel: d.tel, email: d.email,
+            nasc: d.nasc, cep: d.cep, rua: d.rua, num: d.num,
+            comp: d.comp, bairro: d.bairro, cidade: d.cidade, uf: d.uf,
+            tipo: d.tipo, marca: d.marca, modelo: d.modelo, defeito: d.defeito,
+            endOpen: d.endOpen, cepBusy: false, fotos: [], busy: false,
+
+            get chars() { return this.defeito.length; },
+
+            onBusca: function (v) {
+                this.busca = v;
+                if (v.length < 1) { this.resultados = []; this.buscaAberta = false; return; }
+                var digits = v.replace(/\D/g, '');
+                this.resultados = this.clientes.filter(function (c) {
+                    if (digits.length >= 3 && c.cpf_limpo.includes(digits)) return true;
+                    if (digits.length >= 3 && c.telefone.replace(/\D/g,'').includes(digits)) return true;
+                    return c.nome.toLowerCase().includes(v.toLowerCase());
+                }).slice(0, 8);
+                this.buscaAberta = true;
+            },
+
+            selecionarCliente: function (c) {
+                this.found = c; this.busca = c.nome; this.buscaAberta = false;
+                this.fill(c); this.cpf = c.cpf_cnpj || '';
+            },
+
+            limparCliente: function () {
+                this.found = null; this.busca = ''; this.resultados = [];
+                this.cpf = ''; this.nome = ''; this.tel = ''; this.email = '';
+                this.nasc = ''; this.cep = ''; this.rua = ''; this.num = '';
+                this.comp = ''; this.bairro = ''; this.cidade = ''; this.uf = '';
+            },
+
+            focusResultado: function (i) {
+                var el = document.getElementById('res-' + i);
+                if (el) el.focus();
+            },
+
+            maskCpf: function (v) {
+                var n = v.replace(/\D/g, '').slice(0, 11);
+                if (n.length > 9) return n.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4');
+                if (n.length > 6) return n.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+                if (n.length > 3) return n.replace(/(\d{3})(\d+)/, '$1.$2');
+                return n;
+            },
+
+            maskTel: function (v) {
+                var n = v.replace(/\D/g, '').slice(0, 11);
+                if (n.length > 10) return n.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                if (n.length > 6)  return n.replace(/(\d{2})(\d{4})(\d+)/,  '($1) $2-$3');
+                if (n.length > 2)  return n.replace(/(\d{2})(\d+)/,         '($1) $2');
+                return n;
+            },
+
+            fill: function (c) {
+                this.nome = c.nome || ''; this.tel = c.telefone || '';
+                this.email = c.email || ''; this.nasc = c.data_nascimento || '';
+                this.cep = c.cep || ''; this.rua = c.endereco || '';
+                this.num = c.numero || ''; this.comp = c.complemento || '';
+                this.bairro = c.bairro || ''; this.cidade = c.cidade || '';
+                this.uf = c.estado || '';
+                if (c.cep || c.endereco) this.endOpen = true;
+            },
+
+            fetchCep: async function (v) {
+                var n = v.replace(/\D/g, '');
+                if (n.length !== 8) return;
+                this.cepBusy = true;
+                try {
+                    var r = await fetch('https://viacep.com.br/ws/' + n + '/json/');
+                    var data = await r.json();
+                    if (!data.erro) {
+                        this.rua = data.logradouro || ''; this.bairro = data.bairro || '';
+                        this.cidade = data.localidade || ''; this.uf = data.uf || '';
+                        this.endOpen = true;
+                    }
+                } catch(e) {}
+                this.cepBusy = false;
+            },
+
+            addFotos: function (e) {
+                var self = this;
+                Array.from(e.target.files).forEach(function (f) {
+                    self.fotos.push({ name: f.name, url: URL.createObjectURL(f), size: f.size });
+                });
+                e.target.value = '';
+            },
+
+            rmFoto: function (i) { this.fotos.splice(i, 1); },
+        };
+    };
+}());
 </script>
 
 <div x-data="osForm()" class="mx-auto max-w-[1080px]">
@@ -553,8 +650,7 @@ window.__osOld = {
     </div>
 
     {{-- CTA --}}
-    <button type="submit" :disabled="busy"
-            class="flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 disabled:opacity-60 active:scale-[0.98]">
+    <button type="submit" :disabled="busy" class="flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 disabled:opacity-60 active:scale-[0.98]">
         <svg x-show="!busy" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
         <svg x-show="busy" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" style="display:none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
         <span x-text="busy?'Registrando…':'Registrar Entrada'"></span>
@@ -575,134 +671,3 @@ window.__osOld = {
 </form>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-function osForm() {
-    const d = window.__osOld;
-    return {
-        clientes:    window.__osClientes,
-        found:       null,
-        busca:       '',
-        resultados:  [],
-        buscaAberta: false,
-        cpf:     d.cpf,
-        nome:    d.nome,
-        tel:     d.tel,
-        email:   d.email,
-        nasc:    d.nasc,
-        cep:     d.cep,
-        rua:     d.rua,
-        num:     d.num,
-        comp:    d.comp,
-        bairro:  d.bairro,
-        cidade:  d.cidade,
-        uf:      d.uf,
-        tipo:    d.tipo,
-        marca:   d.marca,
-        modelo:  d.modelo,
-        defeito: d.defeito,
-        endOpen: d.endOpen,
-        cepBusy: false,
-        fotos:   [],
-        busy:    false,
-
-        get digits() { return this.cpf.replace(/\D/g, ''); },
-        get chars()  { return this.defeito.length; },
-
-        onBusca(v) {
-            this.busca = v;
-            const q = v.toLowerCase().replace(/\D/g, '') || v.toLowerCase();
-            if (v.length < 1) { this.resultados = []; this.buscaAberta = false; return; }
-            this.resultados = this.clientes.filter(c => {
-                const digits = v.replace(/\D/g, '');
-                if (digits.length >= 3 && c.cpf_limpo.includes(digits)) return true;
-                if (digits.length >= 3 && c.telefone.replace(/\D/g,'').includes(digits)) return true;
-                return c.nome.toLowerCase().includes(v.toLowerCase());
-            }).slice(0, 8);
-            this.buscaAberta = true;
-        },
-
-        selecionarCliente(c) {
-            this.found = c;
-            this.busca = c.nome;
-            this.buscaAberta = false;
-            this.fill(c);
-            this.cpf = c.cpf_cnpj || '';
-        },
-
-        limparCliente() {
-            this.found = null;
-            this.busca = '';
-            this.resultados = [];
-            this.cpf = ''; this.nome = ''; this.tel = ''; this.email = '';
-            this.nasc = ''; this.cep = ''; this.rua = ''; this.num = '';
-            this.comp = ''; this.bairro = ''; this.cidade = ''; this.uf = '';
-        },
-
-        focusResultado(i) {
-            const el = document.getElementById('res-' + i);
-            if (el) el.focus();
-        },
-
-        maskCpf(v) {
-            let n = v.replace(/\D/g, '').slice(0, 11);
-            if (n.length > 9) return n.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4');
-            if (n.length > 6) return n.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
-            if (n.length > 3) return n.replace(/(\d{3})(\d+)/, '$1.$2');
-            return n;
-        },
-
-        maskTel(v) {
-            let n = v.replace(/\D/g, '').slice(0, 11);
-            if (n.length > 10) return n.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-            if (n.length > 6)  return n.replace(/(\d{2})(\d{4})(\d+)/,   '($1) $2-$3');
-            if (n.length > 2)  return n.replace(/(\d{2})(\d+)/,          '($1) $2');
-            return n;
-        },
-
-        fill(c) {
-            this.nome   = c.nome             || '';
-            this.tel    = c.telefone         || '';
-            this.email  = c.email            || '';
-            this.nasc   = c.data_nascimento  || '';
-            this.cep    = c.cep              || '';
-            this.rua    = c.endereco         || '';
-            this.num    = c.numero           || '';
-            this.comp   = c.complemento      || '';
-            this.bairro = c.bairro           || '';
-            this.cidade = c.cidade           || '';
-            this.uf     = c.estado           || '';
-            if (c.cep || c.endereco) this.endOpen = true;
-        },
-
-        async fetchCep(v) {
-            const n = v.replace(/\D/g, '');
-            if (n.length !== 8) return;
-            this.cepBusy = true;
-            try {
-                const r = await fetch('https://viacep.com.br/ws/' + n + '/json/');
-                const data = await r.json();
-                if (!data.erro) {
-                    this.rua    = data.logradouro || '';
-                    this.bairro = data.bairro     || '';
-                    this.cidade = data.localidade  || '';
-                    this.uf     = data.uf          || '';
-                    this.endOpen = true;
-                }
-            } catch (e) {}
-            this.cepBusy = false;
-        },
-
-        addFotos(e) {
-            Array.from(e.target.files).forEach(f => {
-                this.fotos.push({ name: f.name, url: URL.createObjectURL(f), size: f.size });
-            });
-            e.target.value = '';
-        },
-
-        rmFoto(i) { this.fotos.splice(i, 1); },
-    };
-}
-</script>
-@endpush
