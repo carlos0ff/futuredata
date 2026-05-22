@@ -84,58 +84,114 @@ window.__osOld = {
 
 {{-- ── 1 · CLIENTE ─────────────────────────────────────────── --}}
 <div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.06]">
-    <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
-        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-[11px] font-black text-white">1</span>
-        <h2 class="text-[14px] font-bold text-slate-900">Cliente</h2>
+    <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+        <div class="flex items-center gap-3">
+            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-[11px] font-black text-white">1</span>
+            <h2 class="text-[14px] font-bold text-slate-900">Cliente</h2>
+        </div>
+        <template x-if="found">
+            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[10.5px] font-bold text-emerald-700">
+                <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                Cadastro encontrado
+            </span>
+        </template>
+        <template x-if="!found && (nome || cpf)">
+            <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 text-[10.5px] font-bold text-blue-700">
+                + Novo cliente
+            </span>
+        </template>
     </div>
     <div class="p-6 space-y-4">
 
-        {{-- CPF --}}
-        <div>
-            <div class="mb-2 flex items-center justify-between">
-                <label class="text-[11px] font-black uppercase tracking-widest text-slate-400">CPF</label>
-                <template x-if="found">
-                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10.5px] font-bold text-emerald-700">
-                        <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
-                        Cadastrado
-                    </span>
-                </template>
-                <template x-if="!found && valid && digits.length===11">
-                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10.5px] font-bold text-blue-700">
-                        + Novo cliente
-                    </span>
-                </template>
-                <template x-if="digits.length===11 && !valid">
-                    <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-[10.5px] font-bold text-red-600">
-                        CPF inválido
-                    </span>
-                </template>
-            </div>
-
+        {{-- BUSCA --}}
+        <div class="relative" @click.outside="buscaAberta=false">
+            <label class="mb-1.5 block text-[12.5px] font-semibold text-slate-700">Pesquisar cliente existente</label>
             <div class="relative">
-                <input type="text" name="cpf_cnpj" x-model="cpf" @input="onCpf($event)"
-                       placeholder="000.000.000-00" maxlength="14" autocomplete="off"
-                       :class="found ? 'border-emerald-400 bg-emerald-50/40' : (digits.length===11 && !valid ? 'border-red-400 bg-red-50/20' : 'border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15')"
-                       class="h-12 w-full rounded-xl border-2 px-4 pr-12 font-mono text-[18px] font-bold tracking-[.12em] text-slate-900 outline-none transition">
-                <div class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2">
-                    <svg x-show="found" class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" fill="#d1fae5" stroke="none"/><path stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5" stroke="#059669"/></svg>
-                    <svg x-show="digits.length===11&&!valid" class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-                </div>
-            </div>
-
-            {{-- Card do cliente encontrado --}}
-            <div x-show="found" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                 class="mt-2.5 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3" style="display:none">
-                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 text-[12px] font-bold text-white"
-                     x-text="found?.iniciais||'?'"></div>
-                <div class="min-w-0 flex-1">
-                    <p class="truncate text-[13.5px] font-bold text-slate-900" x-text="found?.nome"></p>
-                    <p class="text-[12px] text-slate-500" x-text="[found?.telefone,found?.email].filter(Boolean).join(' · ')"></p>
-                </div>
-                <button type="button" @click="found=null;cpf=''" class="shrink-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500 transition hover:bg-slate-50">
-                    trocar
+                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" x-model="busca"
+                       @input="onBusca($event.target.value)"
+                       @focus="if(busca.length>=1) buscaAberta=true"
+                       @keydown.escape="buscaAberta=false"
+                       @keydown.arrow-down.prevent="focusResultado(0)"
+                       placeholder="Nome, CPF ou telefone…"
+                       autocomplete="off"
+                       :disabled="!!found"
+                       class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-10 text-[13px] placeholder:text-slate-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:opacity-60">
+                <button x-show="busca && !found" type="button" @click="busca='';buscaAberta=false;resultados=[]"
+                        class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:text-slate-600" style="display:none">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
             </div>
+
+            {{-- Dropdown --}}
+            <div x-show="buscaAberta"
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 -translate-y-1"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="absolute left-0 right-0 top-[calc(100%+4px)] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
+                 style="display:none">
+
+                {{-- Resultados --}}
+                <template x-if="resultados.length > 0">
+                    <div>
+                        <p class="px-4 py-2 text-[10.5px] font-black uppercase tracking-widest text-slate-400">
+                            <span x-text="resultados.length"></span> resultado<span x-show="resultados.length!==1">s</span>
+                        </p>
+                        <ul class="max-h-64 overflow-y-auto pb-1">
+                            <template x-for="(c, i) in resultados" :key="c.id">
+                                <li>
+                                    <button type="button"
+                                            :id="'res-'+i"
+                                            @click="selecionarCliente(c)"
+                                            @keydown.arrow-down.prevent="focusResultado(i+1)"
+                                            @keydown.arrow-up.prevent="focusResultado(i-1)"
+                                            class="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50 focus:bg-blue-50 focus:outline-none">
+                                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-indigo-200 text-[11px] font-bold text-blue-700"
+                                             x-text="c.iniciais"></div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="truncate text-[13px] font-semibold text-slate-900" x-text="c.nome"></p>
+                                            <p class="text-[11.5px] text-slate-400" x-text="[c.cpf_cnpj, c.telefone].filter(Boolean).join(' · ')"></p>
+                                        </div>
+                                        <svg class="h-4 w-4 shrink-0 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+                                    </button>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
+
+                {{-- Sem resultados --}}
+                <template x-if="resultados.length === 0">
+                    <div class="flex items-center gap-3 px-4 py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                            <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-[13px] font-semibold text-slate-700">Nenhum cadastro encontrado</p>
+                            <p class="text-[11.5px] text-slate-400">Preencha os dados abaixo para cadastrar.</p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        {{-- Card cliente selecionado --}}
+        <div x-show="found"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-[0.98]"
+             x-transition:enter-end="opacity-100 scale-100"
+             class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3"
+             style="display:none">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 text-[12px] font-bold text-white"
+                 x-text="found?.iniciais||'?'"></div>
+            <div class="min-w-0 flex-1">
+                <p class="truncate text-[13.5px] font-bold text-slate-900" x-text="found?.nome"></p>
+                <p class="text-[12px] text-slate-500" x-text="[found?.cpf_cnpj, found?.telefone].filter(Boolean).join(' · ')"></p>
+            </div>
+            <button type="button" @click="limparCliente()"
+                    class="shrink-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500 transition hover:bg-slate-50">
+                trocar
+            </button>
         </div>
 
         {{-- Campos --}}
@@ -146,6 +202,13 @@ window.__osOld = {
                        placeholder="Nome completo"
                        class="h-10 w-full rounded-xl border px-3 text-[13px] placeholder:text-slate-400 outline-none transition {{ $errors->has('nome') ? 'border-red-400 bg-red-50/30' : 'border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15' }}">
                 @error('nome')<p class="mt-1 text-[11.5px] text-red-500">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label class="mb-1.5 block text-[12.5px] font-semibold text-slate-700">CPF</label>
+                <input type="text" name="cpf_cnpj" x-model="cpf"
+                       @input="cpf=maskCpf($event.target.value)"
+                       placeholder="000.000.000-00" maxlength="14"
+                       class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 font-mono text-[13px] placeholder:text-slate-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15">
             </div>
             <div>
                 <label class="mb-1.5 block text-[12.5px] font-semibold text-slate-700">Telefone / WhatsApp <span class="text-red-500">*</span></label>
@@ -518,8 +581,11 @@ window.__osOld = {
 function osForm() {
     const d = window.__osOld;
     return {
-        clientes: window.__osClientes,
-        found: null,
+        clientes:    window.__osClientes,
+        found:       null,
+        busca:       '',
+        resultados:  [],
+        buscaAberta: false,
         cpf:     d.cpf,
         nome:    d.nome,
         tel:     d.tel,
@@ -543,16 +609,40 @@ function osForm() {
 
         get digits() { return this.cpf.replace(/\D/g, ''); },
         get chars()  { return this.defeito.length; },
-        get valid() {
-            const n = this.digits;
-            if (n.length !== 11 || /^(\d)\1+$/.test(n)) return false;
-            let s1 = 0, s2 = 0;
-            for (let i = 0; i < 9;  i++) s1 += +n[i] * (10 - i);
-            let r1 = (s1 * 10) % 11; if (r1 >= 10) r1 = 0;
-            if (r1 !== +n[9]) return false;
-            for (let i = 0; i < 10; i++) s2 += +n[i] * (11 - i);
-            let r2 = (s2 * 10) % 11; if (r2 >= 10) r2 = 0;
-            return r2 === +n[10];
+
+        onBusca(v) {
+            this.busca = v;
+            const q = v.toLowerCase().replace(/\D/g, '') || v.toLowerCase();
+            if (v.length < 1) { this.resultados = []; this.buscaAberta = false; return; }
+            this.resultados = this.clientes.filter(c => {
+                const digits = v.replace(/\D/g, '');
+                if (digits.length >= 3 && c.cpf_limpo.includes(digits)) return true;
+                if (digits.length >= 3 && c.telefone.replace(/\D/g,'').includes(digits)) return true;
+                return c.nome.toLowerCase().includes(v.toLowerCase());
+            }).slice(0, 8);
+            this.buscaAberta = true;
+        },
+
+        selecionarCliente(c) {
+            this.found = c;
+            this.busca = c.nome;
+            this.buscaAberta = false;
+            this.fill(c);
+            this.cpf = c.cpf_cnpj || '';
+        },
+
+        limparCliente() {
+            this.found = null;
+            this.busca = '';
+            this.resultados = [];
+            this.cpf = ''; this.nome = ''; this.tel = ''; this.email = '';
+            this.nasc = ''; this.cep = ''; this.rua = ''; this.num = '';
+            this.comp = ''; this.bairro = ''; this.cidade = ''; this.uf = '';
+        },
+
+        focusResultado(i) {
+            const el = document.getElementById('res-' + i);
+            if (el) el.focus();
         },
 
         maskCpf(v) {
@@ -571,32 +661,19 @@ function osForm() {
             return n;
         },
 
-        onCpf(e) {
-            this.cpf = this.maskCpf(e.target.value);
-            e.target.value = this.cpf;
-            if (this.valid) {
-                this.found = this.clientes.find(c => c.cpf_limpo === this.digits) || null;
-                if (this.found) {
-                    this.fill(this.found);
-                    this.$nextTick(() => this.$refs.nome && this.$refs.nome.focus());
-                }
-            } else {
-                this.found = null;
-            }
-        },
-
         fill(c) {
-            this.nome   = c.nome   || '';
-            this.tel    = c.telefone || '';
-            this.email  = c.email  || '';
-            this.nasc   = c.data_nascimento || '';
-            this.cep    = c.cep    || '';
-            this.rua    = c.endereco || '';
-            this.num    = c.numero || '';
-            this.comp   = c.complemento || '';
-            this.bairro = c.bairro || '';
-            this.cidade = c.cidade || '';
-            this.uf     = c.estado || '';
+            this.nome   = c.nome             || '';
+            this.tel    = c.telefone         || '';
+            this.email  = c.email            || '';
+            this.nasc   = c.data_nascimento  || '';
+            this.cep    = c.cep              || '';
+            this.rua    = c.endereco         || '';
+            this.num    = c.numero           || '';
+            this.comp   = c.complemento      || '';
+            this.bairro = c.bairro           || '';
+            this.cidade = c.cidade           || '';
+            this.uf     = c.estado           || '';
+            if (c.cep || c.endereco) this.endOpen = true;
         },
 
         async fetchCep(v) {
@@ -611,6 +688,7 @@ function osForm() {
                     this.bairro = data.bairro     || '';
                     this.cidade = data.localidade  || '';
                     this.uf     = data.uf          || '';
+                    this.endOpen = true;
                 }
             } catch (e) {}
             this.cepBusy = false;
