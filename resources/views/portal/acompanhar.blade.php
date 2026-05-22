@@ -482,7 +482,7 @@
 
 
             {{-- ── ORÇAMENTO ── --}}
-            @if($ordem->valor_servico > 0 || $ordem->valor_pecas > 0)
+            @if($ordem->valor_servico > 0)
             <div id="orcamento" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm animate-fade-up-3"
                  x-data="{ confirming: false, action: null }">
                 <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
@@ -505,28 +505,15 @@
                     <div class="overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
                         <table class="w-full text-[13.5px]">
                             <tbody class="divide-y divide-slate-100">
-                                @if($ordem->valor_servico > 0)
                                 <tr class="hover:bg-slate-100/50 transition-colors">
                                     <td class="px-4 py-3 font-medium text-slate-700">
                                         <div class="flex items-center gap-2">
                                             <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                                            Mão de obra / Serviço
+                                            Serviço técnico
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 text-right font-semibold text-slate-900">R$ {{ number_format($ordem->valor_servico, 2, ',', '.') }}</td>
                                 </tr>
-                                @endif
-                                @if($ordem->valor_pecas > 0)
-                                <tr class="hover:bg-slate-100/50 transition-colors">
-                                    <td class="px-4 py-3 font-medium text-slate-700">
-                                        <div class="flex items-center gap-2">
-                                            <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-                                            Peças e componentes
-                                        </div>
-                                    </td>
-                                    <td class="px-4 py-3 text-right font-semibold text-slate-900">R$ {{ number_format($ordem->valor_pecas, 2, ',', '.') }}</td>
-                                </tr>
-                                @endif
                                 @if($ordem->desconto > 0)
                                 <tr class="hover:bg-slate-100/50 transition-colors">
                                     <td class="px-4 py-3 font-medium text-emerald-700">

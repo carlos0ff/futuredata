@@ -11,12 +11,15 @@
 <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
         <h1 class="text-[22px] font-bold tracking-tight text-slate-900">Clientes</h1>
-        <p class="mt-0.5 text-[13px] text-slate-500">
+        <p class="mt-0.5 text-[13px] text-slate-400">
             {{ $clientes->total() }} cliente{{ $clientes->total() !== 1 ? 's' : '' }} cadastrado{{ $clientes->total() !== 1 ? 's' : '' }}
+            @if(request('busca'))
+                · filtro aplicado
+            @endif
         </p>
     </div>
     <a href="{{ route('app.clientes.create') }}"
-       class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-blue-700">
+       class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-[13px] font-semibold text-white shadow-md shadow-blue-600/20 transition-colors hover:bg-blue-700">
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/>
         </svg>
@@ -34,41 +37,46 @@
 </div>
 @endif
 
-{{-- Filters --}}
-<form method="GET" action="{{ route('app.clientes.index') }}"
-      class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-    <div class="relative flex-1">
-        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <svg class="h-3.5 w-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-            </svg>
+{{-- Filter bar (unified card) --}}
+<form method="GET" action="{{ route('app.clientes.index') }}" class="mb-5">
+    <div class="flex overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.06]">
+        {{-- Search --}}
+        <div class="relative flex flex-1 items-center">
+            <div class="pointer-events-none absolute left-0 flex items-center pl-4">
+                <svg class="h-3.5 w-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                </svg>
+            </div>
+            <input type="text" name="busca" value="{{ request('busca') }}"
+                   placeholder="Buscar por nome, e-mail, telefone, CPF…"
+                   class="h-11 w-full bg-transparent pl-10 pr-4 text-[13.5px] text-slate-800 placeholder-slate-400 outline-none">
         </div>
-        <input type="text" name="busca" value="{{ request('busca') }}"
-               placeholder="Buscar por nome, e-mail, telefone, CPF…"
-               class="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 text-[13.5px] text-slate-800 placeholder-slate-400 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100">
+        {{-- Actions --}}
+        <div class="flex items-center gap-1 px-2">
+            <button type="submit"
+                    class="h-8 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 text-[12.5px] font-semibold text-white shadow-sm shadow-blue-600/20 transition-colors hover:bg-blue-700">
+                Filtrar
+            </button>
+            @if(request('busca'))
+                <a href="{{ route('app.clientes.index') }}"
+                   class="h-8 inline-flex items-center rounded-lg px-3 text-[12.5px] text-slate-500 transition-colors hover:bg-slate-100">
+                    Limpar
+                </a>
+            @endif
+        </div>
     </div>
-    <button type="submit"
-            class="h-9 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">
-        Filtrar
-    </button>
-    @if(request('busca'))
-        <a href="{{ route('app.clientes.index') }}"
-           class="h-9 inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 text-[13px] text-slate-500 transition-colors hover:bg-slate-50">
-            Limpar
-        </a>
-    @endif
 </form>
 
 {{-- Table --}}
-<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+<div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.06]">
     @if($clientes->isEmpty())
         <div class="flex flex-col items-center justify-center py-16 text-center">
-            <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
-                <svg class="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
+                <svg class="h-6 w-6 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7z"/>
                 </svg>
             </div>
-            <p class="text-[14px] font-semibold text-slate-700">Nenhum cliente encontrado</p>
+            <p class="text-[14px] font-semibold text-slate-800">Nenhum cliente encontrado</p>
             <p class="mt-1 text-[13px] text-slate-400">
                 @if(request('busca'))
                     Tente ajustar o filtro ou <a href="{{ route('app.clientes.index') }}" class="font-semibold text-blue-600 hover:text-blue-700">limpar a busca</a>.
@@ -78,7 +86,7 @@
             </p>
             @if(!request('busca'))
                 <a href="{{ route('app.clientes.create') }}"
-                   class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-[12.5px] font-semibold text-white transition-colors hover:bg-blue-700">
+                   class="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-[13px] font-semibold text-white shadow-md shadow-blue-600/20 transition-colors hover:bg-blue-700">
                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/>
                     </svg>
@@ -90,18 +98,18 @@
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead>
-                    <tr class="border-b border-slate-100 bg-slate-50">
-                        <th class="px-5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-wider text-slate-500">Cliente</th>
-                        <th class="hidden px-5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-wider text-slate-500 sm:table-cell">Contato</th>
-                        <th class="hidden px-5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-wider text-slate-500 md:table-cell">Cidade</th>
-                        <th class="hidden px-5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-wider text-slate-500 lg:table-cell">OS</th>
-                        <th class="px-5 py-3 text-right text-[10.5px] font-semibold uppercase tracking-wider text-slate-500">Ações</th>
+                    <tr class="border-b border-slate-100 bg-slate-50/60">
+                        <th class="px-5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-wider text-slate-400">Cliente</th>
+                        <th class="hidden px-5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-wider text-slate-400 sm:table-cell">Contato</th>
+                        <th class="hidden px-5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-wider text-slate-400 md:table-cell">Cidade</th>
+                        <th class="hidden px-5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-wider text-slate-400 lg:table-cell">OS</th>
+                        <th class="px-5 py-3 text-right text-[10.5px] font-semibold uppercase tracking-wider text-slate-400">Ações</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @foreach($clientes as $c)
-                    <tr class="group transition-all duration-150 hover:bg-blue-50/40">
-                        <td class="border-l-[3px] border-l-transparent px-5 py-3.5 transition-all duration-150 group-hover:border-l-blue-500">
+                    <tr class="group transition-colors hover:bg-slate-50/70">
+                        <td class="border-l-[3px] border-l-transparent px-5 py-3.5 transition-colors group-hover:border-l-blue-500">
                             <div class="flex items-center gap-3">
                                 <x-app.avatar :initials="$c->iniciais" size="sm" />
                                 <div>

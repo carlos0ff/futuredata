@@ -21,7 +21,7 @@ class AuthController extends Controller
             return redirect()->route('app.dashboard');
         }
 
-        return view('pages.auth.entrar');
+        return view('auth.entrar');
     }
 
     /** Processar login */
@@ -61,7 +61,7 @@ class AuthController extends Controller
             return redirect()->route('app.dashboard');
         }
 
-        return view('pages.auth.recuperar');
+        return view('auth.recuperar');
     }
 
     /** Processar recuperação */

@@ -11,7 +11,7 @@ use App\Http\Controllers\Gerente\RelatorioController;
 Route::middleware(['auth', 'role:gerente,admin'])->prefix('gerente')->name('gerente.')->group(function () {
 
     /** Dashboard do gerente **/
-    Route::get('/dashboard', [\App\Http\Controllers\Gerente\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     /** Relatórios do gerente **/
     Route::prefix('relatorios')->name('relatorios.')->controller(RelatorioController::class)->group(function () {

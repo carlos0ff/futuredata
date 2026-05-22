@@ -81,7 +81,7 @@
         @php $isCli = request()->is('app/clientes*'); @endphp
         <div class="px-2 mb-0.5">
             <a href="{{ route('app.clientes.index') }}" @mouseenter="showTooltip($el, 'Clientes')" @mouseleave="hideTooltip()"
-               class="group relative flex items-center gap-3 rounded-md px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isCli ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
+               class="group relative flex items-center gap-3 rounded-xl px-2.5 py-[7px] text-[13px] font-medium transition-all duration-150 {{ $isCli ? 'bg-blue-600/[0.13] text-blue-400' : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200' }}">
                 @if($isCli)<div class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>@endif
                 <svg class="h-[17px] w-[17px] shrink-0 transition-colors {{ $isCli ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-400' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>

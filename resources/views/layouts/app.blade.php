@@ -27,7 +27,7 @@
         hideTooltip() { this.tooltip.visible = false; }
     }"
     @keydown.escape.window="mobileOpen = false"
-    class="min-h-screen bg-[#f4f5f7] text-slate-900 antialiased [font-family:'DM_Sans',sans-serif]"
+    class="min-h-screen bg-[#f0f2f6] text-slate-900 antialiased [font-family:'DM_Sans',sans-serif]"
 >
 
 {{-- ═══ TOOLTIP GLOBAL ═══ --}}
@@ -76,7 +76,7 @@
     @include('layouts.partials.alerts')
 
     {{-- Page content --}}
-    <main class="flex-1 px-4 py-5 pb-10 sm:px-6">
+    <main class="flex-1 px-5 py-6 pb-12 sm:px-7">
         @yield('content')
     </main>
 </div>

@@ -8,11 +8,9 @@ use App\Http\Controllers\Portal\LoginController as PortalLoginController;
 use App\Http\Controllers\Portal\PortalController;
 use App\Http\Controllers\Portal\MessageController;
 
-/*
-|--------------------------------------------------------------------------
-| Staff — admin / gerente / técnico / atendente
-|--------------------------------------------------------------------------
-*/
+/**
+ * 
+ */
 Route::prefix('auth')->name('auth.')->group(function () {
 
     Route::middleware('guest')->group(function () {
@@ -36,6 +34,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
     // Login / logout (sem middleware — lógica interna no controller)
     Route::get('/entrar',  [PortalLoginController::class, 'index'])->name('entrar');
     Route::post('/entrar', [PortalLoginController::class, 'authenticate'])->name('entrar.post');
+    
     Route::post('/sair',   [PortalLoginController::class, 'sair'])->name('sair');
 
     // Páginas protegidas pelo middleware de sessão do portal

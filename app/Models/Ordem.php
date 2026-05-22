@@ -113,9 +113,7 @@ class Ordem extends Model
 
     public function getTotalAttribute(): float
     {
-        return (float) $this->valor_servico
-             + (float) $this->valor_pecas
-             - (float) $this->desconto;
+        return max(0, (float) $this->valor_servico - (float) $this->desconto);
     }
 
     public function getStatusLabelAttribute(): string

@@ -61,62 +61,152 @@ class OrdemServicoController extends Controller
 
     public function create(): View
     {
+        $clientes = Cliente::orderBy('nome')
+            ->get(['id', 'nome', 'telefone', 'cpf_cnpj', 'data_nascimento',
+                   'email', 'cidade', 'estado', 'cep', 'endereco', 'numero', 'complemento', 'bairro']);
+
+        $clientesJson = $clientes->map(fn($c) => [
+            'id'             => $c->id,
+            'nome'           => $c->nome,
+            'telefone'       => $c->telefone ?? '',
+            'email'          => $c->email ?? '',
+            'cpf_cnpj'       => $c->cpf_cnpj ?? '',
+            'cpf_limpo'      => preg_replace('/\D/', '', $c->cpf_cnpj ?? ''),
+            'data_nascimento'=> $c->data_nascimento?->format('Y-m-d') ?? '',
+            'cidade'         => $c->cidade ?? '',
+            'estado'         => $c->estado ?? '',
+            'cep'            => $c->cep ?? '',
+            'endereco'       => $c->endereco ?? '',
+            'numero'         => $c->numero ?? '',
+            'complemento'    => $c->complemento ?? '',
+            'bairro'         => $c->bairro ?? '',
+            'iniciais'       => strtoupper(substr($c->nome, 0, 2)),
+        ])->toJson();
+
         return view('app.ordens.create', [
-            'clientes'  => Cliente::orderBy('nome')->get(['id', 'nome', 'telefone']),
-            'tecnicos'  => User::orderBy('name')->get(['id', 'name']),
-            'status'    => Ordem::STATUS,
+            'clientesJson' => $clientesJson,
+            'tecnicos'     => User::orderBy('name')->get(['id', 'name']),
+            'status'       => Ordem::STATUS,
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $dados = $request->validate([
-            'cliente_id'       => 'required|exists:clientes,id',
-            'equipamento_tipo' => 'required|string|max:100',
-            'equipamento_marca'=> 'nullable|string|max:100',
-            'equipamento_modelo'=>'nullable|string|max:100',
-            'equipamento_serie'=> 'nullable|string|max:100',
-            'tecnico_id'       => 'nullable|exists:users,id',
-            'status'           => 'required|string',
-            'problema_relatado'=> 'required|string',
-            'diagnostico'      => 'nullable|string',
-            'valor_servico'    => 'nullable|numeric|min:0',
-            'valor_pecas'      => 'nullable|numeric|min:0',
-            'desconto'         => 'nullable|numeric|min:0',
-            'previsao_entrega' => 'nullable|date',
-            'observacoes'      => 'nullable|string',
+        $request->validate([
+            // Cliente
+            'nome'             => 'required|string|max:255',
+            'cpf_cnpj'         => 'nullable|string|max:20',
+            'data_nascimento'  => 'nullable|date|before:today',
+            'telefone'         => 'required|string|max:20',
+            'email'            => 'nullable|email|max:255',
+            'cep'              => 'nullable|string|max:10',
+            'endereco'         => 'nullable|string|max:255',
+            'numero'           => 'nullable|string|max:20',
+            'complemento'      => 'nullable|string|max:100',
+            'bairro'           => 'nullable|string|max:100',
+            'cidade'           => 'nullable|string|max:100',
+            'estado'           => 'nullable|string|max:2',
+            // Equipamento
+            'equipamento_tipo'    => 'required|string|max:80',
+            'equipamento_marca'   => 'nullable|string|max:80',
+            'equipamento_modelo'  => 'nullable|string|max:120',
+            'equipamento_serie'   => 'nullable|string|max:100',
+            'forma_entrada'       => 'required|string|in:balcao,coleta,motoboy,correios,outro',
+            'estado_fisico'       => 'nullable|string|max:255',
+            'acessorios'          => 'nullable|string',
+            // Ordem
+            'tecnico_id'          => 'nullable|exists:users,id',
+            'problema_relatado'   => 'required|string',
+            'observacoes'         => 'nullable|string',
+            'previsao_entrega'    => 'nullable|date',
+            // Fotos
+            'fotos.*'             => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240',
+        ], [
+            'nome.required'             => 'O nome do cliente é obrigatório.',
+            'telefone.required'         => 'O telefone é obrigatório.',
+            'equipamento_tipo.required' => 'Informe o tipo do equipamento.',
+            'forma_entrada.required'    => 'Selecione como o equipamento chegou.',
+            'problema_relatado.required'=> 'Descreva o defeito relatado.',
         ]);
 
+        // Encontrar ou criar cliente por CPF
+        $cpfLimpo = preg_replace('/\D/', '', $request->cpf_cnpj ?? '');
+        $cliente  = null;
+
+        if ($cpfLimpo) {
+            $cliente = Cliente::whereRaw("REGEXP_REPLACE(cpf_cnpj, '[^0-9]', '') = ?", [$cpfLimpo])->first();
+        }
+
+        $clienteData = [
+            'nome'           => $request->nome,
+            'telefone'       => $request->telefone,
+            'email'          => $request->email,
+            'cpf_cnpj'       => $request->cpf_cnpj ?: null,
+            'data_nascimento'=> $request->data_nascimento ?: null,
+            'endereco'       => $request->endereco,
+            'numero'         => $request->numero,
+            'complemento'    => $request->complemento,
+            'bairro'         => $request->bairro,
+            'cidade'         => $request->cidade,
+            'estado'         => $request->estado,
+            'cep'            => $request->cep,
+        ];
+
+        if ($cliente) {
+            $cliente->update($clienteData);
+        } else {
+            $cliente = Cliente::create($clienteData);
+        }
+
+        // Criar equipamento
         $equipamento = Equipamento::create([
-            'cliente_id'   => $dados['cliente_id'],
-            'tipo'         => $dados['equipamento_tipo'],
-            'marca'        => $dados['equipamento_marca'] ?? null,
-            'modelo'       => $dados['equipamento_modelo'] ?? null,
-            'numero_serie' => $dados['equipamento_serie'] ?? null,
+            'cliente_id'      => $cliente->id,
+            'tipo'            => $request->equipamento_tipo,
+            'marca'           => $request->equipamento_marca,
+            'modelo'          => $request->equipamento_modelo,
+            'numero_serie'    => $request->equipamento_serie,
+            'forma_entrada'   => $request->forma_entrada,
+            'estado_fisico'   => $request->estado_fisico,
+            'acessorios'      => $request->acessorios,
+            'condicao_entrada'=> $request->estado_fisico,
         ]);
 
+        // Criar OS
         $ordem = Ordem::create([
-            'cliente_id'       => $dados['cliente_id'],
+            'cliente_id'       => $cliente->id,
             'equipamento_id'   => $equipamento->id,
-            'tecnico_id'       => $dados['tecnico_id'] ?? null,
-            'status'           => $dados['status'],
-            'problema_relatado'=> $dados['problema_relatado'],
-            'diagnostico'      => $dados['diagnostico'] ?? null,
-            'valor_servico'    => $dados['valor_servico'] ?? 0,
-            'valor_pecas'      => $dados['valor_pecas'] ?? 0,
-            'desconto'         => $dados['desconto'] ?? 0,
-            'previsao_entrega' => $dados['previsao_entrega'] ?? null,
-            'observacoes'      => $dados['observacoes'] ?? null,
+            'tecnico_id'       => $request->tecnico_id ?: null,
+            'status'           => 'entrada',
+            'problema_relatado'=> $request->problema_relatado,
+            'observacoes'      => $request->observacoes,
+            'previsao_entrega' => $request->previsao_entrega ?: null,
         ]);
 
+        // Histórico
         OrdemHistorico::create([
             'ordem_id'        => $ordem->id,
             'user_id'         => auth()->id(),
             'status_anterior' => null,
-            'status_novo'     => $ordem->status,
-            'observacao'      => 'Entrada registrada.',
+            'status_novo'     => 'entrada',
+            'observacao'      => 'Equipamento recebido e OS aberta.',
         ]);
 
+        // Upload de fotos
+        if ($request->hasFile('fotos')) {
+            foreach ($request->file('fotos') as $foto) {
+                $path = $foto->store("ordens/{$ordem->id}", 'private');
+                $ordem->arquivos()->create([
+                    'user_id'        => auth()->id(),
+                    'tipo'           => 'foto_entrada',
+                    'nome_original'  => $foto->getClientOriginalName(),
+                    'caminho'        => $path,
+                    'mime_type'      => $foto->getMimeType(),
+                    'tamanho'        => $foto->getSize(),
+                ]);
+            }
+        }
+
+        // Notificações
         $gerentes = User::where('role', 'gerente')->where('id', '!=', auth()->id())->get();
         Notification::send($gerentes, new OrdemCriada($ordem));
 
@@ -124,8 +214,39 @@ class OrdemServicoController extends Controller
             $ordem->tecnico->notify(new OrdemCriada($ordem));
         }
 
-        return redirect()->route('app.os.show', $ordem)
-            ->with('success', "OS {$ordem->numero} criada com sucesso.");
+        // Mensagem WhatsApp
+        $nomeEquip  = trim("{$equipamento->marca} {$equipamento->modelo}") ?: $equipamento->tipo;
+        $linkPortal = route('portal.token', $ordem->token);
+        $cpfExibido = $request->cpf_cnpj ?: '—';
+        $nascimento = $request->data_nascimento
+            ? \Carbon\Carbon::parse($request->data_nascimento)->format('d/m/Y')
+            : '—';
+
+        $msgWa = urlencode(
+            "Olá, {$cliente->nome}!\n".
+            "Seu equipamento foi recebido com sucesso em nossa assistência técnica.\n\n".
+            "📄 OS: {$ordem->numero}\n".
+            "📱 Equipamento: {$nomeEquip}\n".
+            "📍 Status atual: Equipamento recebido\n\n".
+            "Para acompanhar sua OS, acesse o portal do cliente:\n".
+            "CPF: {$cpfExibido}\n".
+            "Senha: sua data de nascimento ({$nascimento})\n\n".
+            "🔗 Link do portal: {$linkPortal}\n\n".
+            "Em caso de dúvidas, estamos à disposição."
+        );
+
+        $telLimpo = preg_replace('/\D/', '', $cliente->telefone ?? '');
+        $waLink   = $telLimpo ? "https://wa.me/55{$telLimpo}?text={$msgWa}" : null;
+
+        return redirect()
+            ->route('app.os.show', $ordem)
+            ->with('entrada_sucesso', [
+                'os'       => $ordem->numero,
+                'wa_link'  => $waLink,
+                'telefone' => $cliente->telefone,
+                'portal'   => $linkPortal,
+                'token'    => $ordem->token,
+            ]);
     }
 
     public function show(Ordem $ordemServico): View
@@ -169,6 +290,7 @@ class OrdemServicoController extends Controller
             'valor_servico'    => 'nullable|numeric|min:0',
             'valor_pecas'      => 'nullable|numeric|min:0',
             'desconto'         => 'nullable|numeric|min:0',
+            'status_orcamento' => 'nullable|string|in:pendente,aprovado,recusado',
             'previsao_entrega' => 'nullable|date',
             'observacoes'      => 'nullable|string',
             'observacao_status'=> 'nullable|string',

@@ -20,6 +20,8 @@ class Equipamento extends Model
         'patrimonio',
         'acessorios',
         'condicao_entrada',
+        'forma_entrada',
+        'estado_fisico',
         'em_garantia',
         'observacoes',
     ];

@@ -3,501 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OS {{ $ordem->numero }} — Impressão</title>
+    <title>OS {{ $ordem->numero }} — Entrada de Equipamento</title>
     <style>
-        /* ── Reset ───────────────────────────────────────────────────────────── */
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        /* ── Base ────────────────────────────────────────────────────────────── */
-        html { font-size: 9.5px; }
+        html { font-size: 8.5px; }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 1rem;
-            color: #000;
-            background: #e8eaf0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: #111;
+            background: #dde1e8;
             line-height: 1.35;
         }
 
-        /* ── Toolbar (no-print) ──────────────────────────────────────────────── */
+        /* ─── Toolbar ────────────────────────────────────────────────────────── */
         .toolbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: #1e293b;
-            color: #fff;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.3);
+            position: sticky; top: 0; z-index: 100;
+            background: #0f172a; color: #fff;
+            padding: 9px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,.4);
         }
-
-        .toolbar-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .toolbar-title {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .02em;
-        }
-
-        .toolbar-sub {
-            font-size: 10.5px;
-            color: #94a3b8;
-        }
-
-        .toolbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .tl { display: flex; align-items: center; gap: 10px; }
+        .tt { font-size: 12px; font-weight: 600; }
+        .ts { font-size: 10px; color: #64748b; margin-top: 1px; }
+        .ta { display: flex; gap: 8px; }
         .btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 6px 14px;
-            border: 1px solid #475569;
-            border-radius: 7px;
-            font-size: 11.5px;
-            color: #cbd5e1;
-            text-decoration: none;
-            transition: background .15s;
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 13px; border: 1px solid #334155; border-radius: 5px;
+            font-size: 11px; color: #94a3b8; text-decoration: none;
         }
-
-        .btn-back:hover { background: #334155; }
-
+        .btn-back:hover { background: #1e293b; }
         .btn-print {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 20px;
-            background: #2563eb;
-            border: none;
-            border-radius: 7px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #fff;
-            cursor: pointer;
-            transition: background .15s;
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 16px; background: #2563eb; border: none; border-radius: 5px;
+            font-size: 11px; font-weight: 600; color: #fff; cursor: pointer;
         }
-
         .btn-print:hover { background: #1d4ed8; }
 
-        /* ── Page wrapper ────────────────────────────────────────────────────── */
-        .page-wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 16px 12px 32px;
-            gap: 0;
-        }
+        /* ─── Page wrapper ───────────────────────────────────────────────────── */
+        .page-wrap { display: flex; justify-content: center; padding: 20px 12px 40px; }
 
-        /* ── Via (each copy) ─────────────────────────────────────────────────── */
-        .via {
-            width: 210mm;
+        /* ─── A4 sheet ───────────────────────────────────────────────────────── */
+        .sheet {
+            width: 210mm; height: 297mm;
             background: #fff;
-            box-shadow: 0 1px 6px rgba(0,0,0,.14);
+            box-shadow: 0 2px 20px rgba(0,0,0,.18);
+            display: flex; flex-direction: column;
+            overflow: hidden;
         }
 
-        .via-inner {
-            padding: 7mm 8mm 5mm;
+        /* ─── Via (meia folha) ───────────────────────────────────────────────── */
+        .via {
+            flex: 1;
+            padding: 5mm 8.5mm 4mm;
+            display: flex; flex-direction: column;
         }
 
-        /* ── Header ──────────────────────────────────────────────────────────── */
-        .header {
-            display: table;
-            width: 100%;
-            margin-bottom: 4px;
+        /* ─── Linha de corte ─────────────────────────────────────────────────── */
+        .cut {
+            flex-shrink: 0; height: 7mm;
+            display: flex; align-items: center; gap: 8px;
+            padding: 0 8.5mm;
+            font-size: 6.5px; letter-spacing: .06em; color: #c0c8d5;
         }
+        .cut::before, .cut::after { content: ''; flex: 1; border-top: 1px dashed #c0c8d5; }
 
-        .header-logo-cell,
-        .header-company-cell,
-        .header-right-cell {
-            display: table-cell;
-            vertical-align: middle;
+        /* ─── Cabeçalho ──────────────────────────────────────────────────────── */
+        .hd {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            padding-bottom: 3.5px;
+            border-bottom: 1.5px solid #111;
+            margin-bottom: 3px;
         }
-
-        .header-logo-cell {
-            width: 36mm;
+        .hd-l { display: flex; align-items: center; gap: 7px; }
+        .hd-l img { width: 21mm; height: auto; display: block; flex-shrink: 0; }
+        .hd-company { font-size: 7.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #1e293b; }
+        .hd-info { font-size: 6.5px; color: #64748b; margin-top: 1.5px; }
+        .hd-r { text-align: right; flex-shrink: 0; }
+        .badge {
+            display: inline-block; padding: 1.5px 6px; border-radius: 2px;
+            font-size: 6.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #fff;
         }
+        .badge.cliente { background: #1e3a8a; }
+        .badge.empresa { background: #7f1d1d; }
+        .hd-os { font-size: 12px; font-weight: 900; color: #0f172a; letter-spacing: -.02em; margin-top: 2px; line-height: 1; }
+        .hd-date { font-size: 6.5px; color: #64748b; margin-top: 2px; }
+        .hd-date b { color: #374151; font-weight: 700; }
 
-        .header-logo-cell img {
-            width: 32mm;
-            height: auto;
+        /* ─── Label de seção ─────────────────────────────────────────────────── */
+        .sec-label {
+            font-size: 6px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .08em; color: #94a3b8; margin-bottom: 1.5px;
             display: block;
         }
 
-        .header-company-cell {
-            text-align: center;
-            padding: 0 4mm;
-        }
-
-        .company-name {
-            font-size: 8.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #1e293b;
-            letter-spacing: .03em;
-        }
-
-        .company-address {
-            font-size: 8px;
-            color: #475569;
-            margin-top: 1px;
-        }
-
-        .os-number {
-            font-size: 11.5px;
-            font-weight: 900;
-            color: #1e293b;
-            margin-top: 3px;
-            letter-spacing: -.02em;
-        }
-
-        .header-right-cell {
-            width: 36mm;
-            text-align: right;
-            vertical-align: top;
-            padding-top: 2px;
-        }
-
-        .via-badge {
-            display: inline-block;
-            padding: 2px 7px;
-            font-size: 8px;
-            font-weight: 800;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            color: #fff;
-            border-radius: 3px;
-        }
-
-        .via-badge.cliente { background: #1e3a8a; }
-        .via-badge.empresa { background: #991b1b; }
-
-        .abertura {
-            font-size: 8.5px;
-            margin-top: 4px;
-            color: #1e293b;
-        }
-
-        .abertura strong { font-weight: 800; }
-
-        /* ── Divider ─────────────────────────────────────────────────────────── */
-        .divider {
-            border: none;
-            border-top: 1.5px solid #1e293b;
-            margin: 3px 0;
-        }
-
-        .divider-thin {
-            border: none;
-            border-top: 1px solid #cbd5e1;
-            margin: 0;
-        }
-
-        /* ── Data grid ───────────────────────────────────────────────────────── */
-        .data-table {
+        /* ─── Grid de dados (tabela) ─────────────────────────────────────────── */
+        /* Usamos table para garantir bordas perfeitas independente do conteúdo */
+        .dg {
             width: 100%;
             border-collapse: collapse;
-            border: 1px solid #94a3b8;
+            border: 1px solid #e2e8f0;
+            border-radius: 3px; /* apenas visual no overflow da div pai */
         }
-
-        .data-table td {
-            border: 1px solid #94a3b8;
-            padding: 2.5px 5px;
-            font-size: 9px;
-            vertical-align: top;
-        }
-
-        .data-table .field-label {
-            font-weight: 700;
-            color: #374151;
-            font-size: 8px;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            display: block;
-            margin-bottom: 1px;
-        }
-
-        .data-table .field-value {
-            font-size: 9.5px;
-            color: #111827;
-        }
-
-        /* ── Section header ──────────────────────────────────────────────────── */
-        .section-header {
-            background: #f1f5f9;
-            border: 1px solid #94a3b8;
-            border-bottom: none;
+        .dg td {
+            border: 1px solid #e2e8f0;
             padding: 2px 5px;
-            font-size: 7.5px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            color: #475569;
-        }
-
-        /* ── Text area cells ─────────────────────────────────────────────────── */
-        .text-box {
-            border: 1px solid #94a3b8;
-            padding: 3px 5px;
-            min-height: 18mm;
-            font-size: 9px;
-            color: #111827;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .text-box-half {
-            display: table-cell;
-            width: 50%;
-            border: 1px solid #94a3b8;
-            border-left: none;
-            padding: 3px 5px;
-            min-height: 18mm;
             vertical-align: top;
         }
-
-        .text-box-half:first-child {
-            border-left: 1px solid #94a3b8;
-        }
-
-        .text-box-row {
-            display: table;
-            width: 100%;
-            border-collapse: collapse;
-            border-top: none;
-        }
-
-        /* ── Financial ───────────────────────────────────────────────────────── */
-        .financial-row {
-            display: table;
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .financial-cell {
-            display: table-cell;
-            border: 1px solid #94a3b8;
-            border-top: none;
-            padding: 3px 6px;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .financial-cell + .financial-cell {
-            border-left: none;
-        }
-
-        .financial-cell .f-label {
-            font-size: 7px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            color: #64748b;
+        .dl { /* data label */
             display: block;
+            font-size: 6px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .06em; color: #94a3b8; margin-bottom: 1px;
+        }
+        .dv { /* data value */
+            font-size: 8.5px; color: #111827;
         }
 
-        .financial-cell .f-value {
-            font-size: 10.5px;
-            font-weight: 800;
-            color: #111827;
-            display: block;
-            margin-top: 1px;
-        }
-
-        .financial-cell.total {
-            background: #1e293b;
-        }
-
-        .financial-cell.total .f-label { color: #94a3b8; }
-        .financial-cell.total .f-value { color: #fff; font-size: 12px; }
-
-        /* ── Conditions ──────────────────────────────────────────────────────── */
-        .conditions-box {
-            border: 1px solid #94a3b8;
-            border-top: none;
+        /* ─── Caixa de texto (queixa) ────────────────────────────────────────── */
+        .text-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
             padding: 3px 5px;
+            min-height: 16mm;
+            font-size: 8.5px; color: #111827;
+            white-space: pre-wrap; word-break: break-word;
         }
 
-        .conditions-box p {
-            font-size: 7.8px;
-            line-height: 1.4;
-            color: #1e293b;
-        }
-
-        .conditions-box p + p { margin-top: 1.5px; }
-
-        /* ── Commitment ──────────────────────────────────────────────────────── */
-        .commitment-box {
-            border: 1px solid #94a3b8;
-            border-top: none;
-            padding: 3px 5px;
-        }
-
-        .commitment-box p {
-            font-size: 8px;
-            line-height: 1.4;
-            color: #1e293b;
-            text-align: justify;
-        }
-
-        /* ── Signatures ──────────────────────────────────────────────────────── */
-        .sig-table {
-            display: table;
-            width: 100%;
-            border-collapse: collapse;
-            border: 1px solid #94a3b8;
-            border-top: none;
-        }
-
-        .sig-cell {
-            display: table-cell;
-            width: 33.33%;
-            padding: 4px 6px 8px;
-            border-right: 1px solid #94a3b8;
-            vertical-align: bottom;
-        }
-
-        .sig-cell:last-child { border-right: none; }
-
-        .sig-label-top {
-            font-size: 7.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            color: #64748b;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .sig-name-value {
-            font-size: 9px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 1px;
-        }
-
-        .sig-line {
-            border-top: 1px solid #1e293b;
-            margin-bottom: 2px;
-        }
-
-        .sig-sub {
-            font-size: 7.5px;
-            color: #64748b;
-        }
-
-        .sig-date {
-            font-size: 8px;
-            color: #475569;
-            margin-top: 3px;
-        }
-
-        /* ── Portal box ──────────────────────────────────────────────────────── */
-        .portal-box {
-            display: table;
-            width: 100%;
-            border-collapse: collapse;
-            border: 1px solid #94a3b8;
-            border-top: none;
+        /* ─── Portal ─────────────────────────────────────────────────────────── */
+        .portal {
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
+            display: flex; overflow: hidden;
             background: #f8fafc;
         }
+        .portal-cell { padding: 2px 6px; flex: 1; }
+        .portal-cell + .portal-cell { border-left: 1px solid #e2e8f0; }
+        .pl { font-size: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; display: block; }
+        .pv { font-size: 8.5px; font-weight: 700; color: #1d4ed8; font-family: 'Courier New', monospace; letter-spacing: .07em; }
+        .pu { font-size: 7px; color: #64748b; font-family: 'Courier New', monospace; }
 
-        .portal-cell {
-            display: table-cell;
-            padding: 3px 6px;
-            vertical-align: middle;
+        /* ─── Checkboxes de andamento (via empresa) ──────────────────────────── */
+        .progress {
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
+            padding: 3px 6px 4px;
         }
-
-        .portal-cell .p-label {
-            font-size: 7px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            color: #64748b;
+        .progress-head {
+            display: flex; justify-content: space-between; align-items: baseline;
+            margin-bottom: 4px;
         }
-
-        .portal-cell .p-value {
-            font-size: 9px;
-            font-weight: 700;
-            color: #1e40af;
-            font-family: 'Courier New', monospace;
-            letter-spacing: .1em;
+        .progress-note { font-size: 6px; color: #c0c8d5; font-style: italic; }
+        .progress-steps { display: flex; gap: 0; }
+        .progress-step {
+            flex: 1; display: flex; align-items: center; gap: 3px;
         }
-
-        .portal-cell .p-url {
-            font-size: 8px;
-            color: #475569;
-            font-family: 'Courier New', monospace;
+        .progress-step + .progress-step {
+            padding-left: 6px;
+            border-left: 1px solid #e2e8f0;
         }
-
-        /* ── Page separator (between vias) ───────────────────────────────────── */
-        .page-sep {
-            width: 210mm;
-            padding: 5px 8mm;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #94a3b8;
-            font-size: 9px;
+        .cb {
+            width: 9px; height: 9px; flex-shrink: 0;
+            border: 1px solid #94a3b8;
+            border-radius: 1.5px;
+            background: #fff;
         }
+        .cb-text { font-size: 7px; font-weight: 600; color: #374151; white-space: nowrap; }
 
-        .page-sep::before,
-        .page-sep::after {
-            content: '';
-            flex: 1;
-            border-top: 1px dashed #94a3b8;
+        /* ─── Condições ──────────────────────────────────────────────────────── */
+        .conditions {
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
+            padding: 3px 5px;
         }
+        .conditions p { font-size: 6.8px; line-height: 1.35; color: #374151; }
+        .conditions p + p { margin-top: 1.5px; }
 
-        /* ── Print ───────────────────────────────────────────────────────────── */
+        /* ─── Termo ──────────────────────────────────────────────────────────── */
+        .termo {
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
+            padding: 3px 5px;
+        }
+        .termo p { font-size: 7px; line-height: 1.4; color: #374151; text-align: justify; }
+
+        /* ─── Espaçador ──────────────────────────────────────────────────────── */
+        .spacer { flex: 1; min-height: 2mm; }
+
+        /* ─── Assinaturas ────────────────────────────────────────────────────── */
+        .sigs { display: flex; gap: 10mm; padding-top: 3px; }
+        .sig { flex: 1; }
+        .sig-label { font-size: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; display: block; margin-bottom: 9px; }
+        .sig-line { border-top: 1px solid #374151; margin-bottom: 2px; }
+        .sig-name { font-size: 8px; font-weight: 600; color: #0f172a; }
+        .sig-cpf { font-size: 6.5px; color: #64748b; }
+        .sig-date { font-size: 6.5px; color: #9ca3af; margin-top: 2px; }
+
+        /* ─── Separação entre seções ─────────────────────────────────────────── */
+        .via > * + * { margin-top: 2.5px; }
+        /* exceto o spacer e sigs que ficam no fim */
+
+        /* ─── Print ──────────────────────────────────────────────────────────── */
         @media print {
-            @page {
-                size: A4 portrait;
-                margin: 0;
-            }
-
-            html { font-size: 9.5px; }
+            @page { size: A4 portrait; margin: 0; }
+            html { font-size: 8.5px; }
             body { background: #fff; }
-
             .toolbar { display: none !important; }
+            .page-wrap { padding: 0; }
+            .sheet { box-shadow: none; }
 
-            .page-wrap {
-                padding: 0;
-                gap: 0;
-            }
-
-            .via {
-                box-shadow: none;
-                page-break-inside: avoid;
-            }
-
-            .page-sep {
-                page-break-after: avoid;
-                padding: 3px 8mm;
-            }
-
-            /* Force black borders for print */
-            .data-table,
-            .data-table td,
-            .text-box,
-            .text-box-half,
-            .financial-cell,
-            .conditions-box,
-            .commitment-box,
-            .sig-table,
-            .sig-cell,
-            .portal-box { border-color: #000 !important; }
-
-            .section-header { border-color: #000 !important; }
-            .divider { border-top-color: #000 !important; }
+            .dg, .dg td      { border-color: #bbb !important; }
+            .text-box        { border-color: #bbb !important; }
+            .portal          { border-color: #bbb !important; }
+            .portal-cell     { border-color: #bbb !important; }
+            .progress        { border-color: #bbb !important; }
+            .progress-step   { border-color: #bbb !important; }
+            .cb              { border-color: #555 !important; }
+            .conditions      { border-color: #bbb !important; }
+            .termo           { border-color: #bbb !important; }
+            .hd              { border-bottom-color: #000 !important; }
         }
     </style>
 </head>
@@ -514,263 +238,229 @@
         $ordem->equipamento?->tipo,
         $ordem->equipamento?->marca,
         $ordem->equipamento?->modelo,
-    ])->filter()->join(' ');
-    $equip = $equip ?: '–';
+    ])->filter()->join(' ') ?: '–';
 
     $endereco = collect([
         $ordem->cliente?->endereco,
-        $ordem->cliente?->cidade && $ordem->cliente?->estado
-            ? $ordem->cliente->cidade . ' – ' . $ordem->cliente->estado
+        ($ordem->cliente?->cidade && $ordem->cliente?->estado)
+            ? "{$ordem->cliente->cidade} – {$ordem->cliente->estado}"
             : ($ordem->cliente?->cidade ?? $ordem->cliente?->estado ?? null),
         $ordem->cliente?->cep ? 'CEP ' . $ordem->cliente->cep : null,
     ])->filter()->join(', ');
 
-    $temValores = ($ordem->valor_servico + $ordem->valor_pecas) > 0;
-
     $conditions = [
-        "A empresa {$empresa['nome']} não se responsabilizará por quaisquer perdas de dados (arquivos) gravados em disco rígido (HD) e/ou softwares instalados que possam ocorrer. Fica sob inteira responsabilidade do cliente todo e qualquer tipo de cópia de segurança (backup) dos mesmos.",
-        "Os Serviços executados têm garantia corrida de 15 dias a partir da data de entrega. Caso o problema for causado por mau uso, o cliente perderá a garantia.",
-        "Equipamentos em garantia de venda só estarão livres de taxas e valores de serviços mediante apresentação de nota fiscal.",
-        "Após 60 dias do orçamento apresentado ao cliente, o mesmo se compromete a pagar taxa de armazenagem de R\$5,00 por dia, caso não venha retirar o equipamento neste prazo.",
-        "Decorrido o prazo de 90 dias após o orçamento apresentado ao cliente, a {$empresa['nome']} fica autorizada a alienar o equipamento para ressarcimentos dos custos de armazenagem e dos serviços realizados.",
+        "A empresa {$empresa['nome']} não se responsabilizará por perdas de dados gravados em HD e/ou softwares instalados. Fica sob responsabilidade do cliente qualquer cópia de segurança (backup).",
+        "Os serviços executados têm garantia de 15 dias a partir da entrega. Problema causado por mau uso invalida a garantia.",
+        "Equipamentos em garantia de venda só estarão livres de taxas mediante apresentação de nota fiscal.",
+        "Após 60 dias do orçamento apresentado, o cliente sujeita-se a taxa de armazenagem de R\$5,00/dia caso não retire o equipamento.",
+        "Decorrido 90 dias após o orçamento, a {$empresa['nome']} fica autorizada a alienar o equipamento para ressarcimento dos custos.",
     ];
+
+    $steps = ['Entrada', 'Análise', 'Execução', 'Aguardando', 'Em teste', 'Finalizado'];
 
     $vias = [
         ['key' => 'cliente', 'label' => 'Via do Cliente'],
         ['key' => 'empresa', 'label' => 'Via da Empresa'],
     ];
-
-    $statusLabels = [
-        'entrada'            => 'Entrada registrada',
-        'analise'            => 'Em análise',
-        'execucao'           => 'Em execução',
-        'aguardando_cliente' => 'Aguardando cliente',
-        'em_teste'           => 'Em teste',
-        'finalizado'         => 'Finalizado',
-        'cancelado'          => 'Cancelado',
-    ];
 @endphp
 
-{{-- ── Toolbar ──────────────────────────────────────────────────────────────── --}}
+{{-- Toolbar --}}
 <div class="toolbar">
-    <div class="toolbar-left">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#60a5fa;flex-shrink:0"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
+    <div class="tl">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" style="flex-shrink:0"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
         <div>
-            <div class="toolbar-title">Ordem de Serviço — {{ $ordem->numero }}</div>
-            <div class="toolbar-sub">{{ $ordem->cliente?->nome }} · {{ $ordem->created_at->format('d/m/Y') }} · Duas vias</div>
+            <div class="tt">Entrada de Equipamento — OS {{ $ordem->numero }}</div>
+            <div class="ts">{{ $ordem->cliente?->nome }} · {{ $ordem->created_at->format('d/m/Y') }} · Duas vias</div>
         </div>
     </div>
-    <div class="toolbar-actions">
+    <div class="ta">
         <a href="{{ route('app.os.show', $ordem) }}" class="btn-back">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
             Voltar
         </a>
         <button onclick="window.print()" class="btn-print">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
             Imprimir / Salvar PDF
         </button>
     </div>
 </div>
 
 <div class="page-wrap">
+<div class="sheet">
 
-@foreach($vias as $via)
-
+@foreach($vias as $i => $via)
 <div class="via">
-<div class="via-inner">
 
-    {{-- ── Header ─────────────────────────────────────────────────────── --}}
-    <div class="header">
-        <div class="header-logo-cell">
+    {{-- Cabeçalho --}}
+    <div class="hd">
+        <div class="hd-l">
             <img src="{{ asset('images/futuredata.png') }}" alt="FutureData">
+            <div>
+                <div class="hd-company">{{ $empresa['nome'] }}</div>
+                <div class="hd-info">{{ $empresa['endereco'] }}</div>
+                <div class="hd-info">{{ $empresa['telefone'] }}</div>
+            </div>
         </div>
-        <div class="header-company-cell">
-            <div class="company-name">{{ $empresa['nome'] }}</div>
-            <div class="company-address">{{ $empresa['endereco'] }} · {{ $empresa['telefone'] }}</div>
-            <div class="os-number">Ordem de Serviço – nº {{ $ordem->numero }}</div>
-        </div>
-        <div class="header-right-cell">
-            <span class="via-badge {{ $via['key'] }}">{{ $via['label'] }}</span>
-            <div class="abertura">Abertura: <strong>{{ $ordem->created_at->format('d/m/Y') }}</strong></div>
-            @if($ordem->previsao_entrega)
-            <div class="abertura" style="margin-top:2px;">Previsão: <strong>{{ $ordem->previsao_entrega->format('d/m/Y') }}</strong></div>
-            @endif
-        </div>
-    </div>
-
-    <hr class="divider">
-
-    {{-- ── Dados do Cliente ────────────────────────────────────────────── --}}
-    <table class="data-table">
-        <tr>
-            <td style="width:55%">
-                <span class="field-label">Cliente</span>
-                <span class="field-value">{{ $ordem->cliente?->nome ?? '—' }}</span>
-            </td>
-            <td style="width:45%">
-                <span class="field-label">Endereço</span>
-                <span class="field-value">{{ $endereco ?: '—' }}</span>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <span class="field-label">CPF / CNPJ</span>
-                <span class="field-value">{{ $ordem->cliente?->cpf_cnpj ?? '—' }}</span>
-            </td>
-            <td>
-                <span class="field-label">Telefone</span>
-                <span class="field-value">{{ $ordem->cliente?->telefone ?? '—' }}</span>
-            </td>
-        </tr>
-    </table>
-
-    {{-- ── Equipamento ─────────────────────────────────────────────────── --}}
-    <table class="data-table" style="border-top:none;">
-        <tr>
-            <td style="width:40%">
-                <span class="field-label">Equipamento</span>
-                <span class="field-value">{{ $equip }}</span>
-            </td>
-            <td style="width:25%">
-                <span class="field-label">Nº de Série</span>
-                <span class="field-value">{{ $ordem->equipamento?->numero_serie ?: '—' }}</span>
-            </td>
-            <td style="width:20%">
-                <span class="field-label">Condição</span>
-                <span class="field-value">{{ $ordem->equipamento?->condicao_entrada ?: '—' }}</span>
-            </td>
-            <td style="width:15%">
-                <span class="field-label">Garantia</span>
-                <span class="field-value">{{ $ordem->equipamento?->em_garantia ? 'Sim' : 'Não' }}</span>
-            </td>
-        </tr>
-        @if($ordem->equipamento?->acessorios)
-        <tr>
-            <td colspan="4">
-                <span class="field-label">Acessórios / Itens inclusos</span>
-                <span class="field-value">{{ $ordem->equipamento->acessorios }}</span>
-            </td>
-        </tr>
-        @endif
-    </table>
-
-    {{-- ── Queixa / Diagnóstico ────────────────────────────────────────── --}}
-    <div class="section-header" style="margin-top:-1px; display:table; width:100%;">
-        <div style="display:table-cell; width:50%;">Defeito / Queixa relatada pelo cliente</div>
-        <div style="display:table-cell; width:50%; border-left:1px solid #94a3b8; padding-left:5px;">Diagnóstico técnico / Observações</div>
-    </div>
-    <div class="text-box-row">
-        <div class="text-box-half">{{ $ordem->problema_relatado }}</div>
-        <div class="text-box-half">{{ $ordem->diagnostico ?: ($via['key'] === 'empresa' ? '' : 'Aguardando diagnóstico.') }}</div>
-    </div>
-
-    @if($ordem->solucao && $via['key'] === 'empresa')
-    <div class="section-header" style="border-top:none;">Solução aplicada</div>
-    <div class="text-box" style="min-height:8mm;">{{ $ordem->solucao }}</div>
-    @endif
-
-    {{-- ── Financeiro (só se tiver valores) ───────────────────────────── --}}
-    @if($temValores)
-    <div class="financial-row">
-        <div class="financial-cell" style="width:26%">
-            <span class="f-label">Mão de Obra / Serviços</span>
-            <span class="f-value">R$ {{ number_format($ordem->valor_servico, 2, ',', '.') }}</span>
-        </div>
-        <div class="financial-cell" style="width:24%">
-            <span class="f-label">Peças / Componentes</span>
-            <span class="f-value">R$ {{ number_format($ordem->valor_pecas, 2, ',', '.') }}</span>
-        </div>
-        <div class="financial-cell" style="width:20%">
-            <span class="f-label">Desconto</span>
-            <span class="f-value">{{ $ordem->desconto > 0 ? '− R$ '.number_format($ordem->desconto, 2, ',', '.') : '—' }}</span>
-        </div>
-        <div class="financial-cell total" style="width:30%; border-left:none;">
-            <span class="f-label">Total do Orçamento</span>
-            <span class="f-value">R$ {{ number_format($ordem->total, 2, ',', '.') }}</span>
-        </div>
-    </div>
-    @endif
-
-    {{-- ── Status + Portal ─────────────────────────────────────────────── --}}
-    <div class="portal-box">
-        <div class="portal-cell" style="width:40%">
-            <span class="p-label">Status</span>
-            <span class="p-value" style="color:#111827;font-family:Arial;letter-spacing:0;font-size:9.5px;">
-                {{ $statusLabels[$ordem->status] ?? $ordem->status }}
-                @if($ordem->status_orcamento === 'aprovado') · Orçamento aprovado
-                @elseif($ordem->status_orcamento === 'recusado') · Orçamento recusado
+        <div class="hd-r">
+            <span class="badge {{ $via['key'] }}">{{ $via['label'] }}</span>
+            <div class="hd-os">OS {{ $ordem->numero }}</div>
+            <div class="hd-date">Abertura: <b>{{ $ordem->created_at->format('d/m/Y') }}</b>
+                @if($ordem->previsao_entrega)
+                &nbsp;·&nbsp; Previsão: <b>{{ $ordem->previsao_entrega->format('d/m/Y') }}</b>
                 @endif
-            </span>
+            </div>
         </div>
-        @if($ordem->token)
-        <div class="portal-cell" style="border-left:1px solid #94a3b8; width:30%">
-            <span class="p-label">Código do portal</span>
-            <span class="p-value">{{ $ordem->token }}</span>
-        </div>
-        <div class="portal-cell" style="border-left:1px solid #94a3b8;">
-            <span class="p-label">Acesso em</span>
-            <span class="p-url">{{ config('app.url') }}/r/{{ $ordem->token }}</span>
-        </div>
-        @endif
     </div>
 
-    {{-- ── Condições de Assistência ─────────────────────────────────────── --}}
-    <div class="section-header" style="border-top:none;">Condições de Assistência Técnica</div>
-    <div class="conditions-box">
-        @foreach($conditions as $n => $cond)
-        <p><strong>{{ $n + 1 }}-</strong> {{ $cond }}</p>
-        @endforeach
+    {{-- Cliente --}}
+    <div style="overflow:hidden; border-radius:3px;">
+        <table class="dg">
+            <tr>
+                <td style="width:52%">
+                    <span class="dl">Cliente</span>
+                    <span class="dv">{{ $ordem->cliente?->nome ?? '—' }}</span>
+                </td>
+                <td>
+                    <span class="dl">Telefone</span>
+                    <span class="dv">{{ $ordem->cliente?->telefone ?? '—' }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span class="dl">CPF / CNPJ</span>
+                    <span class="dv">{{ $ordem->cliente?->cpf_cnpj ?? '—' }}</span>
+                </td>
+                <td>
+                    <span class="dl">Endereço</span>
+                    <span class="dv">{{ $endereco ?: '—' }}</span>
+                </td>
+            </tr>
+        </table>
     </div>
 
-    {{-- ── Termo de Compromisso ─────────────────────────────────────────── --}}
-    <div class="section-header" style="border-top:none;">Termo de Compromisso</div>
-    <div class="commitment-box">
-        <p>
-            Eu, <strong>{{ $ordem->cliente?->nome ?? '_______________________________' }}</strong>,
-            portador(a) do CPF/CNPJ <strong>{{ $ordem->cliente?->cpf_cnpj ?? '___________________' }}</strong>,
-            declaro que sou proprietário(a) do equipamento acima citado, o qual deixo aos cuidados da empresa
-            <strong>{{ $empresa['nome'] }}</strong>, que fica como depositária durante a execução do(s) serviço(s),
-            comprometendo-me a apresentar os documentos de aquisição do mesmo. A depositária fica isenta da
-            responsabilidade de comprovação da aquisição deste equipamento.
-            <strong>Autorizo qualquer serviço e/ou peça no valor de até R$250,00. Acima desse valor, caso não
-            autorizado, pagarei a taxa de R$50,00 (CINQUENTA REAIS) referente ao laudo técnico.</strong>
-        </p>
+    {{-- Equipamento --}}
+    <div style="overflow:hidden; border-radius:3px;">
+        <table class="dg">
+            <tr>
+                <td style="width:46%">
+                    <span class="dl">Equipamento (tipo / marca / modelo)</span>
+                    <span class="dv">{{ $equip }}</span>
+                </td>
+                <td style="width:28%">
+                    <span class="dl">Nº de Série</span>
+                    <span class="dv">{{ $ordem->equipamento?->numero_serie ?: '—' }}</span>
+                </td>
+                <td style="width:15%">
+                    <span class="dl">Patrimônio</span>
+                    <span class="dv">{{ $ordem->equipamento?->patrimonio ?: '—' }}</span>
+                </td>
+                <td style="width:11%">
+                    <span class="dl">Garantia</span>
+                    <span class="dv">{{ $ordem->equipamento?->em_garantia ? 'Sim' : 'Não' }}</span>
+                </td>
+            </tr>
+            @if($ordem->equipamento?->acessorios)
+            <tr>
+                <td colspan="4">
+                    <span class="dl">Acessórios / Itens inclusos</span>
+                    <span class="dv">{{ $ordem->equipamento->acessorios }}</span>
+                </td>
+            </tr>
+            @endif
+        </table>
     </div>
 
-    {{-- ── Assinaturas ─────────────────────────────────────────────────── --}}
-    <div class="sig-table">
-        <div class="sig-cell">
-            <span class="sig-label-top">Técnico responsável</span>
+    {{-- Queixa --}}
+    <div>
+        <span class="sec-label">Defeito / Queixa relatada pelo cliente</span>
+        <div class="text-box">{{ $ordem->problema_relatado }}</div>
+    </div>
+
+    {{-- Portal --}}
+    @if($ordem->token)
+    <div class="portal">
+        <div class="portal-cell">
+            <span class="pl">Código de acompanhamento</span>
+            <span class="pv">{{ $ordem->token }}</span>
+        </div>
+        <div class="portal-cell" style="flex:2">
+            <span class="pl">Portal do cliente</span>
+            <span class="pu">{{ config('app.url') }}/r/{{ $ordem->token }}</span>
+        </div>
+    </div>
+    @endif
+
+    {{-- Checkboxes (só via da empresa) --}}
+    @if($via['key'] === 'empresa')
+    <div class="progress">
+        <div class="progress-head">
+            <span class="sec-label" style="margin:0;">Andamento do serviço</span>
+            <span class="progress-note">marque conforme evolução</span>
+        </div>
+        <div class="progress-steps">
+            @foreach($steps as $step)
+            <div class="progress-step">
+                <div class="cb"></div>
+                <span class="cb-text">{{ $step }}</span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- Condições --}}
+    <div>
+        <span class="sec-label">Condições de Assistência Técnica</span>
+        <div class="conditions">
+            @foreach($conditions as $n => $cond)
+            <p><b>{{ $n + 1 }}.</b> {{ $cond }}</p>
+            @endforeach
+        </div>
+    </div>
+
+    {{-- Termo --}}
+    <div>
+        <span class="sec-label">Termo de Compromisso</span>
+        <div class="termo">
+            <p>
+                Eu, <b>{{ $ordem->cliente?->nome ?? '_______________________________' }}</b>,
+                portador(a) do CPF/CNPJ <b>{{ $ordem->cliente?->cpf_cnpj ?? '___________________' }}</b>,
+                declaro ser proprietário(a) do equipamento acima descrito, o qual deixo sob os cuidados da empresa
+                <b>{{ $empresa['nome'] }}</b>, que fica como depositária durante a execução dos serviços,
+                comprometendo-me a apresentar os documentos de aquisição. A depositária fica isenta da
+                responsabilidade de comprovação da aquisição.
+                <b>Autorizo serviços e/ou peças até R$250,00. Acima desse valor, sem autorização prévia,
+                pagarei R$50,00 (cinquenta reais) referente ao laudo técnico.</b>
+            </p>
+        </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    {{-- Assinaturas --}}
+    <div class="sigs">
+        <div class="sig">
+            <span class="sig-label">Técnico responsável</span>
             <div class="sig-line"></div>
-            <div class="sig-name-value">{{ $ordem->tecnico?->name ?? 'Técnico' }}</div>
-            <div class="sig-date">Data: ____/____/________</div>
+            <div class="sig-name">{{ $ordem->tecnico?->name ?? 'Técnico' }}</div>
+            <div class="sig-date">Data: ______ / ______ / ____________</div>
         </div>
-        <div class="sig-cell">
-            <span class="sig-label-top">Assinatura do cliente (entrada)</span>
+        <div class="sig">
+            <span class="sig-label">Assinatura do cliente</span>
             <div class="sig-line"></div>
-            <div class="sig-name-value">{{ $ordem->cliente?->nome ?? '_______________________________' }}</div>
-            <div class="sig-sub">{{ $ordem->cliente?->cpf_cnpj ?? '' }}</div>
-            <div class="sig-date">Data: ____/____/________</div>
-        </div>
-        <div class="sig-cell">
-            <span class="sig-label-top">Assinatura do cliente (retirada)</span>
-            <div class="sig-line"></div>
-            <div class="sig-name-value" style="color:transparent">x</div>
-            <div class="sig-sub" style="color:transparent">-</div>
-            <div class="sig-date">Data: ____/____/________</div>
+            <div class="sig-name">{{ $ordem->cliente?->nome ?? '________________________________' }}</div>
+            <div class="sig-cpf">{{ $ordem->cliente?->cpf_cnpj ?? '' }}</div>
+            <div class="sig-date">Data: ______ / ______ / ____________</div>
         </div>
     </div>
 
-</div>{{-- /via-inner --}}
 </div>{{-- /via --}}
-
-@if(! $loop->last)
-<div class="page-sep">recortar aqui</div>
+@if($i === 0)
+<div class="cut">✂&ensp;recortar aqui</div>
 @endif
-
 @endforeach
 
+</div>{{-- /sheet --}}
 </div>{{-- /page-wrap --}}
-
 </body>
 </html>
