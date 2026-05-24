@@ -8,7 +8,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300;1,9..144,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
@@ -117,11 +117,11 @@
         {{-- Citação --}}
         <div class="relative z-10">
             <blockquote>
-                <p class="font-bold italic leading-snug text-white mb-5" style="font-family:'Playfair Display',serif;font-size:52px;">
-                    "Assistência técnica de excelência, sempre ao seu lado."
+                <p class="font-bold italic leading-tight text-white mb-6" style="font-family:'Fraunces',serif;font-size:52px;line-height:1.15;">
+                    "Tecnologia que cuida. Suporte que transforma."
                 </p>
                 <p class="text-slate-400 text-base leading-relaxed">
-                    Gestão completa de ordens de serviço, integração WhatsApp e suporte ao cliente em tempo real.
+                    Do atendimento à entrega — cada ordem de serviço gerenciada com precisão, agilidade e transparência.
                 </p>
             </blockquote>
         </div>
