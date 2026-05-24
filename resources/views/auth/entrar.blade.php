@@ -114,24 +114,24 @@
     {{-- ══════════════════════════════════════════ --}}
     <div class="w-full lg:w-2/3 flex flex-col items-center justify-center px-4 sm:px-8 overflow-y-auto bg-white">
 
-        <div class="w-full max-w-sm">
+        <div class="w-full max-w-md">
 
             {{-- Logo mobile --}}
-            <div class="lg:hidden mb-6 flex justify-center">
-                <img src="{{ asset('images/futuredata.png') }}" class="h-9 w-auto object-contain" alt="Future Data">
+            <div class="lg:hidden mb-8 flex justify-center">
+                <img src="{{ asset('images/futuredata.png') }}" class="h-10 w-auto object-contain" alt="Future Data">
             </div>
 
             {{-- Cabeçalho --}}
-            <div class="mb-6">
-                <p class="text-slate-400 text-xs tracking-widest uppercase mb-1.5">Bem-vindo de volta</p>
-                <h1 class="text-3xl font-bold text-slate-900 leading-tight" style="font-family:'Sora',sans-serif;">
+            <div class="mb-8">
+                <p class="text-slate-400 text-xs tracking-widest uppercase mb-2">Bem-vindo de volta</p>
+                <h1 class="text-[2.25rem] font-bold text-slate-900 leading-tight" style="font-family:'Sora',sans-serif;">
                     Acesse sua conta
                 </h1>
-                <p class="text-slate-500 mt-1.5 text-sm">Continue de onde parou na plataforma.</p>
+                <p class="text-slate-500 mt-2 text-sm">Continue de onde parou na plataforma.</p>
             </div>
 
             {{-- Formulário --}}
-            <form method="POST" action="{{ route('auth.entrar.post') }}" class="space-y-4">
+            <form method="POST" action="{{ route('auth.entrar.post') }}" class="space-y-5">
                 @csrf
 
                 {{-- E-mail --}}
@@ -146,7 +146,7 @@
                             value="{{ old('email') }}"
                             placeholder="seu@email.com"
                             autocomplete="email"
-                            class="w-full pl-11 pr-4 py-2.5 text-sm rounded-xl border transition-all focus:outline-none
+                            class="w-full pl-11 pr-4 py-3 text-sm rounded-xl border transition-all focus:outline-none
                                 {{ $errors->has('email')
                                     ? 'border-red-300 bg-red-50 text-red-700 placeholder-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100'
                                     : 'border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 hover:border-slate-300 focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-100' }}"
@@ -171,7 +171,7 @@
                             :type="show ? 'text' : 'password'"
                             placeholder="••••••••"
                             autocomplete="current-password"
-                            class="w-full pl-11 pr-11 py-2.5 text-sm rounded-xl border transition-all focus:outline-none
+                            class="w-full pl-11 pr-11 py-3 text-sm rounded-xl border transition-all focus:outline-none
                                 {{ $errors->has('password')
                                     ? 'border-red-300 bg-red-50 text-red-700 placeholder-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100'
                                     : 'border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 hover:border-slate-300 focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-100' }}"
@@ -191,7 +191,7 @@
 
                 {{-- Botão --}}
                 <button type="submit"
-                    class="w-full py-3 rounded-xl bg-slate-900 text-white text-sm font-bold tracking-wide transition-all hover:bg-slate-700 active:scale-[.98] focus:outline-none focus:ring-2 focus:ring-slate-400"
+                    class="w-full py-3.5 rounded-xl bg-slate-900 text-white text-sm font-bold tracking-wide transition-all hover:bg-slate-700 active:scale-[.98] focus:outline-none focus:ring-2 focus:ring-slate-400"
                     style="font-family:'Sora',sans-serif;">
                     Entrar no Sistema
                 </button>

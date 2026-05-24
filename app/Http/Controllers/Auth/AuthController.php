@@ -76,12 +76,6 @@ class AuthController extends Controller
             return back()->with('success', 'Link de recuperação enviado para o seu e-mail.');
         }
 
-        $mensagens = [
-            Password::INVALID_USER     => 'Não encontramos uma conta com este e-mail.',
-            Password::INVALID_TOKEN    => 'O token de redefinição é inválido.',
-            Password::RESET_THROTTLED  => 'Aguarde alguns minutos antes de tentar novamente.',
-        ];
-
-        return back()->withErrors(['email' => $mensagens[$status] ?? 'Não foi possível enviar o link. Tente novamente.']);
+        return back()->withErrors(['email' => __($status)]);
     }
 }
