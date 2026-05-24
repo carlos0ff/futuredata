@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
-
 <body class="h-screen overflow-hidden" x-data>
 
 {{-- Toast erro --}}
