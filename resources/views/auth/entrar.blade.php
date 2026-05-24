@@ -81,7 +81,7 @@
         {{-- Citação --}}
         <div class="relative z-10">
             <blockquote>
-                <p class="text-3xl font-bold italic leading-snug text-white mb-5" style="font-family:'Playfair Display',serif;">
+                <p class="font-bold italic leading-snug text-white mb-5" style="font-family:'Playfair Display',serif;font-size:52px;">
                     "Assistência técnica de excelência, sempre ao seu lado."
                 </p>
                 <p class="text-slate-400 text-base leading-relaxed">
@@ -104,7 +104,6 @@
                     <p class="text-slate-400 text-xs mt-0.5">Fundador da BlackDev</p>
                 </div>
             </div>
-            <p class="text-slate-600 text-xs">© {{ date('Y') }} Future Data. Todos os direitos reservados.</p>
         </div>
 
     </div>
