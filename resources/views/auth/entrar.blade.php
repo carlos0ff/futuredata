@@ -28,16 +28,9 @@
                 if (this.progress <= 0) { this.show = false; clearInterval(this.timer); }
             }, 100);
         }
-    }"
-    x-show="show"
-    x-transition:enter="transition ease-out duration-300"
-    x-transition:enter-start="opacity-0 translate-x-4"
-    x-transition:enter-end="opacity-100 translate-x-0"
-    x-transition:leave="transition ease-in duration-200"
-    x-transition:leave-start="opacity-100 translate-x-0"
-    x-transition:leave-end="opacity-0 translate-x-4"
-    class="fixed top-5 right-5 z-50 w-80 rounded-xl bg-white border border-red-200 shadow-xl overflow-hidden"
->
+    }" x-show="show" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0"
+    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-x-0" x-transition:leave-end="opacity-0 translate-x-4"
+    class="fixed top-5 right-5 z-50 w-80 rounded-xl bg-white border border-red-200 shadow-xl overflow-hidden" >
     <div class="flex items-start gap-3 p-4">
         <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 mt-0.5">
             <i class="fas fa-circle-exclamation text-red-500 text-sm"></i>
@@ -52,6 +45,7 @@
             <i class="fas fa-xmark text-sm"></i>
         </button>
     </div>
+
     <div class="h-0.5 bg-red-100">
         <div class="h-full bg-red-400 transition-all duration-100" :style="`width: ${progress}%`"></div>
     </div>
@@ -68,7 +62,11 @@
 
         <div class="relative z-10">
             <a href="{{ route('auth.entrar') }}">
-                <img src="{{ asset('images/futuredata.png') }}" class="h-8 w-auto object-contain" alt="Future Data">
+                <img 
+                    src="{{ asset('images/futuredata.png') }}" 
+                    class="h-8 w-auto object-contain" 
+                    alt="Future Data" 
+                />
             </a>
         </div>
 
@@ -103,13 +101,9 @@
     <div class="w-full lg:w-2/3 flex flex-col items-center justify-center px-4 sm:px-8 overflow-y-auto bg-white">
 
         <div class="w-full max-w-md">
-
-            {{-- Logo mobile --}}
             <div class="lg:hidden mb-8 flex justify-center">
                 <img src="{{ asset('images/futuredata.png') }}" class="h-10 w-auto object-contain" alt="Future Data">
             </div>
-
-            {{-- Cabeçalho --}}
             <div class="mb-8">
                 <p class="text-slate-400 text-xs tracking-widest uppercase mb-2">Bem-vindo de volta</p>
                 <h1 class="text-[2.25rem] font-bold text-slate-900 leading-tight" style="font-family:'Sora',sans-serif;">
@@ -134,14 +128,13 @@
                             value="{{ old('email') }}"
                             placeholder="seu@email.com"
                             autocomplete="email"
-                            class="w-full pl-11 pr-4 py-3 text-sm rounded-xl border transition-all focus:outline-none
+                            class="w-full pl-11 pr-4 py-3 text-sm rounded-md border transition-all focus:outline-none
                                 {{ $errors->has('email')
                                     ? 'border-red-300 bg-red-50 text-red-700 placeholder-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100'
                                     : 'border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 hover:border-slate-300 focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-100' }}"
                         />
                     </div>
                 </div>
-
 
                 <div class="space-y-1.5" x-data="{ show: false }">
                     <div class="flex items-center justify-between">
