@@ -15,6 +15,49 @@
 
 <body class="h-screen overflow-hidden" x-data>
 
+{{-- Toast --}}
+@if ($errors->any())
+<div
+    x-data="{
+        show: true,
+        progress: 100,
+        timer: null,
+        init() {
+            this.timer = setInterval(() => {
+                this.progress -= 2;
+                if (this.progress <= 0) { this.show = false; clearInterval(this.timer); }
+            }, 100);
+        }
+    }"
+    x-show="show"
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 translate-x-4"
+    x-transition:enter-end="opacity-100 translate-x-0"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 translate-x-0"
+    x-transition:leave-end="opacity-0 translate-x-4"
+    class="fixed top-5 right-5 z-50 w-80 rounded-xl bg-white border border-red-200 shadow-xl overflow-hidden"
+>
+    <div class="flex items-start gap-3 p-4">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 mt-0.5">
+            <i class="fas fa-circle-exclamation text-red-500 text-sm"></i>
+        </span>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-red-700 mb-0.5">Não foi possível entrar</p>
+            @foreach ($errors->all() as $error)
+                <p class="text-sm text-red-600">{{ $error }}</p>
+            @endforeach
+        </div>
+        <button @click="show = false; clearInterval(timer)" class="text-slate-400 hover:text-slate-600 transition-colors p-1 -mt-1 -mr-1">
+            <i class="fas fa-xmark text-sm"></i>
+        </button>
+    </div>
+    <div class="h-0.5 bg-red-100">
+        <div class="h-full bg-red-400 transition-all duration-100" :style="`width: ${progress}%`"></div>
+    </div>
+</div>
+@endif
+
 <div class="h-screen flex overflow-hidden">
 
     {{-- ══════════════════════════════════════════ --}}
@@ -86,28 +129,6 @@
                 </h1>
                 <p class="text-slate-500 mt-2 text-sm">Continue de onde parou na plataforma.</p>
             </div>
-
-            {{-- Erros --}}
-            @if ($errors->any())
-                <div x-data="{ show: true }" x-show="show"
-                    x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-1"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 flex items-start gap-3">
-                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 mt-0.5">
-                        <i class="fas fa-circle-exclamation text-red-500 text-sm"></i>
-                    </span>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-red-700 mb-1">Não foi possível entrar</p>
-                        @foreach ($errors->all() as $error)
-                            <p class="text-sm text-red-600">{{ $error }}</p>
-                        @endforeach
-                    </div>
-                    <button @click="show = false" class="text-red-400 hover:text-red-600 transition-colors p-1">
-                        <i class="fas fa-xmark text-sm"></i>
-                    </button>
-                </div>
-            @endif
 
             {{-- Formulário --}}
             <form method="POST" action="{{ route('auth.entrar.post') }}" class="space-y-5">
