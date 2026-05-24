@@ -136,8 +136,8 @@
                 >
                 <div>
                     <p class="text-slate-500 text-[10px] tracking-widest uppercase mb-0.5">Produzido por</p>
-                    <p class="text-white text-sm font-semibold leading-none" style="font-family:'Sora',sans-serif;">Gustavo Web</p>
-                    <p class="text-slate-400 text-xs mt-0.5">Fundador da BlackDev</p>
+                    <p class="text-white text-sm font-semibold leading-none" style="font-family:'Sora',sans-serif;">Carlos</p>
+                    <p class="text-slate-400 text-xs mt-0.5">Fundador da future</p>
                 </div>
             </div>
         </div>

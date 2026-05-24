@@ -91,8 +91,8 @@
                 >
                 <div>
                     <p class="text-slate-500 text-[10px] tracking-widest uppercase mb-0.5">Produzido por</p>
-                    <p class="text-white text-sm font-semibold leading-none" style="font-family:'Sora',sans-serif;">Gustavo Web</p>
-                    <p class="text-slate-400 text-xs mt-0.5">Fundador da BlackDev</p>
+                    <p class="text-white text-sm font-semibold leading-none" style="font-family:'Sora',sans-serif;">Carlos</p>
+                    <p class="text-slate-400 text-xs mt-0.5">Fundador da future</p>
                 </div>
             </div>
         </div>
@@ -123,8 +123,7 @@
                         <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i class="fas fa-envelope text-slate-400 text-sm"></i>
                         </span>
-                        <input
-                            name="email" type="email"
+                        <input name="email" type="email"
                             value="{{ old('email') }}"
                             placeholder="seu@email.com"
                             autocomplete="email"
@@ -169,7 +168,6 @@
             <p class="mt-8 text-center text-xs text-slate-400">
                 © {{ date('Y') }} Future Data. Todos os direitos reservados.
             </p>
-
         </div>
     </div>
 
