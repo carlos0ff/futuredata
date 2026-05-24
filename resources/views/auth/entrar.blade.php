@@ -60,8 +60,12 @@
 
 <div class="h-screen flex overflow-hidden">
 
-    {{-- PAINEL ESQUERDO --}}
+    {{-- ══════════════════════════════════════════ --}}
+    {{-- PAINEL ESQUERDO                            --}}
+    {{-- ══════════════════════════════════════════ --}}
     <div class="hidden lg:flex lg:w-1/3 flex-col justify-between p-10 relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+
+        {{-- Glows decorativos --}}
         <div class="absolute inset-0 pointer-events-none">
             <div class="absolute -top-20 -left-20 w-80 h-80 bg-red-600 rounded-full opacity-10 blur-3xl"></div>
             <div class="absolute -bottom-20 -right-20 w-80 h-80 bg-blue-600 rounded-full opacity-10 blur-3xl"></div>
@@ -86,25 +90,29 @@
             </blockquote>
         </div>
 
-        {{-- Autor --}}
+        {{-- Autor + Copyright --}}
         <div class="relative z-10 space-y-4">
             <div class="flex items-center gap-3">
                 <img
                     src="https://media.licdn.com/dms/image/v2/D4D03AQF7xzwKIYFwwQ/profile-displayphoto-crop_800_800/B4DZw4KyXeKwAI-/0/1770468879303?e=1781136000&v=beta&t=Oilvt6HaBEHqwFh_pLWFFyYDfJ4ntX-glf0wzHR6sGM"
                     class="h-11 w-11 rounded-full ring-2 ring-slate-600 object-cover flex-shrink-0"
-                    alt="Carlos"
+                    alt="Gustavo Web"
                 >
                 <div>
                     <p class="text-slate-500 text-[10px] tracking-widest uppercase mb-0.5">Produzido por</p>
-                    <p class="text-white text-sm font-semibold leading-none" style="font-family:'Sora',sans-serif;">Carlos</p>
-                    <p class="text-slate-400 text-xs mt-0.5">Fundador da Colab</p>
+                    <p class="text-white text-sm font-semibold leading-none" style="font-family:'Sora',sans-serif;">Gustavo Web</p>
+                    <p class="text-slate-400 text-xs mt-0.5">Fundador da BlackDev</p>
                 </div>
             </div>
         </div>
+
     </div>
 
-    {{-- PAINEL DIREITO --}}
+    {{-- ══════════════════════════════════════════ --}}
+    {{-- PAINEL DIREITO                             --}}
+    {{-- ══════════════════════════════════════════ --}}
     <div class="w-full lg:w-2/3 flex flex-col items-center justify-center px-4 sm:px-8 overflow-y-auto bg-white">
+
         <div class="w-full max-w-md">
 
             {{-- Logo mobile --}}
@@ -186,6 +194,7 @@
                     style="font-family:'Sora',sans-serif;">
                     Entrar no Sistema
                 </button>
+
             </form>
 
             {{-- Footer mobile --}}
