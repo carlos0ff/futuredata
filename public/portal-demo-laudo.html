@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laudo Técnico OS #12458 — AssistPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:       #2563eb;
+      --blue-light: #eff6ff;
+      --blue-mid:   #dbeafe;
+      --green:      #16a34a;
+      --green-bg:   #f0fdf4;
+      --amber:      #d97706;
+      --amber-bg:   #fffbeb;
+      --red:        #dc2626;
+      --slate-50:   #f8fafc;
+      --slate-100:  #f1f5f9;
+      --slate-200:  #e2e8f0;
+      --slate-300:  #cbd5e1;
+      --slate-400:  #94a3b8;
+      --slate-500:  #64748b;
+      --slate-600:  #475569;
+      --slate-700:  #334155;
+      --slate-800:  #1e293b;
+      --slate-900:  #0f172a;
+      --dark:       #0d1117;
+      --wa-green:   #22c55e;
+      --radius:     14px;
+      --shadow-sm:  0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+      --shadow:     0 4px 16px rgba(0,0,0,.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f5;
+      color: var(--slate-800);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       NAVBAR
+    ═══════════════════════════════════════════════ */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--dark);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      box-shadow: 0 2px 20px rgba(0,0,0,.4);
+    }
+    .navbar-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 24px; height: 60px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .navbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-icon {
+      width: 38px; height: 38px; background: var(--wa-green);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: #fff; flex-shrink: 0;
+    }
+    .brand-name { font-size: 13.5px; font-weight: 700; color: #fff; display: block; }
+    .brand-sub  { font-size: 10.5px; color: rgba(255,255,255,.4); display: block; }
+    .navbar-label {
+      font-size: 11px; font-weight: 600; letter-spacing: .12em;
+      text-transform: uppercase; color: rgba(255,255,255,.35);
+    }
+    .navbar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .btn-ghost {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px; background: transparent; color: rgba(255,255,255,.7);
+      font-size: 12.5px; font-weight: 500; cursor: pointer;
+      text-decoration: none; transition: background .15s, color .15s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .btn-primary {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 16px; background: var(--blue);
+      border: none; border-radius: 8px; color: #fff;
+      font-size: 12.5px; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: background .15s;
+    }
+    .btn-primary:hover { background: #1d4ed8; }
+    .divider-v { width: 1px; height: 24px; background: rgba(255,255,255,.1); margin: 0 4px; }
+    .user-chip { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.6); font-size: 12px; }
+    .user-avatar {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff;
+    }
+    .btn-exit {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 10px; border: none; border-radius: 7px;
+      background: transparent; color: rgba(255,255,255,.4);
+      font-size: 12px; cursor: pointer; transition: background .15s, color .15s;
+    }
+    .btn-exit:hover { background: rgba(255,255,255,.06); color: #f87171; }
+
+    /* ═══════════════════════════════════════════════
+       HERO — compacto
+    ═══════════════════════════════════════════════ */
+    .hero {
+      background: linear-gradient(135deg, #0d1117 0%, #131b27 50%, #0f2340 100%);
+      padding: 28px 24px 32px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .hero-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 24px; flex-wrap: wrap;
+    }
+    .hero-left { display: flex; align-items: center; gap: 20px; flex: 1; min-width: 260px; }
+    .hero-doc-icon {
+      width: 64px; height: 64px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 18px; display: flex; align-items: center; justify-content: center;
+      font-size: 28px; flex-shrink: 0;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 20px; padding: 3px 12px; font-size: 10.5px;
+      font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+      color: rgba(255,255,255,.5); margin-bottom: 8px;
+    }
+    .hero-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .hero-sub   { font-size: 13px; color: rgba(255,255,255,.5); }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 10px; font-size: 12px; color: rgba(255,255,255,.35);
+      text-decoration: none; transition: color .15s;
+    }
+    .back-link:hover { color: rgba(255,255,255,.7); }
+    .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-download {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 18px; background: #fff; border: none;
+      border-radius: 10px; color: var(--slate-800);
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: background .15s, transform .1s;
+      white-space: nowrap;
+    }
+    .btn-download:hover { background: #f1f5f9; transform: translateY(-1px); }
+    .btn-print {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 18px; background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15); border-radius: 10px;
+      color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: background .15s; white-space: nowrap;
+    }
+    .btn-print:hover { background: rgba(255,255,255,.14); }
+
+    /* ═══════════════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════════════ */
+    .main {
+      max-width: 1200px; margin: 0 auto;
+      padding: 28px 24px 60px;
+      display: grid; grid-template-columns: 1fr 320px;
+      gap: 20px; align-items: start;
+    }
+    .col-left  { display: flex; flex-direction: column; gap: 16px; }
+    .col-right { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ═══════════════════════════════════════════════
+       CARD BASE
+    ═══════════════════════════════════════════════ */
+    .card {
+      background: #fff; border: 1px solid var(--slate-200);
+      border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm);
+    }
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--slate-100);
+    }
+    .card-head-left { display: flex; align-items: center; gap: 10px; }
+    .card-icon {
+      width: 32px; height: 32px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .icon-slate  { background: var(--slate-100); color: var(--slate-600); }
+    .icon-blue   { background: var(--blue-mid);  color: var(--blue); }
+    .icon-green  { background: var(--green-bg);  color: var(--green); }
+    .icon-amber  { background: var(--amber-bg);  color: var(--amber); }
+    .icon-red    { background: #fee2e2;           color: var(--red); }
+    .card-title  { font-size: 15px; font-weight: 700; color: var(--slate-800); }
+    .card-body   { padding: 20px; }
+
+    /* ═══════════════════════════════════════════════
+       DOCUMENTO — CABEÇALHO
+    ═══════════════════════════════════════════════ */
+    .doc-header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 20px; padding: 24px 28px;
+      border-bottom: 2px solid var(--slate-100);
+      flex-wrap: wrap;
+    }
+    .doc-brand { display: flex; align-items: center; gap: 14px; }
+    .doc-brand-icon {
+      width: 48px; height: 48px; background: var(--dark);
+      border-radius: 14px; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: var(--wa-green); flex-shrink: 0;
+    }
+    .doc-brand-name { font-size: 16px; font-weight: 800; color: var(--slate-900); }
+    .doc-brand-sub  { font-size: 11px; color: var(--slate-400); margin-top: 1px; }
+    .doc-brand-cnpj { font-size: 10.5px; color: var(--slate-400); margin-top: 2px; }
+
+    .doc-id-block { text-align: right; }
+    .doc-id-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--slate-400); margin-bottom: 4px;
+    }
+    .doc-id-number { font-size: 28px; font-weight: 800; color: var(--slate-900); line-height: 1; margin-bottom: 8px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid #bbf7d0; }
+    .badge-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid #fde68a; }
+    .badge-blue  { background: var(--blue-light); color: var(--blue); border: 1px solid var(--blue-mid); }
+
+    /* ═══════════════════════════════════════════════
+       SEÇÃO DO DOCUMENTO
+    ═══════════════════════════════════════════════ */
+    .doc-section {
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--slate-100);
+    }
+    .doc-section:last-child { border-bottom: none; }
+    .doc-section-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--blue);
+      margin-bottom: 16px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--blue-mid);
+    }
+    .doc-section-title i { font-size: 12px; }
+
+    /* Grid de campos */
+    .fields-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .fields-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .fields-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+    .field {}
+    .field-label {
+      font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--slate-400); margin-bottom: 4px;
+    }
+    .field-value {
+      font-size: 13.5px; font-weight: 500; color: var(--slate-800);
+    }
+    .field-value.mono {
+      font-family: 'Courier New', monospace; font-size: 13px;
+      background: var(--slate-50); border: 1px solid var(--slate-100);
+      border-radius: 6px; padding: 4px 8px; display: inline-block;
+    }
+
+    /* Defeito relatado */
+    .reported-defect {
+      background: var(--amber-bg); border: 1px solid #fde68a;
+      border-radius: 10px; padding: 14px 16px;
+      font-size: 13.5px; color: var(--slate-700); line-height: 1.6;
+      font-style: italic;
+    }
+    .reported-defect::before {
+      content: '"';
+      font-size: 24px; color: var(--amber); line-height: 0;
+      vertical-align: -8px; margin-right: 4px;
+    }
+    .reported-defect::after {
+      content: '"';
+      font-size: 24px; color: var(--amber); line-height: 0;
+      vertical-align: -8px; margin-left: 4px;
+    }
+
+    /* Diagnóstico */
+    .diagnosis-block {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .diagnosis-item {
+      display: flex; gap: 14px;
+      padding: 14px 16px; border-radius: 10px;
+      border: 1px solid var(--slate-200); background: var(--slate-50);
+    }
+    .diagnosis-icon-wrap {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0;
+    }
+    .diag-red    { background: #fee2e2; color: var(--red); }
+    .diag-amber  { background: var(--amber-bg); color: var(--amber); }
+    .diag-blue   { background: var(--blue-light); color: var(--blue); }
+    .diag-green  { background: var(--green-bg); color: var(--green); }
+    .diagnosis-label { font-size: 11px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 3px; }
+    .diagnosis-text  { font-size: 13px; color: var(--slate-700); line-height: 1.55; }
+
+    /* Causa raiz */
+    .root-cause-box {
+      background: #fff7ed; border: 1px solid #fed7aa;
+      border-left: 4px solid #ea580c;
+      border-radius: 10px; padding: 16px 18px;
+    }
+    .root-cause-title {
+      font-size: 12px; font-weight: 700; color: #ea580c;
+      text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;
+    }
+    .root-cause-text { font-size: 13.5px; color: #7c2d12; line-height: 1.6; }
+
+    /* Gravidade */
+    .severity-bar-wrap { margin-top: 12px; }
+    .severity-label-row {
+      display: flex; justify-content: space-between;
+      font-size: 11px; color: var(--slate-400); margin-bottom: 6px;
+    }
+    .severity-label-row strong { color: var(--red); font-size: 12px; }
+    .severity-track {
+      height: 8px; border-radius: 8px;
+      background: linear-gradient(to right, #86efac, #fde68a 40%, #f97316 70%, #dc2626);
+      position: relative;
+    }
+    .severity-marker {
+      position: absolute; top: 50%; transform: translate(-50%, -50%);
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #fff; border: 3px solid var(--red);
+      box-shadow: 0 2px 6px rgba(220,38,38,.4);
+    }
+
+    /* Peças */
+    .parts-table { width: 100%; border-collapse: collapse; }
+    .parts-table thead th {
+      padding: 8px 10px 10px; text-align: left;
+      font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--slate-400);
+      border-bottom: 1px solid var(--slate-200);
+    }
+    .parts-table thead th:last-child { text-align: right; }
+    .parts-table tbody tr { border-bottom: 1px solid var(--slate-100); }
+    .parts-table tbody tr:last-child { border-bottom: none; }
+    .parts-table tbody td { padding: 12px 10px; font-size: 13px; color: var(--slate-700); vertical-align: middle; }
+    .parts-table tbody td:last-child { text-align: right; font-weight: 600; color: var(--slate-800); }
+    .part-name   { font-weight: 600; color: var(--slate-800); margin-bottom: 2px; }
+    .part-ref    { font-size: 11px; color: var(--slate-400); font-family: 'Courier New', monospace; }
+    .qty-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 6px;
+      background: var(--slate-100); color: var(--slate-600);
+      font-size: 11px; font-weight: 700;
+    }
+
+    /* Total */
+    .totals-block {
+      margin-top: 16px; padding-top: 14px;
+      border-top: 2px solid var(--slate-200);
+    }
+    .total-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 0; font-size: 13px; color: var(--slate-600);
+    }
+    .total-row.final {
+      margin-top: 8px; padding-top: 12px;
+      border-top: 1px solid var(--slate-200);
+      font-size: 16px; font-weight: 800; color: var(--slate-900);
+    }
+    .total-row.final span:last-child { font-size: 22px; color: var(--green); }
+
+    /* Fotos do laudo */
+    .photos-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    }
+    .photo-card {
+      border-radius: 12px; overflow: hidden;
+      border: 1px solid var(--slate-200); background: var(--slate-50);
+      transition: border-color .15s, box-shadow .15s; cursor: pointer;
+    }
+    .photo-card:hover { border-color: #93c5fd; box-shadow: 0 0 0 3px #dbeafe; }
+    .photo-thumb {
+      height: 100px; display: flex; align-items: center; justify-content: center;
+      font-size: 36px; position: relative;
+    }
+    .photo-thumb.green-bg  { background: linear-gradient(135deg, #dcfce7, #bbf7d0); }
+    .photo-thumb.red-bg    { background: linear-gradient(135deg, #fee2e2, #fecaca); }
+    .photo-thumb.amber-bg  { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+    .photo-thumb.blue-bg   { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+    .photo-thumb.slate-bg  { background: linear-gradient(135deg, #f1f5f9, #e2e8f0); }
+    .photo-zoom {
+      position: absolute; top: 6px; right: 6px;
+      width: 22px; height: 22px; border-radius: 6px;
+      background: rgba(0,0,0,.35); color: #fff; font-size: 10px;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .15s;
+    }
+    .photo-card:hover .photo-zoom { opacity: 1; }
+    .photo-info { padding: 8px 10px 10px; }
+    .photo-label { font-size: 11.5px; font-weight: 600; color: var(--slate-700); }
+    .photo-date  { font-size: 10px; color: var(--slate-400); margin-top: 1px; }
+    .photo-tag {
+      display: inline-block; margin-top: 4px;
+      padding: 1px 8px; border-radius: 10px;
+      font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    }
+    .tag-red    { background: #fee2e2; color: var(--red); }
+    .tag-amber  { background: var(--amber-bg); color: var(--amber); }
+    .tag-green  { background: var(--green-bg); color: var(--green); }
+    .tag-blue   { background: var(--blue-light); color: var(--blue); }
+
+    /* Conclusão */
+    .conclusion-box {
+      background: var(--green-bg); border: 1px solid #bbf7d0;
+      border-left: 4px solid var(--green);
+      border-radius: 10px; padding: 16px 18px;
+    }
+    .conclusion-title {
+      font-size: 12px; font-weight: 700; color: var(--green);
+      text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;
+    }
+    .conclusion-text { font-size: 13.5px; color: #14532d; line-height: 1.6; }
+
+    /* Garantia */
+    .warranty-box {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--blue-light); border: 1px solid var(--blue-mid);
+      border-radius: 10px; padding: 14px 16px; margin-top: 12px;
+    }
+    .warranty-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: var(--blue-mid); color: var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .warranty-title { font-size: 13px; font-weight: 700; color: var(--blue); margin-bottom: 2px; }
+    .warranty-desc  { font-size: 12px; color: #1e40af; line-height: 1.5; }
+
+    /* Assinatura */
+    .signature-block {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+      margin-top: 4px;
+    }
+    .sig-box {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px; text-align: center;
+    }
+    .sig-area {
+      width: 100%; height: 70px;
+      border-bottom: 1.5px solid var(--slate-300);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding-bottom: 6px; position: relative;
+    }
+    .sig-cursive {
+      font-family: 'Georgia', serif; font-style: italic;
+      font-size: 22px; color: var(--slate-700); line-height: 1;
+    }
+    .sig-stamp {
+      position: absolute; top: 6px; right: 6px;
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 2px solid var(--blue); color: var(--blue);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 7px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; text-align: center; line-height: 1.3;
+      opacity: .6;
+    }
+    .sig-name  { font-size: 12.5px; font-weight: 700; color: var(--slate-700); }
+    .sig-role  { font-size: 11px; color: var(--slate-400); }
+    .sig-crea  { font-size: 10.5px; color: var(--slate-400); font-family: 'Courier New', monospace; }
+
+    /* Rodapé do documento */
+    .doc-footer {
+      background: var(--slate-50); border-top: 1px solid var(--slate-200);
+      padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .doc-footer-left { font-size: 11px; color: var(--slate-400); line-height: 1.6; }
+    .doc-footer-right { display: flex; align-items: center; gap: 8px; }
+    .qr-placeholder {
+      width: 54px; height: 54px; border: 1px solid var(--slate-200);
+      border-radius: 8px; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .qr-text { font-size: 10.5px; color: var(--slate-400); line-height: 1.5; }
+
+    /* ═══════ COLUNA DIREITA ═══════ */
+    .sidebar-card {
+      background: #fff; border: 1px solid var(--slate-200);
+      border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm);
+    }
+    .sidebar-section {
+      padding: 16px 18px; border-bottom: 1px solid var(--slate-100);
+    }
+    .sidebar-section:last-child { border-bottom: none; }
+    .sidebar-title {
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--slate-400); margin-bottom: 12px;
+    }
+    .sidebar-field { margin-bottom: 10px; }
+    .sidebar-field:last-child { margin-bottom: 0; }
+    .sidebar-label { font-size: 10.5px; color: var(--slate-400); margin-bottom: 2px; }
+    .sidebar-value { font-size: 13px; font-weight: 500; color: var(--slate-800); }
+
+    .tecnico-row {
+      display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+      border-bottom: 1px solid var(--slate-100);
+    }
+    .tecnico-avatar {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .tecnico-name { font-size: 13.5px; font-weight: 600; color: var(--slate-800); }
+    .tecnico-role { font-size: 11.5px; color: var(--slate-400); margin-top: 1px; }
+    .cert-badge {
+      margin: 0 18px 14px;
+      display: flex; align-items: center; gap: 8px;
+      background: var(--green-bg); border: 1px solid #bbf7d0;
+      border-radius: 8px; padding: 8px 12px;
+      font-size: 11.5px; font-weight: 600; color: var(--green);
+    }
+
+    /* Status checklist */
+    .check-list { display: flex; flex-direction: column; gap: 8px; }
+    .check-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12.5px; color: var(--slate-600);
+    }
+    .check-row.ok   { color: var(--green); }
+    .check-row.warn { color: var(--amber); }
+    .check-icon { width: 18px; text-align: center; font-size: 12px; flex-shrink: 0; }
+
+    /* Aprovação */
+    .approval-box {
+      background: #fff; border: 1px solid var(--slate-200);
+      border-radius: var(--radius); box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .approval-head {
+      padding: 14px 18px; background: var(--amber-bg);
+      border-bottom: 1px solid #fde68a;
+    }
+    .approval-head-title { font-size: 14px; font-weight: 700; color: var(--amber); }
+    .approval-head-sub   { font-size: 12px; color: #92400e; margin-top: 2px; }
+    .approval-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+    .btn-approve {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px; border-radius: 10px; font-size: 13.5px; font-weight: 700;
+      cursor: pointer; border: none; transition: filter .15s, transform .1s;
+      background: var(--green); color: #fff;
+      box-shadow: 0 2px 10px rgba(22,163,74,.3);
+    }
+    .btn-approve:hover { filter: brightness(1.07); transform: translateY(-1px); }
+    .btn-reject {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px; border-radius: 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer; background: #fff; color: var(--slate-600);
+      border: 1px solid var(--slate-200); transition: background .15s;
+    }
+    .btn-reject:hover { background: var(--slate-50); }
+
+    /* Timeline mini */
+    .mini-tl { display: flex; flex-direction: column; gap: 0; }
+    .mini-tl-step {
+      display: flex; gap: 10px; padding-bottom: 14px;
+    }
+    .mini-tl-step:last-child { padding-bottom: 0; }
+    .mini-tl-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+    .mini-dot {
+      width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot-done   { background: var(--green); }
+    .dot-active { background: var(--amber); box-shadow: 0 0 0 3px #fef3c7; }
+    .dot-pending { background: var(--slate-200); border: 1px solid var(--slate-300); }
+    .mini-line  { width: 2px; flex: 1; margin: 3px 0; min-height: 10px; border-radius: 2px; }
+    .line-done   { background: #86efac; }
+    .line-dashed { background: repeating-linear-gradient(to bottom, var(--slate-200) 0, var(--slate-200) 3px, transparent 3px, transparent 6px); }
+    .mini-step-name { font-size: 12px; font-weight: 600; color: var(--slate-700); line-height: 1.3; }
+    .mini-step-name.pending { color: var(--slate-400); font-weight: 400; }
+    .mini-step-date { font-size: 10.5px; color: var(--slate-400); margin-top: 1px; }
+
+    /* WA */
+    .btn-wa-full {
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      width: 100%; padding: 12px; background: var(--wa-green);
+      border: none; border-radius: 10px; color: #fff;
+      font-size: 13.5px; font-weight: 700; cursor: pointer;
+      text-decoration: none; transition: background .15s, transform .1s;
+      box-shadow: 0 2px 12px rgba(34,197,94,.3);
+    }
+    .btn-wa-full:hover { background: #16a34a; transform: translateY(-1px); }
+
+    /* ═══════════════════════════════════════════════
+       FEATURES + FOOTER
+    ═══════════════════════════════════════════════ */
+    .features {
+      background: #fff; border-top: 1px solid var(--slate-200);
+      padding: 32px 24px; margin-top: 8px;
+    }
+    .features-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    }
+    .feature-item { display: flex; align-items: flex-start; gap: 14px; }
+    .feature-icon {
+      width: 44px; height: 44px; background: var(--slate-100);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: var(--slate-500); flex-shrink: 0;
+    }
+    .feature-title { font-size: 12.5px; font-weight: 700; color: var(--slate-700); margin-bottom: 3px; }
+    .feature-desc  { font-size: 11.5px; color: var(--slate-400); line-height: 1.5; }
+
+    .footer { background: var(--dark); color: rgba(255,255,255,.45); padding: 40px 24px 24px; }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-bottom: 32px; }
+    .footer-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .footer-brand-icon {
+      width: 34px; height: 34px; background: var(--wa-green);
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: #fff;
+    }
+    .footer-brand-name { font-size: 13px; font-weight: 700; color: #fff; display: block; }
+    .footer-brand-sub  { font-size: 10px; color: rgba(255,255,255,.3); display: block; }
+    .footer-cnpj { font-size: 11.5px; }
+    .footer-col-title { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; }
+    .footer-text { font-size: 12.5px; line-height: 1.7; }
+    .footer-socials { display: flex; gap: 8px; margin-top: 4px; }
+    .social-btn {
+      width: 34px; height: 34px; background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.45); font-size: 14px; cursor: pointer;
+      transition: background .15s, color .15s; text-decoration: none;
+    }
+    .social-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+    .social-btn.wa-social { background: rgba(34,197,94,.12); color: var(--wa-green); border-color: rgba(34,197,94,.2); }
+    .social-btn.wa-social:hover { background: rgba(34,197,94,.25); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,.06); padding-top: 20px; text-align: center; font-size: 11.5px; }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 960px) {
+      .main { grid-template-columns: 1fr; padding: 20px 16px 40px; }
+      .hero-inner { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .hero-actions { width: 100%; }
+      .features-inner { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: repeat(2, 1fr); }
+      .signature-block { grid-template-columns: 1fr; }
+      .fields-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .navbar-label { display: none; }
+      .user-chip .user-name { display: none; }
+      .features-inner { grid-template-columns: 1fr 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .fields-grid { grid-template-columns: repeat(2, 1fr); }
+      .photos-grid { grid-template-columns: repeat(2, 1fr); }
+      .doc-header { flex-direction: column; align-items: flex-start; }
+      .doc-id-block { text-align: left; }
+    }
+
+    /* ═══════════════════════════════════════════════
+       IMPRESSÃO
+    ═══════════════════════════════════════════════ */
+    @media print {
+      .navbar, .hero, .col-right, .features, .footer { display: none !important; }
+      .main { display: block; padding: 0; max-width: 100%; }
+      .col-left { gap: 0; }
+      .card { box-shadow: none; border-radius: 0; border: none; border-bottom: 1px solid #e2e8f0; }
+      body { background: #fff; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ NAVBAR ═══════════════════ -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="#" class="navbar-brand">
+      <div class="brand-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+      <div class="brand-text">
+        <span class="brand-name">AssistPro</span>
+        <span class="brand-sub">Assistência Técnica</span>
+      </div>
+    </a>
+    <span class="navbar-label">| &nbsp;Portal do Cliente</span>
+    <div class="navbar-actions">
+      <button class="btn-ghost" onclick="window.print()">
+        <i class="fa-solid fa-print"></i>
+        Imprimir
+      </button>
+      <div class="divider-v"></div>
+      <div class="user-chip">
+        <div class="user-avatar">JD</div>
+        <span class="user-name" style="color:rgba(255,255,255,.6);font-size:12px;">João</span>
+      </div>
+      <button class="btn-exit">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        Sair
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-doc-icon">📋</div>
+      <div>
+        <div class="hero-tag">
+          <i class="fa-solid fa-file-contract" style="font-size:9px"></i>
+          Documento técnico
+        </div>
+        <h1 class="hero-title">Laudo Técnico — OS #12458</h1>
+        <p class="hero-sub">Notebook Dell Inspiron 15 · Emitido em 13/05/2024 às 11:40</p>
+        <a href="portal-demo.html" class="back-link">
+          <i class="fa-solid fa-chevron-left"></i>
+          Voltar para o acompanhamento da OS
+        </a>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button class="btn-download" onclick="window.print()">
+        <i class="fa-solid fa-file-pdf" style="color:#dc2626"></i>
+        Baixar PDF
+      </button>
+      <button class="btn-print" onclick="window.print()">
+        <i class="fa-solid fa-print"></i>
+        Imprimir
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ CONTEÚDO ═══════════════════ -->
+<div class="main">
+
+  <!-- ═══════ COLUNA ESQUERDA — DOCUMENTO ═══════ -->
+  <div class="col-left">
+    <div class="card">
+
+      <!-- Cabeçalho do documento -->
+      <div class="doc-header">
+        <div class="doc-brand">
+          <div class="doc-brand-icon">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+          </div>
+          <div>
+            <div class="doc-brand-name">AssistPro Assistência Técnica</div>
+            <div class="doc-brand-sub">Rua das Flores, 123 — Centro, São Paulo / SP</div>
+            <div class="doc-brand-cnpj">CNPJ: 12.345.678/0001-90 &nbsp;·&nbsp; Tel: (11) 9 9999-9999</div>
+          </div>
+        </div>
+        <div class="doc-id-block">
+          <div class="doc-id-label">Laudo Técnico Nº</div>
+          <div class="doc-id-number">LT-2024-0158</div>
+          <span class="badge badge-green">
+            <span class="badge-dot"></span>
+            Documento válido
+          </span>
+        </div>
+      </div>
+
+      <!-- 1. Identificação -->
+      <div class="doc-section">
+        <div class="doc-section-title">
+          <i class="fa-solid fa-circle-info"></i>
+          1. Identificação
+        </div>
+        <div class="fields-grid" style="margin-bottom:16px">
+          <div class="field">
+            <div class="field-label">Ordem de Serviço</div>
+            <div class="field-value mono">OS #12458</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Data de emissão</div>
+            <div class="field-value">13/05/2024 às 11:40</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Técnico responsável</div>
+            <div class="field-value">Carlos Eduardo</div>
+          </div>
+        </div>
+        <div class="fields-grid fields-grid-2">
+          <div class="field">
+            <div class="field-label">Cliente</div>
+            <div class="field-value">João da Silva</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Contato</div>
+            <div class="field-value">(11) 9 8888-7777</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Equipamento -->
+      <div class="doc-section">
+        <div class="doc-section-title">
+          <i class="fa-solid fa-laptop"></i>
+          2. Identificação do Equipamento
+        </div>
+        <div class="fields-grid fields-grid-4" style="margin-bottom:16px">
+          <div class="field">
+            <div class="field-label">Equipamento</div>
+            <div class="field-value">Notebook</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Marca</div>
+            <div class="field-value">Dell</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Modelo</div>
+            <div class="field-value">Inspiron 15 3000</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Cor</div>
+            <div class="field-value">Preto</div>
+          </div>
+        </div>
+        <div class="fields-grid fields-grid-4">
+          <div class="field">
+            <div class="field-label">Nº de Série</div>
+            <div class="field-value mono">5CD1234</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Processador</div>
+            <div class="field-value">Intel Core i5-1135G7</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Memória RAM</div>
+            <div class="field-value">8 GB DDR4</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Armazenamento</div>
+            <div class="field-value">SSD 256 GB</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Defeito Relatado -->
+      <div class="doc-section">
+        <div class="doc-section-title">
+          <i class="fa-regular fa-comment-dots"></i>
+          3. Defeito Relatado pelo Cliente
+        </div>
+        <p class="reported-defect">
+          Equipamento não liga e não carrega a bateria. Ao conectar o carregador, o LED indicador não acende.
+        </p>
+      </div>
+
+      <!-- 4. Diagnóstico -->
+      <div class="doc-section">
+        <div class="doc-section-title">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          4. Diagnóstico Técnico
+        </div>
+
+        <div class="diagnosis-block">
+
+          <div class="diagnosis-item">
+            <div class="diagnosis-icon-wrap diag-red">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+              <div class="diagnosis-label">Problema identificado</div>
+              <div class="diagnosis-text">
+                <strong>Conector de carga danificado (DC Jack).</strong> O conector está com os terminais internos oxidados e um dos pinos dobrados, impedindo a passagem de corrente elétrica para o circuito de carga da bateria.
+              </div>
+            </div>
+          </div>
+
+          <div class="diagnosis-item">
+            <div class="diagnosis-icon-wrap diag-amber">
+              <i class="fa-solid fa-battery-quarter"></i>
+            </div>
+            <div>
+              <div class="diagnosis-label">Estado da bateria</div>
+              <div class="diagnosis-text">
+                Bateria com <strong>capacidade residual de 62%</strong> (ciclos: 487). Funcionamento normal após receber carga. Substituição não necessária neste momento, mas recomendada a médio prazo.
+              </div>
+            </div>
+          </div>
+
+          <div class="diagnosis-item">
+            <div class="diagnosis-icon-wrap diag-blue">
+              <i class="fa-solid fa-microchip"></i>
+            </div>
+            <div>
+              <div class="diagnosis-label">Hardware geral</div>
+              <div class="diagnosis-text">
+                Placa-mãe, processador, memória e SSD sem irregularidades. Sistema operacional intacto. Dados do cliente preservados. Sem danos por líquidos ou impacto na placa.
+              </div>
+            </div>
+          </div>
+
+          <div class="diagnosis-item">
+            <div class="diagnosis-icon-wrap diag-green">
+              <i class="fa-solid fa-display"></i>
+            </div>
+            <div>
+              <div class="diagnosis-label">Tela e periféricos</div>
+              <div class="diagnosis-text">
+                Tela LCD sem pixels mortos ou manchas. Teclado, touchpad, câmera e Wi-Fi funcionando corretamente. Saídas USB e HDMI testadas e aprovadas.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Causa raiz -->
+        <div class="root-cause-box" style="margin-top:16px">
+          <div class="root-cause-title">
+            <i class="fa-solid fa-crosshairs" style="margin-right:6px"></i>
+            Causa raiz
+          </div>
+          <div class="root-cause-text">
+            Desgaste mecânico por uso intenso combinado com oxidação do conector, possivelmente acelerada por ambiente úmido. O conector não sustentava mais contato elétrico estável com o plug do carregador.
+          </div>
+        </div>
+
+        <!-- Gravidade -->
+        <div class="severity-bar-wrap">
+          <div class="severity-label-row">
+            <span>Gravidade do defeito</span>
+            <strong>Alta — reparo necessário</strong>
+          </div>
+          <div class="severity-track">
+            <div class="severity-marker" style="left: 72%"></div>
+          </div>
+          <div class="severity-label-row" style="margin-top:5px">
+            <span>Leve</span>
+            <span>Moderada</span>
+            <span>Alta</span>
+            <span>Crítica</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 5. Fotos técnicas -->
+      <div class="doc-section">
+        <div class="doc-section-title">
+          <i class="fa-regular fa-images"></i>
+          5. Registro Fotográfico
+        </div>
+        <div class="photos-grid">
+
+          <div class="photo-card">
+            <div class="photo-thumb red-bg" style="font-size:42px; position:relative;">
+              🔌
+              <div class="photo-zoom"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+            </div>
+            <div class="photo-info">
+              <div class="photo-label">Conector danificado</div>
+              <div class="photo-date">13/05/2024 · 09:32</div>
+              <span class="photo-tag tag-red">Defeito</span>
+            </div>
+          </div>
+
+          <div class="photo-card">
+            <div class="photo-thumb amber-bg" style="font-size:42px; position:relative;">
+              🔍
+              <div class="photo-zoom"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+            </div>
+            <div class="photo-info">
+              <div class="photo-label">Oxidação nos terminais</div>
+              <div class="photo-date">13/05/2024 · 09:45</div>
+              <span class="photo-tag tag-amber">Atenção</span>
+            </div>
+          </div>
+
+          <div class="photo-card">
+            <div class="photo-thumb slate-bg" style="font-size:42px; position:relative;">
+              💻
+              <div class="photo-zoom"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+            </div>
+            <div class="photo-info">
+              <div class="photo-label">Placa-mãe — sem danos</div>
+              <div class="photo-date">13/05/2024 · 10:10</div>
+              <span class="photo-tag tag-blue">Verificação</span>
+            </div>
+          </div>
+
+          <div class="photo-card">
+            <div class="photo-thumb green-bg" style="font-size:42px; position:relative;">
+              🔧
+              <div class="photo-zoom"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+            </div>
+            <div class="photo-info">
+              <div class="photo-label">Peça nova instalada</div>
+              <div class="photo-date">13/05/2024 · 11:05</div>
+              <span class="photo-tag tag-green">Reparado</span>
+            </div>
+          </div>
+
+          <div class="photo-card">
+            <div class="photo-thumb green-bg" style="font-size:42px; position:relative;">
+              ⚡
+              <div class="photo-zoom"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+            </div>
+            <div class="photo-info">
+              <div class="photo-label">Carregamento funcionando</div>
+              <div class="photo-date">13/05/2024 · 11:22</div>
+              <span class="photo-tag tag-green">Aprovado</span>
+            </div>
+          </div>
+
+          <div class="photo-card">
+            <div class="photo-thumb green-bg" style="font-size:42px; position:relative;">
+              ✅
+              <div class="photo-zoom"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+            </div>
+            <div class="photo-info">
+              <div class="photo-label">Teste de boot completo</div>
+              <div class="photo-date">13/05/2024 · 11:35</div>
+              <span class="photo-tag tag-green">Aprovado</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 6. Solução e peças -->
+      <div class="doc-section">
+        <div class="doc-section-title">
+          <i class="fa-solid fa-wrench"></i>
+          6. Solução Técnica e Peças Utilizadas
+        </div>
+
+        <table class="parts-table">
+          <thead>
+            <tr>
+              <th style="width:40%">Descrição</th>
+              <th style="width:20%">Referência</th>
+              <th style="width:10%;text-align:center">Qtd.</th>
+              <th style="width:15%">Unit.</th>
+              <th style="width:15%">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="part-name">Diagnóstico técnico</div>
+                <div class="part-ref">SRV-DIAG-001</div>
+              </td>
+              <td><span class="field-value mono" style="font-size:11px">—</span></td>
+              <td style="text-align:center"><span class="qty-badge">1</span></td>
+              <td>R$ 80,00</td>
+              <td>R$ 80,00</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="part-name">Conector DC Jack Dell Inspiron 15</div>
+                <div class="part-ref">DCJ-DELL-L15-BK</div>
+              </td>
+              <td><span class="field-value mono" style="font-size:11px">DCJ-015</span></td>
+              <td style="text-align:center"><span class="qty-badge">1</span></td>
+              <td>R$ 90,00</td>
+              <td>R$ 90,00</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="part-name">Mão de obra — troca do DC Jack</div>
+                <div class="part-ref">SRV-MOB-DCJ</div>
+              </td>
+              <td><span class="field-value mono" style="font-size:11px">—</span></td>
+              <td style="text-align:center"><span class="qty-badge">1</span></td>
+              <td>R$ 120,00</td>
+              <td>R$ 120,00</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="part-name">Pasta térmica Thermal Grizzly</div>
+                <div class="part-ref">TG-KRYONAUT-1G</div>
+              </td>
+              <td><span class="field-value mono" style="font-size:11px">TG-001</span></td>
+              <td style="text-align:center"><span class="qty-badge">1</span></td>
+              <td>R$ 30,00</td>
+              <td>R$ 30,00</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="part-name">Limpeza interna e reaperto de componentes</div>
+                <div class="part-ref">SRV-CLEAN</div>
+              </td>
+              <td><span class="field-value mono" style="font-size:11px">—</span></td>
+              <td style="text-align:center"><span class="qty-badge">1</span></td>
+              <td>R$ 30,00</td>
+              <td>R$ 30,00</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="totals-block">
+          <div class="total-row">
+            <span>Subtotal (peças)</span>
+            <span>R$ 120,00</span>
+          </div>
+          <div class="total-row">
+            <span>Subtotal (serviços)</span>
+            <span>R$ 230,00</span>
+          </div>
+          <div class="total-row final">
+            <span>Total</span>
+            <span>R$ 350,00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Conclusão -->
+      <div class="doc-section">
+        <div class="doc-section-title">
+          <i class="fa-solid fa-circle-check"></i>
+          7. Conclusão e Recomendações
+        </div>
+
+        <div class="conclusion-box">
+          <div class="conclusion-title">
+            <i class="fa-solid fa-circle-check" style="margin-right:6px"></i>
+            Reparo concluído com sucesso
+          </div>
+          <div class="conclusion-text">
+            O conector de carga foi substituído por uma peça nova com garantia. O equipamento foi testado por 30 minutos
+            em carga contínua sem intercorrências. O sistema operacional inicializou corretamente e todos os componentes
+            foram verificados. O notebook está em plenas condições de uso.
+          </div>
+        </div>
+
+        <div class="warranty-box">
+          <div class="warranty-icon"><i class="fa-solid fa-shield-halved"></i></div>
+          <div>
+            <div class="warranty-title">Garantia de 90 dias</div>
+            <div class="warranty-desc">
+              Garantia aplicada ao serviço executado e à peça substituída.
+              Cobre defeitos de mão de obra e falhas na peça instalada.
+              Não cobre danos por quedas, líquidos ou mau uso.
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;font-size:12.5px;color:var(--slate-500);line-height:1.7">
+          <strong style="color:var(--slate-700)">Recomendações adicionais:</strong><br>
+          • Considerar a substituição da bateria nos próximos 6 meses (capacidade em 62%).<br>
+          • Evitar locais com alta umidade para prolongar a vida útil dos conectores.<br>
+          • Realizar limpeza interna semestral para evitar superaquecimento.
+        </div>
+      </div>
+
+      <!-- 8. Assinatura -->
+      <div class="doc-section">
+        <div class="doc-section-title">
+          <i class="fa-solid fa-pen-nib"></i>
+          8. Assinaturas
+        </div>
+
+        <div class="signature-block">
+          <div class="sig-box">
+            <div class="sig-area">
+              <span class="sig-cursive">Carlos Eduardo</span>
+              <div class="sig-stamp">
+                CREA<br>SP<br>123456
+              </div>
+            </div>
+            <div class="sig-name">Carlos Eduardo Santos</div>
+            <div class="sig-role">Técnico em Informática</div>
+            <div class="sig-crea">Reg. TI: 2019-SP-00892</div>
+          </div>
+          <div class="sig-box">
+            <div class="sig-area">
+              <span class="sig-cursive" style="color:var(--slate-300);font-size:14px;font-style:normal;font-family:'Inter',sans-serif;">Aguardando aprovação</span>
+            </div>
+            <div class="sig-name">João da Silva</div>
+            <div class="sig-role">Cliente</div>
+            <div class="sig-crea">CPF: ***.456.789-**</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rodapé do documento -->
+      <div class="doc-footer">
+        <div class="doc-footer-left">
+          Documento gerado eletronicamente em 13/05/2024 às 11:40.<br>
+          AssistPro Assistência Técnica · CNPJ 12.345.678/0001-90<br>
+          Validade do laudo: 90 dias a partir da emissão.
+        </div>
+        <div class="doc-footer-right">
+          <div class="qr-placeholder">⬛</div>
+          <div class="qr-text">
+            Escaneie para<br>verificar autenticidade<br>
+            <strong style="color:var(--slate-600)">LT-2024-0158</strong>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /card documento -->
+  </div><!-- /col-left -->
+
+  <!-- ═══════ COLUNA DIREITA ═══════ -->
+  <div class="col-right">
+
+    <!-- Aprovar orçamento -->
+    <div class="approval-box">
+      <div class="approval-head">
+        <div class="approval-head-title">
+          <i class="fa-solid fa-file-signature" style="margin-right:6px"></i>
+          Aprovação do orçamento
+        </div>
+        <div class="approval-head-sub">Valor total: R$ 350,00</div>
+      </div>
+      <div class="approval-body">
+        <button class="btn-approve">
+          <i class="fa-solid fa-circle-check"></i>
+          Aprovar e autorizar reparo
+        </button>
+        <button class="btn-reject">
+          <i class="fa-solid fa-xmark"></i>
+          Recusar orçamento
+        </button>
+      </div>
+    </div>
+
+    <!-- Técnico -->
+    <div class="sidebar-card">
+      <div class="tecnico-row">
+        <div class="tecnico-avatar">CE</div>
+        <div>
+          <div class="tecnico-name">Carlos Eduardo</div>
+          <div class="tecnico-role">Técnico em Informática · 8 anos exp.</div>
+        </div>
+      </div>
+      <div class="cert-badge">
+        <i class="fa-solid fa-award"></i>
+        Certificado CompTIA A+
+      </div>
+    </div>
+
+    <!-- Checklist do laudo -->
+    <div class="sidebar-card">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Verificações realizadas</div>
+        <div class="check-list">
+          <div class="check-row ok">
+            <span class="check-icon"><i class="fa-solid fa-circle-check"></i></span>
+            Diagnóstico completo
+          </div>
+          <div class="check-row ok">
+            <span class="check-icon"><i class="fa-solid fa-circle-check"></i></span>
+            Peça identificada e substituída
+          </div>
+          <div class="check-row ok">
+            <span class="check-icon"><i class="fa-solid fa-circle-check"></i></span>
+            Teste de carga (30 min)
+          </div>
+          <div class="check-row ok">
+            <span class="check-icon"><i class="fa-solid fa-circle-check"></i></span>
+            Teste de inicialização
+          </div>
+          <div class="check-row ok">
+            <span class="check-icon"><i class="fa-solid fa-circle-check"></i></span>
+            Teclado e touchpad testados
+          </div>
+          <div class="check-row ok">
+            <span class="check-icon"><i class="fa-solid fa-circle-check"></i></span>
+            Portas USB e HDMI testadas
+          </div>
+          <div class="check-row warn">
+            <span class="check-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            Bateria: 62% — monitorar
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info do documento -->
+    <div class="sidebar-card">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Sobre este documento</div>
+        <div class="sidebar-field">
+          <div class="sidebar-label">Número do laudo</div>
+          <div class="sidebar-value" style="font-family:'Courier New',monospace;font-size:12.5px">LT-2024-0158</div>
+        </div>
+        <div class="sidebar-field">
+          <div class="sidebar-label">OS vinculada</div>
+          <div class="sidebar-value">OS #12458</div>
+        </div>
+        <div class="sidebar-field">
+          <div class="sidebar-label">Emitido em</div>
+          <div class="sidebar-value">13/05/2024 às 11:40</div>
+        </div>
+        <div class="sidebar-field">
+          <div class="sidebar-label">Válido até</div>
+          <div class="sidebar-value">11/08/2024</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline mini -->
+    <div class="sidebar-card">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Andamento da OS</div>
+        <div class="mini-tl">
+          <div class="mini-tl-step">
+            <div class="mini-tl-left">
+              <div class="mini-dot dot-done"></div>
+              <div class="mini-line line-done"></div>
+            </div>
+            <div>
+              <div class="mini-step-name">Recebimento</div>
+              <div class="mini-step-date">12/05 · 14:30</div>
+            </div>
+          </div>
+          <div class="mini-tl-step">
+            <div class="mini-tl-left">
+              <div class="mini-dot dot-done"></div>
+              <div class="mini-line line-done"></div>
+            </div>
+            <div>
+              <div class="mini-step-name">Em análise</div>
+              <div class="mini-step-date">12/05 · 16:20</div>
+            </div>
+          </div>
+          <div class="mini-tl-step">
+            <div class="mini-tl-left">
+              <div class="mini-dot dot-active"></div>
+              <div class="mini-line line-dashed"></div>
+            </div>
+            <div>
+              <div class="mini-step-name">Em teste</div>
+              <div class="mini-step-date">13/05 · 10:15</div>
+            </div>
+          </div>
+          <div class="mini-tl-step">
+            <div class="mini-tl-left">
+              <div class="mini-dot dot-pending"></div>
+              <div class="mini-line line-dashed"></div>
+            </div>
+            <div>
+              <div class="mini-step-name pending">Finalização</div>
+            </div>
+          </div>
+          <div class="mini-tl-step">
+            <div class="mini-tl-left">
+              <div class="mini-dot dot-pending"></div>
+            </div>
+            <div>
+              <div class="mini-step-name pending">Entrega</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dúvidas -->
+    <div class="sidebar-card">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Dúvidas sobre o laudo?</div>
+        <p style="font-size:12px;color:var(--slate-500);margin-bottom:14px;line-height:1.6">
+          Fale com nosso técnico diretamente pelo WhatsApp.
+        </p>
+        <a href="https://wa.me/5511999999999" target="_blank" class="btn-wa-full">
+          <i class="fa-brands fa-whatsapp" style="font-size:18px"></i>
+          Conversar no WhatsApp
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /col-right -->
+
+</div><!-- /main -->
+
+<!-- ═══════════════════ FEATURES ═══════════════════ -->
+<div class="features">
+  <div class="features-inner">
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <div>
+        <div class="feature-title">Seguro e confiável</div>
+        <div class="feature-desc">Seus dados estão protegidos com segurança e criptografia.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-bell"></i></div>
+      <div>
+        <div class="feature-title">Notificações automáticas</div>
+        <div class="feature-desc">Você recebe atualizações por WhatsApp a cada mudança.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+      <div>
+        <div class="feature-title">Atendimento rápido</div>
+        <div class="feature-desc">Nossa equipe está sempre pronta para te atender.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-star"></i></div>
+      <div>
+        <div class="feature-title">Sua opinião importa</div>
+        <div class="feature-desc">Avalie nosso atendimento quando retirar o equipamento.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <div class="footer-brand-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+          <div>
+            <span class="footer-brand-name">AssistPro</span>
+            <span class="footer-brand-sub">Assistência Técnica</span>
+          </div>
+        </div>
+        <div class="footer-cnpj">CNPJ: 12.345.678/0001-90</div>
+      </div>
+      <div>
+        <div class="footer-col-title">Horário de atendimento</div>
+        <div class="footer-text">Seg a Sex: 08:00 às 18:00<br>Sáb: 08:00 às 12:00</div>
+      </div>
+      <div>
+        <div class="footer-col-title">Endereço</div>
+        <div class="footer-text">Rua das Flores, 123 - Centro<br>São Paulo - SP<br>CEP: 01000-000</div>
+      </div>
+      <div>
+        <div class="footer-col-title">Siga-nos</div>
+        <div class="footer-socials">
+          <a href="#" class="social-btn"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" class="social-btn"><i class="fa-brands fa-facebook"></i></a>
+          <a href="#" class="social-btn wa-social"><i class="fa-brands fa-whatsapp"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2024 AssistPro Assistência Técnica. Todos os direitos reservados.
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

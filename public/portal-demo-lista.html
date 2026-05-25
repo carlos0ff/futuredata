@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minhas Ordens de Serviço — AssistPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:       #2563eb;
+      --blue-light: #eff6ff;
+      --blue-mid:   #dbeafe;
+      --green:      #16a34a;
+      --green-bg:   #f0fdf4;
+      --amber:      #d97706;
+      --amber-bg:   #fffbeb;
+      --red:        #dc2626;
+      --red-bg:     #fef2f2;
+      --slate-50:   #f8fafc;
+      --slate-100:  #f1f5f9;
+      --slate-200:  #e2e8f0;
+      --slate-300:  #cbd5e1;
+      --slate-400:  #94a3b8;
+      --slate-500:  #64748b;
+      --slate-600:  #475569;
+      --slate-700:  #334155;
+      --slate-800:  #1e293b;
+      --slate-900:  #0f172a;
+      --dark:       #0d1117;
+      --dark2:      #161b22;
+      --wa-green:   #22c55e;
+      --radius:     14px;
+      --shadow-sm:  0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+      --shadow:     0 4px 16px rgba(0,0,0,.08);
+      --shadow-lg:  0 10px 40px rgba(0,0,0,.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f5;
+      color: var(--slate-800);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       NAVBAR
+    ═══════════════════════════════════════════════ */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--dark);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      box-shadow: 0 2px 20px rgba(0,0,0,.4);
+    }
+    .navbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .brand-icon {
+      width: 38px; height: 38px;
+      background: var(--wa-green);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .brand-text { line-height: 1.2; }
+    .brand-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #fff;
+      display: block;
+    }
+    .brand-sub {
+      font-size: 10.5px;
+      color: rgba(255,255,255,.4);
+      display: block;
+    }
+    .navbar-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.35);
+    }
+    .navbar-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-ghost {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(255,255,255,.7);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .btn-wa {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 16px;
+      background: var(--wa-green);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .btn-wa:hover { background: #16a34a; }
+    .divider-v {
+      width: 1px; height: 24px;
+      background: rgba(255,255,255,.1);
+      margin: 0 4px;
+    }
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      color: rgba(255,255,255,.6);
+      font-size: 12px;
+    }
+    .user-avatar {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .btn-exit {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      color: rgba(255,255,255,.4);
+      font-size: 12px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .btn-exit:hover { background: rgba(255,255,255,.06); color: #f87171; }
+
+    /* ═══════════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════════ */
+    .hero {
+      background: linear-gradient(135deg, #0d1117 0%, #131b27 50%, #0f2340 100%);
+      padding: 36px 24px 40px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .hero-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .hero-left {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex: 1;
+      min-width: 260px;
+    }
+    .hero-illus {
+      width: 110px; height: 110px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 44px;
+      flex-shrink: 0;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.5);
+      margin-bottom: 10px;
+    }
+    .hero-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .hero-sub {
+      font-size: 13.5px;
+      color: rgba(255,255,255,.5);
+      line-height: 1.6;
+    }
+
+    /* Stats no hero */
+    .hero-stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px;
+      padding: 16px 22px;
+      min-width: 120px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .stat-number {
+      font-size: 30px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.4);
+    }
+    .stat-card.stat-amber .stat-number { color: #fbbf24; }
+    .stat-card.stat-green  .stat-number { color: #4ade80; }
+    .stat-card.stat-blue   .stat-number { color: #60a5fa; }
+
+    /* ═══════════════════════════════════════════════
+       LAYOUT PRINCIPAL
+    ═══════════════════════════════════════════════ */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       BARRA DE FILTROS
+    ═══════════════════════════════════════════════ */
+    .filter-bar {
+      background: #fff;
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--slate-400);
+      font-size: 13px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 9px 12px 9px 36px;
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      background: var(--slate-50);
+      font-size: 13px;
+      color: var(--slate-800);
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .search-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+      background: #fff;
+    }
+    .search-input::placeholder { color: var(--slate-400); }
+
+    .filter-divider {
+      width: 1px; height: 28px;
+      background: var(--slate-200);
+    }
+
+    .filter-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--slate-500);
+      white-space: nowrap;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--slate-200);
+      background: var(--slate-50);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--slate-600);
+      cursor: pointer;
+      transition: background .15s, border-color .15s, color .15s;
+      white-space: nowrap;
+    }
+    .pill:hover { background: var(--slate-100); border-color: var(--slate-300); }
+    .pill.active {
+      background: var(--blue-light);
+      border-color: var(--blue-mid);
+      color: var(--blue);
+      font-weight: 600;
+    }
+    .pill-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px; height: 18px;
+      padding: 0 5px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--slate-200);
+      color: var(--slate-600);
+    }
+    .pill.active .pill-count {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    /* ═══════════════════════════════════════════════
+       CARDS DE OS
+    ═══════════════════════════════════════════════ */
+    .os-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .os-card {
+      background: #fff;
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: border-color .15s, box-shadow .15s, transform .1s;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      color: inherit;
+    }
+    .os-card:hover {
+      border-color: #93c5fd;
+      box-shadow: var(--shadow);
+      transform: translateY(-1px);
+    }
+    .os-card.active-card {
+      border-color: #fcd34d;
+      border-left: 4px solid var(--amber);
+    }
+    .os-card.done-card {
+      border-left: 4px solid var(--green);
+    }
+    .os-card.new-card {
+      border-left: 4px solid var(--blue);
+    }
+    .os-card.cancelled-card {
+      border-left: 4px solid var(--slate-300);
+      opacity: .85;
+    }
+
+    .os-card-inner {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+    }
+
+    /* Ícone do equipamento */
+    .os-equip-icon {
+      width: 52px; height: 52px;
+      background: var(--slate-100);
+      border: 1px solid var(--slate-200);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    /* Info principal */
+    .os-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .os-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+    .os-number {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--slate-900);
+    }
+    .os-equip-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--slate-700);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .os-desc {
+      font-size: 12.5px;
+      color: var(--slate-500);
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 500px;
+    }
+    .os-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .os-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      color: var(--slate-400);
+    }
+    .os-meta-item i { font-size: 11px; }
+
+    /* Coluna direita do card */
+    .os-card-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .badge-amber {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border: 1px solid #fde68a;
+    }
+    .badge-green {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid #bbf7d0;
+    }
+    .badge-blue {
+      background: var(--blue-light);
+      color: var(--blue);
+      border: 1px solid var(--blue-mid);
+    }
+    .badge-slate {
+      background: var(--slate-100);
+      color: var(--slate-500);
+      border: 1px solid var(--slate-200);
+    }
+    .badge-red {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid #fecaca;
+    }
+    .badge-purple {
+      background: #f5f3ff;
+      color: #7c3aed;
+      border: 1px solid #ddd6fe;
+    }
+
+    /* Seta de navegação */
+    .os-chevron {
+      color: var(--slate-300);
+      font-size: 13px;
+      transition: color .15s, transform .15s;
+    }
+    .os-card:hover .os-chevron {
+      color: var(--blue);
+      transform: translateX(2px);
+    }
+
+    /* Prazo de entrega */
+    .os-delivery {
+      font-size: 11.5px;
+      color: var(--slate-500);
+      text-align: right;
+    }
+    .os-delivery strong { color: var(--slate-700); }
+
+    /* Progresso */
+    .os-progress-wrap {
+      width: 80px;
+    }
+    .os-progress-bar {
+      height: 4px;
+      background: var(--slate-100);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .os-progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width .3s;
+    }
+    .fill-amber  { background: var(--amber); }
+    .fill-green  { background: var(--green); }
+    .fill-blue   { background: var(--blue); }
+    .fill-slate  { background: var(--slate-300); }
+    .os-progress-pct {
+      font-size: 10px;
+      color: var(--slate-400);
+      margin-top: 3px;
+      text-align: right;
+    }
+
+    /* Linha divisória interna do card (etapas rápidas) */
+    .os-steps-strip {
+      border-top: 1px solid var(--slate-100);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .os-step {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--slate-400);
+      flex: 1;
+    }
+    .os-step.step-done { color: var(--green); }
+    .os-step.step-active { color: var(--amber); font-weight: 600; }
+    .os-step-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--slate-200);
+      flex-shrink: 0;
+    }
+    .os-step.step-done .os-step-dot   { background: var(--green); }
+    .os-step.step-active .os-step-dot { background: var(--amber); }
+    .os-step-connector {
+      height: 1px;
+      flex: 1;
+      background: var(--slate-200);
+      margin: 0 4px;
+    }
+    .os-step-connector.line-done { background: var(--green); }
+
+    /* ═══════════════════════════════════════════════
+       EMPTY STATE
+    ═══════════════════════════════════════════════ */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .empty-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--slate-700);
+      margin-bottom: 6px;
+    }
+    .empty-desc {
+      font-size: 13px;
+      color: var(--slate-400);
+    }
+
+    /* ═══════════════════════════════════════════════
+       FEATURES STRIP
+    ═══════════════════════════════════════════════ */
+    .features {
+      background: #fff;
+      border-top: 1px solid var(--slate-200);
+      padding: 32px 24px;
+      margin-top: 8px;
+    }
+    .features-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .feature-icon {
+      width: 44px; height: 44px;
+      background: var(--slate-100);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      color: var(--slate-500);
+      flex-shrink: 0;
+    }
+    .feature-title { font-size: 12.5px; font-weight: 700; color: var(--slate-700); margin-bottom: 3px; }
+    .feature-desc  { font-size: 11.5px; color: var(--slate-400); line-height: 1.5; }
+
+    /* ═══════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════ */
+    .footer {
+      background: var(--dark);
+      color: rgba(255,255,255,.45);
+      padding: 40px 24px 24px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .footer-brand-icon {
+      width: 34px; height: 34px;
+      background: var(--wa-green);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      color: #fff;
+    }
+    .footer-brand-name { font-size: 13px; font-weight: 700; color: #fff; display: block; }
+    .footer-brand-sub  { font-size: 10px; color: rgba(255,255,255,.3); display: block; }
+    .footer-cnpj { font-size: 11.5px; }
+    .footer-col-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.5);
+      margin-bottom: 12px;
+    }
+    .footer-text { font-size: 12.5px; line-height: 1.7; }
+    .footer-socials { display: flex; gap: 8px; margin-top: 4px; }
+    .social-btn {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.45);
+      font-size: 14px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      text-decoration: none;
+    }
+    .social-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+    .social-btn.wa-social { background: rgba(34,197,94,.12); color: var(--wa-green); border-color: rgba(34,197,94,.2); }
+    .social-btn.wa-social:hover { background: rgba(34,197,94,.25); }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding-top: 20px;
+      text-align: center;
+      font-size: 11.5px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .main { padding: 20px 16px 40px; }
+      .hero-inner { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .hero-stats { width: 100%; }
+      .features-inner { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: repeat(2, 1fr); }
+      .os-desc { max-width: 300px; }
+    }
+    @media (max-width: 700px) {
+      .os-card-inner { gap: 12px; padding: 14px 16px; }
+      .os-equip-icon { width: 42px; height: 42px; font-size: 18px; }
+      .os-card-right { gap: 6px; }
+      .os-progress-wrap { display: none; }
+      .os-steps-strip { display: none; }
+      .filter-divider { display: none; }
+    }
+    @media (max-width: 600px) {
+      .navbar-label { display: none; }
+      .user-chip .user-name { display: none; }
+      .hero-illus { display: none; }
+      .features-inner { grid-template-columns: 1fr 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .hero-stats { gap: 8px; }
+      .stat-card { min-width: 90px; padding: 12px 16px; }
+      .stat-number { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ NAVBAR ═══════════════════ -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="#" class="navbar-brand">
+      <div class="brand-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+      <div class="brand-text">
+        <span class="brand-name">AssistPro</span>
+        <span class="brand-sub">Assistência Técnica</span>
+      </div>
+    </a>
+
+    <span class="navbar-label">| &nbsp;Portal do Cliente</span>
+
+    <div class="navbar-actions">
+      <a href="#" class="btn-ghost">
+        <i class="fa-regular fa-circle-question"></i>
+        Dúvidas?
+      </a>
+
+      <a href="https://wa.me/5511999999999" class="btn-wa" target="_blank">
+        <i class="fa-brands fa-whatsapp"></i>
+        WhatsApp
+      </a>
+
+      <div class="divider-v"></div>
+
+      <div class="user-chip">
+        <div class="user-avatar">JD</div>
+        <span class="user-name" style="color:rgba(255,255,255,.6); font-size:12px;">João</span>
+      </div>
+
+      <button class="btn-exit">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        Sair
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-illus">🗂️</div>
+      <div>
+        <div class="hero-tag">
+          <i class="fa-solid fa-circle-dot" style="font-size:8px;color:var(--wa-green)"></i>
+          Portal do Cliente
+        </div>
+        <h1 class="hero-title">Minhas Ordens de Serviço</h1>
+        <p class="hero-sub">
+          Bem-vindo, João da Silva! Acompanhe aqui<br>
+          o histórico de todos os seus equipamentos.
+        </p>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-card">
+        <div class="stat-number">5</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-card stat-amber">
+        <div class="stat-number">2</div>
+        <div class="stat-label">Em aberto</div>
+      </div>
+      <div class="stat-card stat-green">
+        <div class="stat-number">3</div>
+        <div class="stat-label">Concluídas</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ CONTEÚDO PRINCIPAL ═══════════════════ -->
+<div class="main">
+
+  <!-- ── Barra de filtros ── -->
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input class="search-input" type="text" placeholder="Buscar por OS, equipamento ou defeito…" id="searchInput" />
+    </div>
+
+    <div class="filter-divider"></div>
+    <span class="filter-label">Status:</span>
+
+    <div class="filter-pills">
+      <button class="pill active" data-filter="all">
+        Todas
+        <span class="pill-count">5</span>
+      </button>
+      <button class="pill" data-filter="open">
+        <span class="badge-dot" style="width:6px;height:6px;border-radius:50%;background:var(--amber);display:inline-block"></span>
+        Em aberto
+        <span class="pill-count">2</span>
+      </button>
+      <button class="pill" data-filter="done">
+        <span class="badge-dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>
+        Concluídas
+        <span class="pill-count">3</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Lista de OS ── -->
+  <div class="os-list" id="osList">
+
+    <!-- OS #12458 — Em teste (ATIVA) -->
+    <a href="portal-demo.html" class="os-card active-card" data-status="open">
+      <div class="os-card-inner">
+        <div class="os-equip-icon">💻</div>
+        <div class="os-info">
+          <div class="os-top">
+            <span class="os-number">OS #12458</span>
+            <span class="badge badge-amber">
+              <span class="badge-dot"></span>
+              Em teste
+            </span>
+          </div>
+          <div class="os-equip-name">Notebook Dell Inspiron 15</div>
+          <div class="os-desc">Equipamento não liga e não carrega — conector de carga</div>
+          <div class="os-meta">
+            <span class="os-meta-item">
+              <i class="fa-regular fa-calendar"></i>
+              Aberta em 12/05/2024
+            </span>
+            <span class="os-meta-item">
+              <i class="fa-solid fa-user-gear"></i>
+              Carlos Eduardo
+            </span>
+            <span class="os-meta-item">
+              <i class="fa-solid fa-coins"></i>
+              R$ 350,00
+            </span>
+          </div>
+        </div>
+        <div class="os-card-right">
+          <div class="os-delivery">
+            Previsão:<br><strong>17/05/2024</strong>
+          </div>
+          <div class="os-progress-wrap">
+            <div class="os-progress-bar">
+              <div class="os-progress-fill fill-amber" style="width:60%"></div>
+            </div>
+            <div class="os-progress-pct">60% concluído</div>
+          </div>
+          <i class="fa-solid fa-chevron-right os-chevron"></i>
+        </div>
+      </div>
+      <div class="os-steps-strip">
+        <div class="os-step step-done">
+          <span class="os-step-dot"></span> Recebimento
+        </div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done">
+          <span class="os-step-dot"></span> Análise
+        </div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-active">
+          <span class="os-step-dot"></span> Em teste
+        </div>
+        <div class="os-step-connector"></div>
+        <div class="os-step">
+          <span class="os-step-dot"></span> Finalização
+        </div>
+        <div class="os-step-connector"></div>
+        <div class="os-step">
+          <span class="os-step-dot"></span> Entrega
+        </div>
+      </div>
+    </a>
+
+    <!-- OS #12391 — Aguardando peça (ATIVA) -->
+    <a href="portal-demo.html" class="os-card new-card" data-status="open">
+      <div class="os-card-inner">
+        <div class="os-equip-icon">📱</div>
+        <div class="os-info">
+          <div class="os-top">
+            <span class="os-number">OS #12391</span>
+            <span class="badge badge-purple">
+              <span class="badge-dot"></span>
+              Aguardando peça
+            </span>
+          </div>
+          <div class="os-equip-name">Smartphone Samsung Galaxy S22</div>
+          <div class="os-desc">Tela quebrada — troca de display original</div>
+          <div class="os-meta">
+            <span class="os-meta-item">
+              <i class="fa-regular fa-calendar"></i>
+              Aberta em 02/05/2024
+            </span>
+            <span class="os-meta-item">
+              <i class="fa-solid fa-user-gear"></i>
+              Ricardo Alves
+            </span>
+            <span class="os-meta-item">
+              <i class="fa-solid fa-coins"></i>
+              R$ 520,00
+            </span>
+          </div>
+        </div>
+        <div class="os-card-right">
+          <div class="os-delivery">
+            Previsão:<br><strong>20/05/2024</strong>
+          </div>
+          <div class="os-progress-wrap">
+            <div class="os-progress-bar">
+              <div class="os-progress-fill fill-blue" style="width:35%"></div>
+            </div>
+            <div class="os-progress-pct">35% concluído</div>
+          </div>
+          <i class="fa-solid fa-chevron-right os-chevron"></i>
+        </div>
+      </div>
+      <div class="os-steps-strip">
+        <div class="os-step step-done">
+          <span class="os-step-dot"></span> Recebimento
+        </div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-active">
+          <span class="os-step-dot"></span> Análise
+        </div>
+        <div class="os-step-connector"></div>
+        <div class="os-step">
+          <span class="os-step-dot"></span> Em teste
+        </div>
+        <div class="os-step-connector"></div>
+        <div class="os-step">
+          <span class="os-step-dot"></span> Finalização
+        </div>
+        <div class="os-step-connector"></div>
+        <div class="os-step">
+          <span class="os-step-dot"></span> Entrega
+        </div>
+      </div>
+    </a>
+
+    <!-- OS #12270 — Concluída -->
+    <a href="portal-demo.html" class="os-card done-card" data-status="done">
+      <div class="os-card-inner">
+        <div class="os-equip-icon">💻</div>
+        <div class="os-info">
+          <div class="os-top">
+            <span class="os-number">OS #12270</span>
+            <span class="badge badge-green">
+              <span class="badge-dot"></span>
+              Concluída
+            </span>
+          </div>
+          <div class="os-equip-name">Notebook Dell Inspiron 15</div>
+          <div class="os-desc">Lentidão e superaquecimento — limpeza e troca de pasta térmica</div>
+          <div class="os-meta">
+            <span class="os-meta-item">
+              <i class="fa-regular fa-calendar"></i>
+              Aberta em 10/03/2024
+            </span>
+            <span class="os-meta-item">
+              <i class="fa-regular fa-calendar-check"></i>
+              Entregue em 14/03/2024
+            </span>
+            <span class="os-meta-item">
+              <i class="fa-solid fa-coins"></i>
+              R$ 180,00
+            </span>
+          </div>
+        </div>
+        <div class="os-card-right">
+          <div class="os-progress-wrap">
+            <div class="os-progress-bar">
+              <div class="os-progress-fill fill-green" style="width:100%"></div>
+            </div>
+            <div class="os-progress-pct">Concluída</div>
+          </div>
+          <i class="fa-solid fa-chevron-right os-chevron"></i>
+        </div>
+      </div>
+      <div class="os-steps-strip">
+        <div class="os-step step-done">
+          <span class="os-step-dot"></span> Recebimento
+        </div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done">
+          <span class="os-step-dot"></span> Análise
+        </div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done">
+          <span class="os-step-dot"></span> Em teste
+        </div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done">
+          <span class="os-step-dot"></span> Finalização
+        </div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done">
+          <span class="os-step-dot"></span> Entregue
+        </div>
+      </div>
+    </a>
+
+    <!-- OS #11987 — Concluída -->
+    <a href="portal-demo.html" class="os-card done-card" data-status="done">
+      <div class="os-card-inner">
+        <div class="os-equip-icon">🖨️</div>
+        <div class="os-info">
+          <div class="os-top">
+            <span class="os-number">OS #11987</span>
+            <span class="badge badge-green">
+              <span class="badge-dot"></span>
+              Concluída
+            </span>
+          </div>
+          <div class="os-equip-name">Impressora HP LaserJet Pro</div>
+          <div class="os-desc">Não imprime — troca do rolo de transferência</div>
+          <div class="os-meta">
+            <span class="os-meta-item">
+              <i class="fa-regular fa-calendar"></i>
+              Aberta em 05/01/2024
+            </span>
+            <span class="os-meta-item">
+              <i class="fa-regular fa-calendar-check"></i>
+              Entregue em 09/01/2024
+            </span>
+            <span class="os-meta-item">
+              <i class="fa-solid fa-coins"></i>
+              R$ 240,00
+            </span>
+          </div>
+        </div>
+        <div class="os-card-right">
+          <div class="os-progress-wrap">
+            <div class="os-progress-bar">
+              <div class="os-progress-fill fill-green" style="width:100%"></div>
+            </div>
+            <div class="os-progress-pct">Concluída</div>
+          </div>
+          <i class="fa-solid fa-chevron-right os-chevron"></i>
+        </div>
+      </div>
+      <div class="os-steps-strip">
+        <div class="os-step step-done"><span class="os-step-dot"></span> Recebimento</div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done"><span class="os-step-dot"></span> Análise</div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done"><span class="os-step-dot"></span> Em teste</div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done"><span class="os-step-dot"></span> Finalização</div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done"><span class="os-step-dot"></span> Entregue</div>
+      </div>
+    </a>
+
+    <!-- OS #11742 — Concluída -->
+    <a href="portal-demo.html" class="os-card done-card" data-status="done">
+      <div class="os-card-inner">
+        <div class="os-equip-icon">📱</div>
+        <div class="os-info">
+          <div class="os-top">
+            <span class="os-number">OS #11742</span>
+            <span class="badge badge-green">
+              <span class="badge-dot"></span>
+              Concluída
+            </span>
+          </div>
+          <div class="os-equip-name">Smartphone iPhone 12</div>
+          <div class="os-desc">Bateria viciada — troca da bateria original Apple</div>
+          <div class="os-meta">
+            <span class="os-meta-item">
+              <i class="fa-regular fa-calendar"></i>
+              Aberta em 18/10/2023
+            </span>
+            <span class="os-meta-item">
+              <i class="fa-regular fa-calendar-check"></i>
+              Entregue em 20/10/2023
+            </span>
+            <span class="os-meta-item">
+              <i class="fa-solid fa-coins"></i>
+              R$ 290,00
+            </span>
+          </div>
+        </div>
+        <div class="os-card-right">
+          <div class="os-progress-wrap">
+            <div class="os-progress-bar">
+              <div class="os-progress-fill fill-green" style="width:100%"></div>
+            </div>
+            <div class="os-progress-pct">Concluída</div>
+          </div>
+          <i class="fa-solid fa-chevron-right os-chevron"></i>
+        </div>
+      </div>
+      <div class="os-steps-strip">
+        <div class="os-step step-done"><span class="os-step-dot"></span> Recebimento</div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done"><span class="os-step-dot"></span> Análise</div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done"><span class="os-step-dot"></span> Em teste</div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done"><span class="os-step-dot"></span> Finalização</div>
+        <div class="os-step-connector line-done"></div>
+        <div class="os-step step-done"><span class="os-step-dot"></span> Entregue</div>
+      </div>
+    </a>
+
+    <!-- Empty state (oculto por padrão) -->
+    <div class="empty-state" id="emptyState" style="display:none">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">Nenhuma OS encontrada</div>
+      <div class="empty-desc">Tente ajustar os filtros ou o termo de busca.</div>
+    </div>
+
+  </div><!-- /os-list -->
+
+</div><!-- /main -->
+
+<!-- ═══════════════════ FEATURES ═══════════════════ -->
+<div class="features">
+  <div class="features-inner">
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <div>
+        <div class="feature-title">Seguro e confiável</div>
+        <div class="feature-desc">Seus dados estão protegidos com segurança e criptografia.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-bell"></i></div>
+      <div>
+        <div class="feature-title">Notificações automáticas</div>
+        <div class="feature-desc">Você recebe atualizações por WhatsApp a cada mudança.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+      <div>
+        <div class="feature-title">Atendimento rápido</div>
+        <div class="feature-desc">Nossa equipe está sempre pronta para te atender.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-star"></i></div>
+      <div>
+        <div class="feature-title">Sua opinião importa</div>
+        <div class="feature-desc">Avalie nosso atendimento quando retirar o equipamento.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <div class="footer-brand-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+          <div>
+            <span class="footer-brand-name">AssistPro</span>
+            <span class="footer-brand-sub">Assistência Técnica</span>
+          </div>
+        </div>
+        <div class="footer-cnpj">CNPJ: 12.345.678/0001-90</div>
+      </div>
+      <div>
+        <div class="footer-col-title">Horário de atendimento</div>
+        <div class="footer-text">
+          Seg a Sex: 08:00 às 18:00<br>
+          Sáb: 08:00 às 12:00
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Endereço</div>
+        <div class="footer-text">
+          Rua das Flores, 123 - Centro<br>
+          São Paulo - SP<br>
+          CEP: 01000-000
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Siga-nos</div>
+        <div class="footer-socials">
+          <a href="#" class="social-btn"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" class="social-btn"><i class="fa-brands fa-facebook"></i></a>
+          <a href="#" class="social-btn wa-social"><i class="fa-brands fa-whatsapp"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2024 AssistPro Assistência Técnica. Todos os direitos reservados.
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Filtros por status
+  const pills = document.querySelectorAll('.pill[data-filter]');
+  const cards = document.querySelectorAll('.os-card[data-status]');
+  const emptyState = document.getElementById('emptyState');
+  const searchInput = document.getElementById('searchInput');
+
+  function applyFilters() {
+    const activeFilter = document.querySelector('.pill.active')?.dataset.filter || 'all';
+    const searchTerm = searchInput.value.toLowerCase().trim();
+
+    let visible = 0;
+    cards.forEach(card => {
+      const matchesFilter = activeFilter === 'all' || card.dataset.status === activeFilter;
+      const text = card.textContent.toLowerCase();
+      const matchesSearch = !searchTerm || text.includes(searchTerm);
+
+      if (matchesFilter && matchesSearch) {
+        card.style.display = '';
+        visible++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    emptyState.style.display = visible === 0 ? 'block' : 'none';
+  }
+
+  pills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      pills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      applyFilters();
+    });
+  });
+
+  searchInput.addEventListener('input', applyFilters);
+</script>
+
+</body>
+</html>

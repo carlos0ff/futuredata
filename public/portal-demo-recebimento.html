@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OS #12501 — Recebimento — AssistPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:       #2563eb;
+      --blue-light: #eff6ff;
+      --blue-mid:   #dbeafe;
+      --green:      #16a34a;
+      --green-bg:   #f0fdf4;
+      --amber:      #d97706;
+      --amber-bg:   #fffbeb;
+      --red:        #dc2626;
+      --violet:     #7c3aed;
+      --violet-bg:  #f5f3ff;
+      --violet-mid: #ddd6fe;
+      --slate-50:   #f8fafc;
+      --slate-100:  #f1f5f9;
+      --slate-200:  #e2e8f0;
+      --slate-300:  #cbd5e1;
+      --slate-400:  #94a3b8;
+      --slate-500:  #64748b;
+      --slate-600:  #475569;
+      --slate-700:  #334155;
+      --slate-800:  #1e293b;
+      --slate-900:  #0f172a;
+      --dark:       #0d1117;
+      --wa-green:   #22c55e;
+      --radius:     14px;
+      --shadow-sm:  0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+      --shadow:     0 4px 16px rgba(0,0,0,.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f5;
+      color: var(--slate-800);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       NAVBAR
+    ═══════════════════════════════════════════════ */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--dark);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      box-shadow: 0 2px 20px rgba(0,0,0,.4);
+    }
+    .navbar-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 24px; height: 60px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .navbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-icon {
+      width: 38px; height: 38px; background: var(--wa-green);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: #fff; flex-shrink: 0;
+    }
+    .brand-name { font-size: 13.5px; font-weight: 700; color: #fff; display: block; }
+    .brand-sub  { font-size: 10.5px; color: rgba(255,255,255,.4); display: block; }
+    .navbar-label {
+      font-size: 11px; font-weight: 600; letter-spacing: .12em;
+      text-transform: uppercase; color: rgba(255,255,255,.35);
+    }
+    .navbar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .btn-ghost {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px; background: transparent; color: rgba(255,255,255,.7);
+      font-size: 12.5px; font-weight: 500; cursor: pointer;
+      text-decoration: none; transition: background .15s, color .15s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .btn-wa {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 16px; background: var(--wa-green);
+      border: none; border-radius: 8px; color: #fff;
+      font-size: 12.5px; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: background .15s;
+    }
+    .btn-wa:hover { background: #16a34a; }
+    .divider-v { width: 1px; height: 24px; background: rgba(255,255,255,.1); margin: 0 4px; }
+    .user-chip { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.6); font-size: 12px; }
+    .user-avatar {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff;
+    }
+    .btn-exit {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 10px; border: none; border-radius: 7px;
+      background: transparent; color: rgba(255,255,255,.4);
+      font-size: 12px; cursor: pointer; transition: background .15s, color .15s;
+    }
+    .btn-exit:hover { background: rgba(255,255,255,.06); color: #f87171; }
+
+    /* ═══════════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════════ */
+    .hero {
+      background: linear-gradient(135deg, #0d1117 0%, #131b27 50%, #0f2340 100%);
+      padding: 36px 24px 40px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .hero-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 32px; flex-wrap: wrap;
+    }
+    .hero-left { display: flex; align-items: center; gap: 28px; flex: 1; min-width: 260px; }
+    .hero-illus {
+      width: 110px; height: 110px;
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+      border-radius: 24px; display: flex; align-items: center; justify-content: center;
+      font-size: 44px; flex-shrink: 0;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 20px; padding: 3px 12px; font-size: 10.5px;
+      font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+      color: rgba(255,255,255,.5); margin-bottom: 10px;
+    }
+    .hero-title { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .hero-sub   { font-size: 13.5px; color: rgba(255,255,255,.5); line-height: 1.6; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 14px; font-size: 12px; color: rgba(255,255,255,.35);
+      text-decoration: none; transition: color .15s;
+    }
+    .back-link:hover { color: rgba(255,255,255,.7); }
+
+    .hero-os-card {
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 18px; padding: 22px 26px; min-width: 220px; flex-shrink: 0;
+    }
+    .os-card-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 4px;
+    }
+    .os-card-number { font-size: 34px; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 10px; }
+    .os-card-date   { margin-top: 10px; font-size: 11.5px; color: rgba(255,255,255,.35); }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .badge-violet {
+      background: rgba(124,58,237,.2); color: #a78bfa;
+      border: 1px solid rgba(124,58,237,.3);
+    }
+    .badge-solid-violet {
+      background: var(--violet-bg); color: var(--violet);
+      border: 1px solid var(--violet-mid);
+    }
+    .badge-solid-slate {
+      background: var(--slate-100); color: var(--slate-500);
+      border: 1px solid var(--slate-200);
+    }
+    .badge-solid-amber {
+      background: var(--amber-bg); color: var(--amber);
+      border: 1px solid #fde68a;
+    }
+
+    /* ═══════════════════════════════════════════════
+       LAYOUT PRINCIPAL
+    ═══════════════════════════════════════════════ */
+    .main {
+      max-width: 1200px; margin: 0 auto;
+      padding: 28px 24px 60px;
+      display: grid; grid-template-columns: 1fr 360px;
+      gap: 20px; align-items: start;
+    }
+    .col-left  { display: flex; flex-direction: column; gap: 16px; }
+    .col-right { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ═══════════════════════════════════════════════
+       CARD BASE
+    ═══════════════════════════════════════════════ */
+    .card {
+      background: #fff; border: 1px solid var(--slate-200);
+      border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm);
+    }
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--slate-100);
+    }
+    .card-head-left { display: flex; align-items: center; gap: 10px; }
+    .card-icon {
+      width: 32px; height: 32px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .icon-slate  { background: var(--slate-100); color: var(--slate-600); }
+    .icon-blue   { background: var(--blue-mid);  color: var(--blue); }
+    .icon-green  { background: var(--green-bg);  color: var(--green); }
+    .icon-amber  { background: var(--amber-bg);  color: var(--amber); }
+    .icon-violet { background: var(--violet-bg); color: var(--violet); }
+    .card-title  { font-size: 15px; font-weight: 700; color: var(--slate-800); }
+    .card-body   { padding: 20px; }
+
+    /* ═══════════════════════════════════════════════
+       BANNER DE ESTADO
+    ═══════════════════════════════════════════════ */
+    .state-banner {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 20px; background: var(--violet-bg);
+      border-bottom: 1px solid var(--violet-mid);
+    }
+    .state-banner-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--violet-mid); color: var(--violet);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .state-banner-title {
+      font-size: 14px; font-weight: 700; color: var(--violet);
+      margin-bottom: 3px;
+    }
+    .state-banner-desc {
+      font-size: 12.5px; color: #5b21b6; line-height: 1.55;
+    }
+
+    /* ═══════════════════════════════════════════════
+       TIMELINE
+    ═══════════════════════════════════════════════ */
+    .timeline { padding: 4px 20px 0; }
+    .tl-step   { display: flex; gap: 16px; padding-bottom: 20px; }
+    .tl-step:last-child { padding-bottom: 0; }
+    .tl-icon-wrap { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+    .tl-icon {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; z-index: 1; position: relative;
+    }
+    .tl-icon.done {
+      background: #16a34a; color: #fff;
+      box-shadow: 0 0 0 4px #dcfce7;
+    }
+    .tl-icon.active {
+      background: var(--violet); color: #fff;
+      box-shadow: 0 0 0 4px var(--violet-mid);
+    }
+    .tl-icon.pending {
+      background: var(--slate-100); color: var(--slate-400);
+      border: 1px solid var(--slate-200);
+    }
+    .tl-line { width: 2px; flex: 1; margin-top: 4px; border-radius: 2px; min-height: 16px; }
+    .tl-line.done   { background: #86efac; }
+    .tl-line.dashed { background: repeating-linear-gradient(to bottom, var(--slate-200) 0px, var(--slate-200) 4px, transparent 4px, transparent 8px); }
+
+    .tl-content { flex: 1; padding-bottom: 4px; }
+    .tl-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .tl-name { font-size: 13.5px; font-weight: 600; color: var(--slate-800); }
+    .tl-name.pending-text { color: var(--slate-400); }
+    .tl-desc { font-size: 12.5px; color: var(--slate-500); margin-top: 2px; line-height: 1.5; }
+    .tl-desc.pending-text { color: var(--slate-400); }
+    .tl-date { text-align: right; flex-shrink: 0; }
+    .tl-date-d { font-size: 11.5px; color: var(--slate-500); white-space: nowrap; }
+    .tl-date-t { font-size: 11px;   color: var(--slate-400); white-space: nowrap; }
+
+    .tl-badge-inline {
+      margin-top: 4px; display: inline-flex; align-items: center; gap: 5px;
+      background: var(--violet-bg); color: var(--violet);
+      border: 1px solid var(--violet-mid);
+      border-radius: 20px; padding: 2px 10px;
+      font-size: 11px; font-weight: 600;
+    }
+
+    /* ═══════════════════════════════════════════════
+       CARD ORÇAMENTO — VAZIO
+    ═══════════════════════════════════════════════ */
+    .empty-orc {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 12px; padding: 40px 20px;
+      text-align: center;
+    }
+    .empty-orc-icon {
+      width: 60px; height: 60px; border-radius: 18px;
+      background: var(--slate-100); border: 1px dashed var(--slate-300);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; color: var(--slate-300);
+    }
+    .empty-orc-title {
+      font-size: 14px; font-weight: 700; color: var(--slate-600);
+    }
+    .empty-orc-desc {
+      font-size: 12.5px; color: var(--slate-400); line-height: 1.6; max-width: 300px;
+    }
+    .empty-orc-steps {
+      display: flex; flex-direction: column; gap: 6px;
+      margin-top: 4px; width: 100%; max-width: 320px;
+    }
+    .orc-step-row {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--slate-50); border: 1px solid var(--slate-100);
+      border-radius: 10px; padding: 9px 14px;
+      font-size: 12px; color: var(--slate-500);
+    }
+    .orc-step-num {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--slate-200); color: var(--slate-500);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; flex-shrink: 0;
+    }
+    .orc-step-row.active-step {
+      background: var(--violet-bg); border-color: var(--violet-mid);
+      color: var(--violet);
+    }
+    .orc-step-row.active-step .orc-step-num {
+      background: var(--violet); color: #fff;
+    }
+
+    /* ═══════════════════════════════════════════════
+       FOTOS
+    ═══════════════════════════════════════════════ */
+    .photos-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 10px; padding: 16px 20px 20px;
+    }
+    .photo-card {
+      border: 1px solid var(--slate-200); border-radius: 10px;
+      overflow: hidden; background: var(--slate-50);
+      transition: border-color .15s, box-shadow .15s; cursor: pointer;
+    }
+    .photo-card:hover { border-color: #93c5fd; box-shadow: 0 0 0 3px #dbeafe; }
+    .photo-thumb {
+      height: 72px; display: flex; align-items: center; justify-content: center;
+      font-size: 28px; background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    }
+    .photo-info  { padding: 6px 8px 8px; }
+    .photo-label { font-size: 11px; font-weight: 600; color: var(--slate-700); }
+    .photo-date  { font-size: 10px; color: var(--slate-400); margin-top: 1px; }
+
+    /* Foto vazia/placeholder */
+    .photo-card.empty-slot .photo-thumb {
+      background: repeating-linear-gradient(45deg,#f8fafc,#f8fafc 4px,#f1f5f9 4px,#f1f5f9 8px);
+      color: var(--slate-300); font-size: 20px;
+    }
+    .photo-card.empty-slot .photo-label { color: var(--slate-300); }
+
+    /* ═══════════════════════════════════════════════
+       COLUNA DIREITA
+    ═══════════════════════════════════════════════ */
+    .equip-body   { display: flex; gap: 14px; padding: 16px 20px 20px; }
+    .equip-img {
+      width: 70px; height: 70px; background: var(--slate-100);
+      border: 1px solid var(--slate-200); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; flex-shrink: 0;
+    }
+    .equip-info { line-height: 1.4; }
+    .equip-name { font-size: 14px; font-weight: 700; color: var(--slate-800); margin-bottom: 4px; }
+    .equip-row  { font-size: 12px; color: var(--slate-500); margin-bottom: 2px; }
+
+    .info-card-body { padding: 14px 20px 16px; }
+
+    /* Checklist de recebimento */
+    .checklist { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+    .check-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12.5px; color: var(--slate-600);
+    }
+    .check-item.ok { color: var(--green); }
+    .check-item.no { color: var(--slate-400); text-decoration: line-through; }
+    .check-icon { width: 18px; text-align: center; font-size: 12px; flex-shrink: 0; }
+
+    /* Próxima etapa */
+    .next-step-card {
+      background: var(--violet-bg); border: 1px solid var(--violet-mid);
+      border-radius: var(--radius); padding: 16px 18px;
+    }
+    .next-step-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--violet); margin-bottom: 6px;
+    }
+    .next-step-title { font-size: 14px; font-weight: 700; color: var(--violet); margin-bottom: 4px; }
+    .next-step-desc  { font-size: 12px; color: #5b21b6; line-height: 1.55; }
+
+    /* Técnico */
+    .tecnico-body { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 16px; }
+    .tecnico-left { display: flex; align-items: center; gap: 12px; }
+    .tecnico-avatar {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff;
+    }
+    .tecnico-name { font-size: 13.5px; font-weight: 600; color: var(--slate-800); }
+    .tecnico-role { font-size: 12px; color: var(--slate-400); margin-top: 1px; }
+    .tecnico-badge {
+      width: 32px; height: 32px; background: var(--blue-light);
+      border: 1px solid var(--blue-mid); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--blue); font-size: 13px;
+    }
+
+    /* Ajuda */
+    .help-body { padding: 14px 20px 16px; }
+    .help-sub  { font-size: 12px; color: var(--slate-500); margin-top: 2px; margin-bottom: 14px; line-height: 1.5; }
+    .btn-wa-full {
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      width: 100%; padding: 12px; background: var(--wa-green);
+      border: none; border-radius: 10px; color: #fff;
+      font-size: 13.5px; font-weight: 700; cursor: pointer;
+      text-decoration: none; transition: background .15s, transform .1s, box-shadow .15s;
+      box-shadow: 0 2px 12px rgba(34,197,94,.3);
+    }
+    .btn-wa-full:hover { background: #16a34a; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(34,197,94,.4); }
+
+    /* Mensagens */
+    .chat-body {
+      padding: 12px 16px; max-height: 240px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .chat-body::-webkit-scrollbar { width: 4px; }
+    .chat-body::-webkit-scrollbar-track { background: transparent; }
+    .chat-body::-webkit-scrollbar-thumb { background: var(--slate-200); border-radius: 4px; }
+    .msg { display: flex; gap: 8px; }
+    .msg-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; flex-shrink: 0;
+      background: var(--slate-200); color: var(--slate-600);
+    }
+    .msg-bubble { max-width: 82%; }
+    .msg-text {
+      background: var(--slate-100); color: var(--slate-800);
+      border-radius: 16px 16px 16px 4px; padding: 9px 13px;
+      font-size: 12.5px; line-height: 1.55;
+    }
+    .msg-time { font-size: 10.5px; color: var(--slate-400); margin-top: 4px; }
+    .chat-form {
+      border-top: 1px solid var(--slate-100); padding: 12px 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .chat-input {
+      flex: 1; padding: 9px 14px;
+      border: 1px solid var(--slate-200); border-radius: 20px;
+      background: var(--slate-50); font-size: 13px; color: var(--slate-800);
+      outline: none; font-family: inherit; transition: border-color .15s, box-shadow .15s;
+    }
+    .chat-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: #fff; }
+    .chat-input::placeholder { color: var(--slate-400); }
+    .chat-send {
+      width: 38px; height: 38px; background: var(--blue); border: none;
+      border-radius: 50%; color: #fff; font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: background .15s, transform .1s;
+    }
+    .chat-send:hover { background: #1d4ed8; transform: scale(1.05); }
+
+    /* ═══════════════════════════════════════════════
+       FEATURES + FOOTER
+    ═══════════════════════════════════════════════ */
+    .features {
+      background: #fff; border-top: 1px solid var(--slate-200);
+      padding: 32px 24px; margin-top: 8px;
+    }
+    .features-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    }
+    .feature-item { display: flex; align-items: flex-start; gap: 14px; }
+    .feature-icon {
+      width: 44px; height: 44px; background: var(--slate-100);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: var(--slate-500); flex-shrink: 0;
+    }
+    .feature-title { font-size: 12.5px; font-weight: 700; color: var(--slate-700); margin-bottom: 3px; }
+    .feature-desc  { font-size: 11.5px; color: var(--slate-400); line-height: 1.5; }
+
+    .footer { background: var(--dark); color: rgba(255,255,255,.45); padding: 40px 24px 24px; }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-bottom: 32px; }
+    .footer-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .footer-brand-icon {
+      width: 34px; height: 34px; background: var(--wa-green);
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: #fff;
+    }
+    .footer-brand-name { font-size: 13px; font-weight: 700; color: #fff; display: block; }
+    .footer-brand-sub  { font-size: 10px; color: rgba(255,255,255,.3); display: block; }
+    .footer-cnpj { font-size: 11.5px; }
+    .footer-col-title {
+      font-size: 11px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px;
+    }
+    .footer-text { font-size: 12.5px; line-height: 1.7; }
+    .footer-socials { display: flex; gap: 8px; margin-top: 4px; }
+    .social-btn {
+      width: 34px; height: 34px; background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.45); font-size: 14px; cursor: pointer;
+      transition: background .15s, color .15s; text-decoration: none;
+    }
+    .social-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+    .social-btn.wa-social { background: rgba(34,197,94,.12); color: var(--wa-green); border-color: rgba(34,197,94,.2); }
+    .social-btn.wa-social:hover { background: rgba(34,197,94,.25); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,.06); padding-top: 20px; text-align: center; font-size: 11.5px; }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; padding: 20px 16px 40px; }
+      .hero-inner { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .hero-os-card { width: 100%; }
+      .features-inner { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: repeat(2, 1fr); }
+      .photos-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .navbar-label { display: none; }
+      .user-chip .user-name { display: none; }
+      .hero-illus { display: none; }
+      .photos-grid { grid-template-columns: repeat(2, 1fr); }
+      .features-inner { grid-template-columns: 1fr 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ NAVBAR ═══════════════════ -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="#" class="navbar-brand">
+      <div class="brand-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+      <div class="brand-text">
+        <span class="brand-name">AssistPro</span>
+        <span class="brand-sub">Assistência Técnica</span>
+      </div>
+    </a>
+
+    <span class="navbar-label">| &nbsp;Portal do Cliente</span>
+
+    <div class="navbar-actions">
+      <a href="#" class="btn-ghost">
+        <i class="fa-regular fa-circle-question"></i>
+        Dúvidas?
+      </a>
+      <a href="https://wa.me/5511999999999" class="btn-wa" target="_blank">
+        <i class="fa-brands fa-whatsapp"></i>
+        WhatsApp
+      </a>
+      <div class="divider-v"></div>
+      <div class="user-chip">
+        <div class="user-avatar">JD</div>
+        <span class="user-name" style="color:rgba(255,255,255,.6);font-size:12px;">João</span>
+      </div>
+      <button class="btn-exit">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        Sair
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-illus">📦</div>
+      <div>
+        <div class="hero-tag">
+          <i class="fa-solid fa-circle-dot" style="font-size:8px;color:var(--wa-green)"></i>
+          Portal do Cliente
+        </div>
+        <h1 class="hero-title">Olá, João da Silva! 😊</h1>
+        <p class="hero-sub">
+          Recebemos seu equipamento com sucesso.<br>
+          Em breve nossa equipe iniciará o diagnóstico.
+        </p>
+        <a href="portal-demo-lista.html" class="back-link">
+          <i class="fa-solid fa-chevron-left"></i>
+          Ver todas as minhas OS
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-os-card">
+      <p class="os-card-label">Ordem de Serviço</p>
+      <p class="os-card-number">OS #12501</p>
+      <span class="badge badge-violet">
+        <span class="badge-dot"></span>
+        Recebido
+      </span>
+      <p class="os-card-date">
+        <i class="fa-regular fa-clock" style="margin-right:5px"></i>
+        Aberta em 24/05/2024 às 09:15
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ CONTEÚDO PRINCIPAL ═══════════════════ -->
+<div class="main">
+
+  <!-- ═══════ COLUNA ESQUERDA ═══════ -->
+  <div class="col-left">
+
+    <!-- ── Timeline ── -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-icon icon-blue"><i class="fa-solid fa-route"></i></div>
+          <span class="card-title">Acompanhe o andamento</span>
+        </div>
+      </div>
+
+      <!-- Banner informativo dentro do card -->
+      <div class="state-banner">
+        <div class="state-banner-icon">
+          <i class="fa-solid fa-box-open"></i>
+        </div>
+        <div>
+          <div class="state-banner-title">Equipamento recebido com sucesso!</div>
+          <div class="state-banner-desc">
+            Seu equipamento entrou no nosso sistema e já está na fila de diagnóstico.
+            Você receberá uma notificação pelo WhatsApp quando o técnico iniciar a análise.
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline" style="padding-top:20px">
+
+        <!-- Recebimento — active -->
+        <div class="tl-step">
+          <div class="tl-icon-wrap">
+            <div class="tl-icon active"><i class="fa-solid fa-box-open"></i></div>
+            <div class="tl-line dashed"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-row">
+              <div>
+                <div class="tl-name">Recebimento</div>
+                <div class="tl-desc">Seu equipamento foi recebido em nossa assistência e registrado no sistema.</div>
+              </div>
+              <div class="tl-date">
+                <div class="tl-date-d">24/05/2024</div>
+                <div class="tl-date-t">09:15</div>
+              </div>
+            </div>
+            <div class="tl-badge-inline">
+              <i class="fa-solid fa-circle-dot" style="font-size:8px"></i>
+              Etapa atual
+            </div>
+          </div>
+        </div>
+
+        <!-- Em análise — pending -->
+        <div class="tl-step">
+          <div class="tl-icon-wrap">
+            <div class="tl-icon pending"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <div class="tl-line dashed"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-row">
+              <div>
+                <div class="tl-name pending-text">Em análise</div>
+                <div class="tl-desc pending-text">Nossa equipe irá analisar o defeito e elaborar um orçamento.</div>
+              </div>
+              <span style="color:var(--slate-300);font-size:13px">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orçamento — pending -->
+        <div class="tl-step">
+          <div class="tl-icon-wrap">
+            <div class="tl-icon pending"><i class="fa-regular fa-file-lines"></i></div>
+            <div class="tl-line dashed"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-row">
+              <div>
+                <div class="tl-name pending-text">Aprovação do orçamento</div>
+                <div class="tl-desc pending-text">Você receberá o orçamento para aprovar ou recusar.</div>
+              </div>
+              <span style="color:var(--slate-300);font-size:13px">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Em teste — pending -->
+        <div class="tl-step">
+          <div class="tl-icon-wrap">
+            <div class="tl-icon pending"><i class="fa-solid fa-flask"></i></div>
+            <div class="tl-line dashed"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-row">
+              <div>
+                <div class="tl-name pending-text">Reparo e testes</div>
+                <div class="tl-desc pending-text">Realizaremos o reparo e testes de qualidade.</div>
+              </div>
+              <span style="color:var(--slate-300);font-size:13px">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pronto para entrega — pending -->
+        <div class="tl-step">
+          <div class="tl-icon-wrap">
+            <div class="tl-icon pending"><i class="fa-solid fa-circle-check"></i></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-row">
+              <div>
+                <div class="tl-name pending-text">Pronto para entrega</div>
+                <div class="tl-desc pending-text">Avisaremos assim que estiver pronto para retirada.</div>
+              </div>
+              <span style="color:var(--slate-300);font-size:13px">—</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /timeline -->
+
+      <div style="height:20px"></div>
+    </div>
+
+    <!-- ── Orçamento — sem orçamento ainda ── -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-icon icon-slate"><i class="fa-regular fa-file-lines"></i></div>
+          <span class="card-title">Orçamento</span>
+        </div>
+        <span class="badge badge-solid-slate">
+          <i class="fa-solid fa-hourglass-start" style="font-size:10px"></i>
+          Aguardando análise
+        </span>
+      </div>
+
+      <div class="empty-orc">
+        <div class="empty-orc-icon">
+          <i class="fa-regular fa-file-lines"></i>
+        </div>
+        <div class="empty-orc-title">Orçamento ainda não disponível</div>
+        <div class="empty-orc-desc">
+          Assim que nosso técnico concluir o diagnóstico do seu equipamento,
+          o orçamento aparecerá aqui para sua aprovação.
+        </div>
+
+        <div class="empty-orc-steps">
+          <div class="orc-step-row active-step">
+            <span class="orc-step-num">1</span>
+            Equipamento recebido — <strong style="margin-left:3px">em andamento</strong>
+          </div>
+          <div class="orc-step-row">
+            <span class="orc-step-num">2</span>
+            Diagnóstico técnico
+          </div>
+          <div class="orc-step-row">
+            <span class="orc-step-num">3</span>
+            Orçamento enviado para aprovação
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Fotos — apenas recebimento ── -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-icon icon-slate"><i class="fa-regular fa-images"></i></div>
+          <span class="card-title">Fotos do recebimento</span>
+        </div>
+        <span style="font-size:11px;color:var(--slate-400)">1 foto</span>
+      </div>
+      <div class="photos-grid">
+
+        <div class="photo-card">
+          <div class="photo-thumb">📷</div>
+          <div class="photo-info">
+            <div class="photo-label">Recebimento</div>
+            <div class="photo-date">24/05/2024 · 09:16</div>
+          </div>
+        </div>
+
+        <div class="photo-card empty-slot">
+          <div class="photo-thumb"><i class="fa-regular fa-image"></i></div>
+          <div class="photo-info">
+            <div class="photo-label">Diagnóstico</div>
+            <div class="photo-date">Pendente</div>
+          </div>
+        </div>
+
+        <div class="photo-card empty-slot">
+          <div class="photo-thumb"><i class="fa-regular fa-image"></i></div>
+          <div class="photo-info">
+            <div class="photo-label">Reparo</div>
+            <div class="photo-date">Pendente</div>
+          </div>
+        </div>
+
+        <div class="photo-card empty-slot">
+          <div class="photo-thumb"><i class="fa-regular fa-image"></i></div>
+          <div class="photo-info">
+            <div class="photo-label">Laudo técnico</div>
+            <div class="photo-date">Pendente</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /col-left -->
+
+  <!-- ═══════ COLUNA DIREITA ═══════ -->
+  <div class="col-right">
+
+    <!-- ── Próxima etapa ── -->
+    <div class="next-step-card">
+      <div class="next-step-label">
+        <i class="fa-solid fa-arrow-right" style="margin-right:4px"></i>
+        Próxima etapa
+      </div>
+      <div class="next-step-title">Diagnóstico técnico</div>
+      <div class="next-step-desc">
+        Nosso técnico irá analisar o equipamento e identificar o defeito.
+        Você será avisado pelo WhatsApp com o orçamento.
+      </div>
+    </div>
+
+    <!-- ── Equipamento ── -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-icon icon-slate"><i class="fa-solid fa-laptop"></i></div>
+          <span class="card-title">Informações do equipamento</span>
+        </div>
+      </div>
+      <div class="equip-body">
+        <div class="equip-img">📱</div>
+        <div class="equip-info">
+          <div class="equip-name">Samsung Galaxy S22</div>
+          <div class="equip-row"><strong>Nº de Série:</strong> RF8N3021JRT</div>
+          <div class="equip-row"><strong>Modelo:</strong> S22 5G 128GB</div>
+          <div class="equip-row"><strong>Cor:</strong> Phantom Black</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Defeito relatado ── -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-icon icon-amber"><i class="fa-regular fa-comment-dots"></i></div>
+          <span class="card-title">Defeito relatado</span>
+        </div>
+      </div>
+      <div class="info-card-body">
+        <p style="font-size:13px;color:var(--slate-600);line-height:1.6">
+          Tela com listras horizontais após queda. Touch funciona parcialmente.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── Checklist de recebimento ── -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-icon icon-green"><i class="fa-solid fa-clipboard-check"></i></div>
+          <span class="card-title">Checklist de recebimento</span>
+        </div>
+      </div>
+      <div class="info-card-body">
+        <div class="checklist">
+          <div class="check-item ok">
+            <span class="check-icon"><i class="fa-solid fa-circle-check"></i></span>
+            Equipamento registrado no sistema
+          </div>
+          <div class="check-item ok">
+            <span class="check-icon"><i class="fa-solid fa-circle-check"></i></span>
+            Foto do recebimento registrada
+          </div>
+          <div class="check-item ok">
+            <span class="check-icon"><i class="fa-solid fa-circle-check"></i></span>
+            Defeito documentado
+          </div>
+          <div class="check-item no">
+            <span class="check-icon"><i class="fa-regular fa-circle"></i></span>
+            Diagnóstico concluído
+          </div>
+          <div class="check-item no">
+            <span class="check-icon"><i class="fa-regular fa-circle"></i></span>
+            Orçamento emitido
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Técnico responsável ── -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-icon icon-blue"><i class="fa-solid fa-user-gear"></i></div>
+          <span class="card-title">Técnico responsável</span>
+        </div>
+      </div>
+      <div class="tecnico-body">
+        <div class="tecnico-left">
+          <div class="tecnico-avatar">CE</div>
+          <div>
+            <div class="tecnico-name">Carlos Eduardo</div>
+            <div class="tecnico-role">Técnico em informática</div>
+          </div>
+        </div>
+        <div class="tecnico-badge">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Precisa de ajuda? ── -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-icon icon-green"><i class="fa-solid fa-headset"></i></div>
+          <span class="card-title">Precisa de ajuda?</span>
+        </div>
+      </div>
+      <div class="help-body">
+        <p class="help-sub">Fale com nossa equipe diretamente pelo WhatsApp.</p>
+        <a href="https://wa.me/5511999999999" target="_blank" class="btn-wa-full">
+          <i class="fa-brands fa-whatsapp" style="font-size:18px"></i>
+          Conversar no WhatsApp
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Mensagens ── -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-icon icon-blue"><i class="fa-regular fa-comments"></i></div>
+          <span class="card-title">Mensagens</span>
+        </div>
+      </div>
+
+      <div class="chat-body">
+        <div class="msg">
+          <div class="msg-avatar">AT</div>
+          <div class="msg-bubble">
+            <div class="msg-text">
+              Olá, João! Recebemos seu Samsung Galaxy S22. Em breve iniciaremos o diagnóstico e entraremos em contato com o orçamento. 😊
+            </div>
+            <div class="msg-time">Assistência Técnica · 24/05/2024 às 09:18</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-form">
+        <input class="chat-input" type="text" placeholder="Digite sua mensagem..." />
+        <button class="chat-send">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /col-right -->
+</div><!-- /main -->
+
+<!-- ═══════════════════ FEATURES ═══════════════════ -->
+<div class="features">
+  <div class="features-inner">
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <div>
+        <div class="feature-title">Seguro e confiável</div>
+        <div class="feature-desc">Seus dados estão protegidos com segurança e criptografia.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-bell"></i></div>
+      <div>
+        <div class="feature-title">Notificações automáticas</div>
+        <div class="feature-desc">Você recebe atualizações por WhatsApp a cada mudança.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+      <div>
+        <div class="feature-title">Atendimento rápido</div>
+        <div class="feature-desc">Nossa equipe está sempre pronta para te atender.</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon"><i class="fa-solid fa-star"></i></div>
+      <div>
+        <div class="feature-title">Sua opinião importa</div>
+        <div class="feature-desc">Avalie nosso atendimento quando retirar o equipamento.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <div class="footer-brand-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+          <div>
+            <span class="footer-brand-name">AssistPro</span>
+            <span class="footer-brand-sub">Assistência Técnica</span>
+          </div>
+        </div>
+        <div class="footer-cnpj">CNPJ: 12.345.678/0001-90</div>
+      </div>
+      <div>
+        <div class="footer-col-title">Horário de atendimento</div>
+        <div class="footer-text">Seg a Sex: 08:00 às 18:00<br>Sáb: 08:00 às 12:00</div>
+      </div>
+      <div>
+        <div class="footer-col-title">Endereço</div>
+        <div class="footer-text">Rua das Flores, 123 - Centro<br>São Paulo - SP<br>CEP: 01000-000</div>
+      </div>
+      <div>
+        <div class="footer-col-title">Siga-nos</div>
+        <div class="footer-socials">
+          <a href="#" class="social-btn"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" class="social-btn"><i class="fa-brands fa-facebook"></i></a>
+          <a href="#" class="social-btn wa-social"><i class="fa-brands fa-whatsapp"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2024 AssistPro Assistência Técnica. Todos os direitos reservados.
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
