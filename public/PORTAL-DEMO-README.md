@@ -119,13 +119,13 @@ Interface de chat completa com histórico de todas as conversas por OS.
 ## Navegação entre páginas
 
 ```
-portal-demo-lista.html          ← ponto de entrada (lista de OS)
-    └── portal-demo.html        ← detalhe da OS em andamento
-          ├── portal-demo-laudo.html       ← laudo técnico (PDF)
-          ├── portal-demo-recusado.html    ← se recusar orçamento
-          └── portal-demo-mensagens.html  ← ver todas as mensagens
-
-portal-demo-recebimento.html    ← OS recém aberta (sem orçamento ainda)
+portal-demo-lista.html              ← ponto de entrada (lista de OS)
+    ├── portal-demo.html            ← detalhe da OS em andamento
+    │     ├── portal-demo-laudo.html       ← laudo técnico (PDF)
+    │     ├── portal-demo-recusado.html    ← se recusar orçamento
+    │     └── portal-demo-mensagens.html  ← ver todas as mensagens
+    ├── portal-demo-concluida.html  ← OS finalizada, entregue e paga
+    └── portal-demo-recebimento.html ← OS recém aberta (sem orçamento ainda)
 ```
 
 ---
@@ -158,3 +158,13 @@ Todas as páginas usam as mesmas variáveis CSS definidas em `:root`:
 | `≤ 600px` | Navbar simplificada, elementos secundários ocultados |
 | `≤ 760px` | Chat: painel de conversas ocultado (foco na janela) |
 | `@print` | Laudo: oculta navbar, hero e sidebar — imprime apenas o documento |
+
+
+
+https://futuredata.carlos0ff.dev/portal-demo.html -  OS em andamento — orçamento aguardando aprovação
+https://futuredata.carlos0ff.dev/portal-demo-lista.html - Lista de todas as OS com filtros
+https://futuredata.carlos0ff.dev/portal-demo-recebimento.html - OS recém aberta, sem orçamento ainda
+https://futuredata.carlos0ff.dev/portal-demo-concluida.html - OS concluída — entregue, paga e com avaliação
+https://futuredata.carlos0ff.dev/portal-demo-laudo.html - Laudo técnico completo com 8 seções
+https://futuredata.carlos0ff.dev/portal-demo-recusado.html - Estado após recusa do orçamento
+https://futuredata.carlos0ff.dev/portal-demo-mensagens.html -  Chat completo com histórico por OS
