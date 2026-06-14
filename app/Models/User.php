@@ -9,6 +9,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * Usuário interno do sistema (técnico ou gerente).
+ *
+ * Papéis disponíveis (campo `role`):
+ * - "gerente" — acesso total, incluindo financeiro, relatórios e configurações
+ * - "tecnico" — vê apenas suas próprias OS; sem acesso a financeiro/relatórios
+ *
+ * @property int    $id
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ * @property string $role    "gerente" | "tecnico"
+ * @property \Carbon\Carbon|null $email_verified_at
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ *
+ * @property-read string $iniciais    Duas letras iniciais do nome
+ * @property-read string $role_label  Label legível do papel
+ * @property-read \Illuminate\Database\Eloquent\Collection<Ordem> $ordens
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -34,7 +54,7 @@ class User extends Authenticatable
         ];
     }
 
-    // ── Role helpers ─────────────────────────────────
+    // ── Helpers de papel ─────────────────────────────────────────────────────
 
     public function isGerente(): bool
     {
@@ -46,10 +66,13 @@ class User extends Authenticatable
         return $this->role === 'tecnico';
     }
 
+    /** Verifica se o usuário possui um dos papéis informados. */
     public function hasRole(string|array $roles): bool
     {
         return in_array($this->role, (array) $roles);
     }
+
+    // ── Accessors ────────────────────────────────────────────────────────────
 
     public function getRoleLabelAttribute(): string
     {
@@ -68,7 +91,7 @@ class User extends Authenticatable
         return $iniciais;
     }
 
-    // ── RBAC ────────────────────────────────────────
+    // ── RBAC (permissões granulares via tabela pivot) ─────────────────────────
 
     public function roles(): BelongsToMany
     {
@@ -88,8 +111,9 @@ class User extends Authenticatable
         return $this->roles()->where('slug', $slug)->exists();
     }
 
-    // ── Relacionamentos ──────────────────────────────
+    // ── Relacionamentos ──────────────────────────────────────────────────────
 
+    /** OS atribuídas a este técnico. */
     public function ordens(): HasMany
     {
         return $this->hasMany(Ordem::class, 'tecnico_id');

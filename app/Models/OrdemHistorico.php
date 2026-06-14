@@ -5,6 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Registro imutável de cada mudança de status de uma OS.
+ *
+ * Criado automaticamente em OrdemServicoController sempre que
+ * o campo `status` da OS é alterado.
+ *
+ * @property int         $id
+ * @property int         $ordem_id
+ * @property int|null    $user_id       Null quando alterado pelo sistema
+ * @property string|null $status_anterior
+ * @property string      $status_novo
+ * @property string|null $observacao    Nota opcional do técnico sobre a mudança
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ *
+ * @property-read Ordem    $ordem
+ * @property-read User|null $usuario
+ */
 class OrdemHistorico extends Model
 {
     protected $table = 'ordem_historicos';
@@ -16,6 +34,8 @@ class OrdemHistorico extends Model
         'status_novo',
         'observacao',
     ];
+
+    // ── Relacionamentos ──────────────────────────────────────────────────────
 
     public function ordem(): BelongsTo
     {

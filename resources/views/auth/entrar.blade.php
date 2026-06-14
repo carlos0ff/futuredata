@@ -82,23 +82,20 @@
             </blockquote>
         </div>
 
-        <div class="relative z-10 space-y-4">
+        <!-- <div class="relative z-10 space-y-4">
             <div class="flex items-center gap-3">
-                <img
-                    src="https://media.licdn.com/dms/image/v2/D4D03AQF7xzwKIYFwwQ/profile-displayphoto-crop_800_800/B4DZw4KyXeKwAI-/0/1770468879303?e=1781136000&v=beta&t=Oilvt6HaBEHqwFh_pLWFFyYDfJ4ntX-glf0wzHR6sGM"
-                    class="h-11 w-11 rounded-full ring-2 ring-slate-600 object-cover flex-shrink-0"
-                    alt="Gustavo Web"
-                >
+                <img src="https://media.licdn.com/dms/image/v2/D4D03AQF7xzwKIYFwwQ/profile-displayphoto-crop_800_800/B4DZw4KyXeKwAI-/0/1770468879303?e=1781136000&v=beta&t=Oilvt6HaBEHqwFh_pLWFFyYDfJ4ntX-glf0wzHR6sGM"
+                    class="h-11 w-11 rounded-full ring-2 ring-slate-600 object-cover flex-shrink-0" alt="Gustavo Web" />
                 <div>
                     <p class="text-slate-500 text-[10px] tracking-widest uppercase mb-0.5">Produzido por</p>
                     <p class="text-white text-sm font-semibold leading-none" style="font-family:'Sora',sans-serif;">Carlos</p>
                     <p class="text-slate-400 text-xs mt-0.5">Fundador da future</p>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
 
-    <div class="w-full lg:w-2/3 flex flex-col items-center justify-center px-4 sm:px-8 overflow-y-auto bg-white">
+    <div class="w-full lg:w-2/3 flex flex-col items-center justify-start pt-16 lg:pt-20 px-4 sm:px-8 overflow-y-auto bg-white">
 
         <div class="w-full max-w-md">
             <div class="lg:hidden mb-8 flex justify-center">

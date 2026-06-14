@@ -9,32 +9,12 @@
 
 @section('content')
 
-{{-- Page header --}}
 <div class="mb-6">
     <h1 class="text-[22px] font-bold tracking-tight text-slate-900">Meu Perfil</h1>
     <p class="mt-0.5 text-[13px] text-slate-500">Gerencie suas informações pessoais e acesso.</p>
 </div>
 
-{{-- Flash messages --}}
-@if(session('success'))
-    <div class="mb-5 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-        <svg class="h-4 w-4 shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/>
-        </svg>
-        <p class="text-[13px] font-medium text-emerald-700">{{ session('success') }}</p>
-    </div>
-@endif
 
-@if(session('error'))
-    <div class="mb-5 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-        <svg class="h-4 w-4 shrink-0 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <p class="text-[13px] font-medium text-red-700">{{ session('error') }}</p>
-    </div>
-@endif
-
-{{-- Avatar section --}}
 <div class="mb-6 flex items-center gap-5">
     <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-400 via-blue-600 to-indigo-700 text-[20px] font-bold text-white shadow-sm">
         {{ strtoupper(auth()->user()->iniciais ?? substr(auth()->user()->name, 0, 2)) }}

@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de OS • VOLX Assistência Técnica</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap');
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #09090b; color: #fff; min-height: 100vh; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 99px; }
+
+    .tab-btn { transition: all .2s; }
+    .tab-btn.active { background: var(--tab-color); color: #fff; }
+
+    .row-card { transition: background .15s; }
+    .row-card:hover { background: #1c1c1f; }
+
+    .badge { font-size:.65rem; font-weight:700; padding:2px 8px; border-radius:99px; letter-spacing:.02em; }
+    .tag   { font-size:.6rem; font-weight:600; padding:2px 7px; border-radius:6px; letter-spacing:.04em; text-transform:uppercase; }
+
+    @keyframes pulse-red {
+      0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.4); }
+      50%      { box-shadow: 0 0 0 5px rgba(239,68,68,0); }
+    }
+    .pulse-red { animation: pulse-red 2s infinite; }
+
+    @keyframes sla-blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .sla-critical { animation: sla-blink 1.2s infinite; }
+
+    .progress-bar { height:3px; border-radius:99px; background:#27272a; overflow:hidden; }
+    .progress-fill { height:100%; border-radius:99px; }
+
+    /* Modal */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px);
+      z-index:100; display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity .2s;
+    }
+    .modal-overlay.open { opacity:1; pointer-events:all; }
+    .modal-box {
+      background:#111113; border:1px solid #27272a; border-radius:20px;
+      width:100%; max-width:520px; padding:28px;
+      transform:scale(.96); transition:transform .2s;
+    }
+    .modal-overlay.open .modal-box { transform:scale(1); }
+  </style>
+</head>
+<body>
+
+<!-- ═══ MODAL ═══ -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="flex items-start justify-between mb-5">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="font-bold text-lg" id="modal-id"></span>
+          <span id="modal-status-badge"></span>
+          <span id="modal-priority-badge"></span>
+        </div>
+        <div class="text-zinc-400 text-sm" id="modal-device"></div>
+      </div>
+      <button onclick="document.getElementById('modal').classList.remove('open')"
+              class="text-zinc-500 hover:text-white transition-colors p-1">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
+    <div class="space-y-3 mb-5">
+      <div class="flex gap-3">
+        <div class="flex-1 bg-zinc-900 rounded-xl p-3">
+          <div class="text-xs text-zinc-500 mb-1">Cliente</div>
+          <div class="font-medium text-sm" id="modal-client"></div>
+          <div class="text-xs text-zinc-400" id="modal-contact"></div>
+        </div>
+        <div class="flex-1 bg-zinc-900 rounded-xl p-3">
+          <div class="text-xs text-zinc-500 mb-1">Técnico</div>
+          <div class="font-medium text-sm" id="modal-tech"></div>
+          <div class="text-xs text-zinc-400" id="modal-time-open"></div>
+        </div>
+      </div>
+      <div class="bg-zinc-900 rounded-xl p-3">
+        <div class="text-xs text-zinc-500 mb-1">Defeito Relatado</div>
+        <div class="text-sm" id="modal-defect"></div>
+      </div>
+      <div class="bg-zinc-900 rounded-xl p-3" id="modal-obs-wrap">
+        <div class="text-xs text-zinc-500 mb-1">Observações Técnicas</div>
+        <div class="text-sm text-zinc-300" id="modal-obs"></div>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex-1 bg-zinc-900 rounded-xl p-3">
+          <div class="text-xs text-zinc-500 mb-1">Valor</div>
+          <div class="font-bold text-emerald-400 text-sm" id="modal-value"></div>
+        </div>
+        <div class="flex-1 bg-zinc-900 rounded-xl p-3">
+          <div class="text-xs text-zinc-500 mb-1">Prazo</div>
+          <div class="font-medium text-sm" id="modal-deadline"></div>
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button class="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
+        <i class="fas fa-check"></i> Finalizar OS
+      </button>
+      <a id="modal-whatsapp" href="#" target="_blank"
+         class="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+        <i class="fab fa-whatsapp text-emerald-400"></i>
+      </a>
+      <button class="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+        <i class="fas fa-print text-zinc-400"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WRAPPER ═══ -->
+<div class="max-w-[1400px] mx-auto px-4 pt-4 pb-8">
+
+  <!-- HEADER -->
+  <header class="flex items-center justify-between bg-[#111113] border border-zinc-800 px-5 py-3 rounded-2xl mb-5">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+        <i class="fas fa-screwdriver-wrench text-white text-base"></i>
+      </div>
+      <div>
+        <div class="text-lg font-bold leading-none">Lista de OS</div>
+        <div class="text-[11px] text-zinc-400 mt-0.5">VOLX Assistência Técnica • ENIAC</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- Busca -->
+      <div class="relative hidden md:block">
+        <i class="fas fa-search text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 text-xs"></i>
+        <input type="search" id="search-input" placeholder="Buscar OS, cliente, dispositivo…"
+               oninput="filterRows()"
+               class="bg-zinc-900 border border-zinc-700 text-sm text-white placeholder-zinc-500 rounded-xl pl-8 pr-3 py-2 w-60 focus:outline-none focus:border-blue-500 transition-colors">
+      </div>
+      <div class="h-8 w-px bg-zinc-800"></div>
+      <div class="text-right hidden sm:block">
+        <div class="text-[10px] text-zinc-500" id="current-date"></div>
+        <div class="text-lg font-bold tabular-nums" id="current-time"></div>
+      </div>
+      <div class="h-8 w-px bg-zinc-800 hidden sm:block"></div>
+      <div class="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-xl">
+        <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold">LM</div>
+        <div class="hidden sm:block">
+          <div class="text-xs font-semibold leading-none">Lucas Mendes</div>
+          <div class="text-[10px] text-zinc-400 mt-0.5">Técnico • Caixa 01</div>
+        </div>
+      </div>
+      <a href="kds-chamados.html"
+         class="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors text-zinc-300">
+        <i class="fas fa-columns text-zinc-400"></i>
+        <span class="hidden sm:inline">Ver Kanban</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="flex flex-wrap gap-2 mb-4" id="status-tabs">
+    <button class="tab-btn active flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-300"
+            style="--tab-color:#3b82f6" data-status="all" onclick="setTab(this,'all')">
+      Todas <span class="badge bg-zinc-700 text-zinc-300 ml-1">34</span>
+    </button>
+    <button class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-400 hover:text-white"
+            style="--tab-color:#3b82f6" data-status="Em Aberto" onclick="setTab(this,'Em Aberto')">
+      <span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
+      Em Aberto <span class="badge bg-blue-500/20 text-blue-300 ml-1">8</span>
+    </button>
+    <button class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-400 hover:text-white"
+            style="--tab-color:#10b981" data-status="Em Andamento" onclick="setTab(this,'Em Andamento')">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block"></span>
+      Em Andamento <span class="badge bg-emerald-500/20 text-emerald-300 ml-1">6</span>
+    </button>
+    <button class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-400 hover:text-white"
+            style="--tab-color:#f97316" data-status="Aguardando Peças" onclick="setTab(this,'Aguardando Peças')">
+      <span class="w-2 h-2 rounded-full bg-orange-400 inline-block"></span>
+      Aguardando Peças <span class="badge bg-orange-500/20 text-orange-300 ml-1">5</span>
+    </button>
+    <button class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-400 hover:text-white"
+            style="--tab-color:#ef4444" data-status="Atrasada" onclick="setTab(this,'Atrasada')">
+      <span class="w-2 h-2 rounded-full bg-red-400 sla-critical inline-block"></span>
+      Atrasadas <span class="badge bg-red-500/20 text-red-300 ml-1">3</span>
+    </button>
+    <button class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-400 hover:text-white"
+            style="--tab-color:#059669" data-status="Finalizada" onclick="setTab(this,'Finalizada')">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+      Finalizadas <span class="badge bg-emerald-600/20 text-emerald-300 ml-1">12</span>
+    </button>
+  </div>
+
+  <!-- TABLE HEADER -->
+  <div class="grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 px-4 py-2 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">
+    <div></div>
+    <div>OS</div>
+    <div>Cliente</div>
+    <div>Dispositivo</div>
+    <div>Defeito</div>
+    <div>Técnico</div>
+    <div>Prazo</div>
+    <div>Valor</div>
+    <div>Status</div>
+  </div>
+
+  <!-- ROWS -->
+  <div class="space-y-1.5" id="os-list">
+
+    <!-- ─── EM ABERTO ─── -->
+    <div class="os-row" data-status="Em Aberto" data-text="joão silva #012 notebook dell inspiron 15 lucas mendes">
+      <div onclick='openModal({id:"#012",client:"João Silva",contact:"(11) 98765-4321",device:"Notebook Dell Inspiron 15",defect:"Não liga — sem sinal de vida ao pressionar o botão",tech:"Lucas Mendes",timeOpen:"Há 2h 15min",obs:"Suspeita de falha na placa-mãe ou fonte interna. Aguardando diagnóstico.",value:"R$ 280,00",deadline:"Hoje 18:00",status:"Em Aberto",priority:"Alta",phone:"5511987654321"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-zinc-800 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-blue-400 mx-auto"></div>
+        <div class="font-bold text-blue-400 text-sm">#012</div>
+        <div>
+          <div class="font-semibold text-sm text-white">João Silva</div>
+          <div class="text-[11px] text-zinc-500">(11) 98765-4321</div>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+            <i class="fas fa-laptop text-zinc-500 text-[10px]"></i> Notebook Dell Inspiron 15
+          </div>
+        </div>
+        <div class="text-[12px] text-zinc-400 line-clamp-2 pr-2">Não liga — sem sinal de vida ao pressionar o botão</div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">LM</div>
+          Lucas Mendes
+        </div>
+        <div class="text-[12px] font-medium text-amber-400">Hoje 18h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 280,00</div>
+        <div><span class="badge bg-red-500/15 text-red-400 border border-red-500/20">Alta</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Em Aberto" data-text="maria oliveira #015 iphone 12 sofia alves">
+      <div onclick='openModal({id:"#015",client:"Maria Oliveira",contact:"(11) 91234-5678",device:"iPhone 12 — Tela quebrada",defect:"Display trincado após queda. Touch funcionando parcialmente.",tech:"Sofia Alves",timeOpen:"Há 45min",obs:"",value:"R$ 420,00",deadline:"Amanhã 12:00",status:"Em Aberto",priority:"Média",phone:"5511912345678"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-zinc-800 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-blue-400 mx-auto"></div>
+        <div class="font-bold text-blue-400 text-sm">#015</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Maria Oliveira</div>
+          <div class="text-[11px] text-zinc-500">(11) 91234-5678</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-mobile-screen text-zinc-500 text-[10px]"></i> iPhone 12
+        </div>
+        <div class="text-[12px] text-zinc-400 line-clamp-2 pr-2">Display trincado após queda. Touch funcionando parcialmente.</div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">SA</div>
+          Sofia Alves
+        </div>
+        <div class="text-[12px] font-medium text-zinc-400">Amanhã 12h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 420,00</div>
+        <div><span class="badge bg-amber-500/15 text-amber-400 border border-amber-500/20">Média</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Em Aberto" data-text="pedro henrique #017 desktop hp marcos viana">
+      <div onclick='openModal({id:"#017",client:"Pedro Henrique",contact:"(11) 94567-8901",device:"Desktop HP All-in-One",defect:"Computador lento, travando ao abrir múltiplos programas.",tech:"Marcos Viana",timeOpen:"Há 20min",obs:"",value:"R$ 150,00",deadline:"06/06 14:00",status:"Em Aberto",priority:"Baixa",phone:"5511945678901"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-zinc-800 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-blue-400 mx-auto"></div>
+        <div class="font-bold text-blue-400 text-sm">#017</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Pedro Henrique</div>
+          <div class="text-[11px] text-zinc-500">(11) 94567-8901</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-desktop text-zinc-500 text-[10px]"></i> Desktop HP All-in-One
+        </div>
+        <div class="text-[12px] text-zinc-400 line-clamp-2 pr-2">Computador lento, travando ao abrir múltiplos programas.</div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">MV</div>
+          Marcos Viana
+        </div>
+        <div class="text-[12px] font-medium text-zinc-400">06/06 14h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 150,00</div>
+        <div><span class="badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Baixa</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Em Aberto" data-text="luciana torres #018 samsung galaxy s22 sofia alves">
+      <div onclick='openModal({id:"#018",client:"Luciana Torres",contact:"(11) 99876-5432",device:"Samsung Galaxy S22",defect:"Celular não carrega. Porta USB-C com problema físico.",tech:"Sofia Alves",timeOpen:"Há 10min",obs:"",value:"R$ 190,00",deadline:"Hoje 20:00",status:"Em Aberto",priority:"Alta",phone:"5511998765432"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-zinc-800 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-blue-400 mx-auto"></div>
+        <div class="font-bold text-blue-400 text-sm">#018</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Luciana Torres</div>
+          <div class="text-[11px] text-zinc-500">(11) 99876-5432</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-mobile-screen text-zinc-500 text-[10px]"></i> Samsung Galaxy S22
+        </div>
+        <div class="text-[12px] text-zinc-400 line-clamp-2 pr-2">Celular não carrega. Porta USB-C com problema físico.</div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">SA</div>
+          Sofia Alves
+        </div>
+        <div class="text-[12px] font-medium text-amber-400">Hoje 20h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 190,00</div>
+        <div><span class="badge bg-red-500/15 text-red-400 border border-red-500/20">Alta</span></div>
+      </div>
+    </div>
+
+    <!-- ─── EM ANDAMENTO ─── -->
+    <div class="os-row" data-status="Em Andamento" data-text="carlos mendes #008 desktop gamer ryzen lucas mendes">
+      <div onclick='openModal({id:"#008",client:"Carlos Mendes",contact:"(11) 97654-3210",device:"Desktop Gamer Ryzen 5600X",defect:"PC não liga após queima de fonte.",tech:"Lucas Mendes",timeOpen:"Há 3h 20min",obs:"Fonte substituída. Testando estabilidade do sistema com stress test. Progresso: 65%.",value:"R$ 350,00",deadline:"Hoje 17:00",status:"Em Andamento",priority:"Alta",phone:"5511976543210"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-emerald-800/30 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mx-auto"></div>
+        <div class="font-bold text-emerald-400 text-sm">#008</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Carlos Mendes</div>
+          <div class="text-[11px] text-zinc-500">(11) 97654-3210</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-desktop text-zinc-500 text-[10px]"></i> Desktop Gamer Ryzen 5600X
+        </div>
+        <div>
+          <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2 mb-1">PC não liga após queima de fonte.</div>
+          <div class="progress-bar w-24"><div class="progress-fill bg-emerald-500" style="width:65%"></div></div>
+          <div class="text-[10px] text-emerald-400 mt-0.5">65% concluído</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">LM</div>
+          Lucas Mendes
+        </div>
+        <div class="text-[12px] font-medium text-amber-400">Hoje 17h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 350,00</div>
+        <div><span class="badge bg-red-500/15 text-red-400 border border-red-500/20">Alta</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Em Andamento" data-text="beatriz cunha #011 macbook air m1 marcos viana">
+      <div onclick='openModal({id:"#011",client:"Beatriz Cunha",contact:"(11) 93456-7890",device:"MacBook Air M1",defect:"Bateria com mau contato, desligando repentinamente.",tech:"Marcos Viana",timeOpen:"Há 1h 50min",obs:"Bateria substituída. Calibrando sistema. Progresso: 80%.",value:"R$ 520,00",deadline:"Hoje 19:00",status:"Em Andamento",priority:"Média",phone:"5511934567890"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-emerald-800/30 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mx-auto"></div>
+        <div class="font-bold text-emerald-400 text-sm">#011</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Beatriz Cunha</div>
+          <div class="text-[11px] text-zinc-500">(11) 93456-7890</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-laptop text-zinc-500 text-[10px]"></i> MacBook Air M1
+        </div>
+        <div>
+          <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2 mb-1">Bateria com mau contato, desligando repentinamente.</div>
+          <div class="progress-bar w-24"><div class="progress-fill bg-emerald-500" style="width:80%"></div></div>
+          <div class="text-[10px] text-emerald-400 mt-0.5">80% concluído</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">MV</div>
+          Marcos Viana
+        </div>
+        <div class="text-[12px] font-medium text-zinc-400">Hoje 19h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 520,00</div>
+        <div><span class="badge bg-amber-500/15 text-amber-400 border border-amber-500/20">Média</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Em Andamento" data-text="diego ramos #013 smart tv samsung sofia alves">
+      <div onclick='openModal({id:"#013",client:"Diego Ramos",contact:"(11) 95678-9012",device:"Smart TV Samsung 55\"",defect:"TV não liga. Suspeita de placa de alimentação.",tech:"Sofia Alves",timeOpen:"Há 2h 30min",obs:"Placa de alimentação trocada. Testando imagem e som. Progresso: 40%.",value:"R$ 480,00",deadline:"07/06 10:00",status:"Em Andamento",priority:"Baixa",phone:"5511956789012"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-emerald-800/30 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mx-auto"></div>
+        <div class="font-bold text-emerald-400 text-sm">#013</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Diego Ramos</div>
+          <div class="text-[11px] text-zinc-500">(11) 95678-9012</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-tv text-zinc-500 text-[10px]"></i> Smart TV Samsung 55"
+        </div>
+        <div>
+          <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2 mb-1">TV não liga. Suspeita de placa de alimentação.</div>
+          <div class="progress-bar w-24"><div class="progress-fill bg-emerald-500" style="width:40%"></div></div>
+          <div class="text-[10px] text-emerald-400 mt-0.5">40% concluído</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">SA</div>
+          Sofia Alves
+        </div>
+        <div class="text-[12px] font-medium text-zinc-400">07/06 10h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 480,00</div>
+        <div><span class="badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Baixa</span></div>
+      </div>
+    </div>
+
+    <!-- ─── AGUARDANDO PEÇAS ─── -->
+    <div class="os-row" data-status="Aguardando Peças" data-text="ana costa #005 monitor lg marcos viana">
+      <div onclick='openModal({id:"#005",client:"Ana Costa",contact:"(11) 92345-6789",device:"Monitor LG 27\" 4K",defect:"Backlight apagado. Exibe imagem escura.",tech:"Marcos Viana",timeOpen:"Há 1 dia",obs:"Painel LCD solicitado ao fornecedor. Previsão de entrega: 08/06.",value:"R$ 640,00",deadline:"09/06 17:00",status:"Aguardando Peças",priority:"Média",phone:"5511923456789"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-orange-800/30 rounded-mdcursor-pointer">
+        <div class="w-2 h-2 rounded-md bg-orange-400 mx-auto"></div>
+        <div class="font-bold text-orange-400 text-sm">#005</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Ana Costa</div>
+          <div class="text-[11px] text-zinc-500">(11) 92345-6789</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-display text-zinc-500 text-[10px]"></i> Monitor LG 27" 4K
+        </div>
+        <div>
+          <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2">Backlight apagado. Exibe imagem escura.</div>
+          <div class="text-[10px] text-orange-400 mt-0.5 flex items-center gap-1"><i class="fas fa-truck text-[9px]"></i> Entrega prevista 08/06</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">MV</div>
+          Marcos Viana
+        </div>
+        <div class="text-[12px] font-medium text-zinc-400">09/06 17h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 640,00</div>
+        <div><span class="badge bg-amber-500/15 text-amber-400 border border-amber-500/20">Média</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Aguardando Peças" data-text="rafaela nunes #009 playstation 5 lucas mendes">
+      <div onclick='openModal({id:"#009",client:"Rafaela Nunes",contact:"(11) 98901-2345",device:"PlayStation 5",defect:"HDMI não transmite imagem. Porta HDMI danificada.",tech:"Lucas Mendes",timeOpen:"Há 2 dias",obs:"Porta HDMI substituída aguardando chip controlador HDMI.",value:"R$ 380,00",deadline:"08/06 12:00",status:"Aguardando Peças",priority:"Alta",phone:"5511989012345"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-orange-800/30 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-orange-400 mx-auto"></div>
+        <div class="font-bold text-orange-400 text-sm">#009</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Rafaela Nunes</div>
+          <div class="text-[11px] text-zinc-500">(11) 98901-2345</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-gamepad text-zinc-500 text-[10px]"></i> PlayStation 5
+        </div>
+        <div>
+          <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2">HDMI não transmite imagem. Porta HDMI danificada.</div>
+          <div class="text-[10px] text-orange-400 mt-0.5 flex items-center gap-1"><i class="fas fa-truck text-[9px]"></i> Entrega prevista 07/06</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">LM</div>
+          Lucas Mendes
+        </div>
+        <div class="text-[12px] font-medium text-zinc-400">08/06 12h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 380,00</div>
+        <div><span class="badge bg-red-500/15 text-red-400 border border-red-500/20">Alta</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Aguardando Peças" data-text="eduardo pires #014 impressora epson sofia alves">
+      <div onclick='openModal({id:"#014",client:"Eduardo Pires",contact:"(11) 96789-0123",device:"Impressora Epson L3150",defect:"Papel enroscando. Rolete de alimentação desgastado.",tech:"Sofia Alves",timeOpen:"Há 3 dias",obs:"Rolete solicitado. Peça de baixo giro.",value:"R$ 210,00",deadline:"10/06 17:00",status:"Aguardando Peças",priority:"Baixa",phone:"5511967890123"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-orange-800/30 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-orange-400 mx-auto"></div>
+        <div class="font-bold text-orange-400 text-sm">#014</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Eduardo Pires</div>
+          <div class="text-[11px] text-zinc-500">(11) 96789-0123</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-print text-zinc-500 text-[10px]"></i> Impressora Epson L3150
+        </div>
+        <div>
+          <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2">Papel enroscando. Rolete de alimentação desgastado.</div>
+          <div class="text-[10px] text-orange-400 mt-0.5 flex items-center gap-1"><i class="fas fa-truck text-[9px]"></i> Entrega prevista 09/06</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">SA</div>
+          Sofia Alves
+        </div>
+        <div class="text-[12px] font-medium text-zinc-400">10/06 17h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 210,00</div>
+        <div><span class="badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Baixa</span></div>
+      </div>
+    </div>
+
+    <!-- ─── ATRASADAS ─── -->
+    <div class="os-row" data-status="Atrasada" data-text="roberto lima #003 macbook pro lucas mendes">
+      <div onclick='openModal({id:"#003",client:"Roberto Lima",contact:"(11) 91111-2222",device:"MacBook Pro 2020 13\"",defect:"Não liga após atualização de firmware. Possível falha na NVRAM.",tech:"Lucas Mendes",timeOpen:"Há 4 dias",obs:"Tentativa de reset NVRAM falhou. Enviando para análise de placa lógica.",value:"R$ 890,00",deadline:"03/06 17:00",status:"Atrasada",priority:"Alta",phone:"5511911112222"})'
+           class="row-card pulse-red grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-red-500/40 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-red-400 sla-critical mx-auto"></div>
+        <div class="font-bold text-red-400 text-sm">#003</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Roberto Lima</div>
+          <div class="text-[11px] text-zinc-500">(11) 91111-2222</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-laptop text-zinc-500 text-[10px]"></i> MacBook Pro 2020 13"
+        </div>
+        <div>
+          <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2">Não liga após atualização de firmware. Possível falha na NVRAM.</div>
+          <div class="text-[10px] text-red-400 mt-0.5 font-semibold sla-critical flex items-center gap-1"><i class="fas fa-triangle-exclamation text-[9px]"></i> Excedido há 2 dias</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">LM</div>
+          Lucas Mendes
+        </div>
+        <div class="text-[12px] font-medium text-red-400">03/06 17h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 890,00</div>
+        <div><span class="badge bg-red-500/15 text-red-400 border border-red-500/20">Alta</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Atrasada" data-text="silvia monteiro #006 notebook lenovo marcos viana">
+      <div onclick='openModal({id:"#006",client:"Silvia Monteiro",contact:"(11) 93333-4444",device:"Notebook Lenovo IdeaPad",defect:"Teclado não funciona após derramamento de líquido.",tech:"Marcos Viana",timeOpen:"Há 3 dias",obs:"Teclado foi substituído mas há corrosão na placa-mãe. Aguardando aprovação do cliente para trocar placa.",value:"R$ 670,00",deadline:"04/06 12:00",status:"Atrasada",priority:"Alta",phone:"5511933334444"})'
+           class="row-card pulse-red grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-red-500/40 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-red-400 sla-critical mx-auto"></div>
+        <div class="font-bold text-red-400 text-sm">#006</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Silvia Monteiro</div>
+          <div class="text-[11px] text-zinc-500">(11) 93333-4444</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-laptop text-zinc-500 text-[10px]"></i> Notebook Lenovo IdeaPad
+        </div>
+        <div>
+          <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2">Teclado não funciona após derramamento de líquido.</div>
+          <div class="text-[10px] text-red-400 mt-0.5 font-semibold sla-critical flex items-center gap-1"><i class="fas fa-triangle-exclamation text-[9px]"></i> Excedido há 1 dia</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">MV</div>
+          Marcos Viana
+        </div>
+        <div class="text-[12px] font-medium text-red-400">04/06 12h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 670,00</div>
+        <div><span class="badge bg-red-500/15 text-red-400 border border-red-500/20">Alta</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Atrasada" data-text="thiago mello #010 xbox series x sofia alves">
+      <div onclick='openModal({id:"#010",client:"Thiago Mello",contact:"(11) 95555-6666",device:"Xbox Series X",defect:"Superaquecimento e desligamento automático.",tech:"Sofia Alves",timeOpen:"Há 2 dias",obs:"Pasta térmica trocada e cooler limpo. Testando temperatura.",value:"R$ 240,00",deadline:"05/06 10:00",status:"Atrasada",priority:"Média",phone:"5511955556666"})'
+           class="row-card pulse-red grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-red-500/40 rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full bg-red-400 sla-critical mx-auto"></div>
+        <div class="font-bold text-red-400 text-sm">#010</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Thiago Mello</div>
+          <div class="text-[11px] text-zinc-500">(11) 95555-6666</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-gamepad text-zinc-500 text-[10px]"></i> Xbox Series X
+        </div>
+        <div>
+          <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2">Superaquecimento e desligamento automático.</div>
+          <div class="text-[10px] text-red-400 mt-0.5 font-semibold sla-critical flex items-center gap-1"><i class="fas fa-triangle-exclamation text-[9px]"></i> Excedido poucas horas</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">SA</div>
+          Sofia Alves
+        </div>
+        <div class="text-[12px] font-medium text-red-400">05/06 10h</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 240,00</div>
+        <div><span class="badge bg-amber-500/15 text-amber-400 border border-amber-500/20">Média</span></div>
+      </div>
+    </div>
+
+    <!-- ─── FINALIZADAS ─── -->
+    <div class="os-row" data-status="Finalizada" data-text="fernanda santos #007 impressora hp deskjet lucas mendes">
+      <div onclick='openModal({id:"#007",client:"Fernanda Santos",contact:"(11) 97777-8888",device:"Impressora HP DeskJet 2775",defect:"Não imprime. Cabeçote de impressão entupido.",tech:"Lucas Mendes",timeOpen:"Finalizado",obs:"Cabeçote limpo com kit de limpeza. Impressão testada e aprovada. Aguarda retirada.",value:"R$ 120,00",deadline:"Hoje — concluído",status:"Finalizada",priority:"Baixa",phone:"5511977778888"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-zinc-800/50 rounded-2xl cursor-pointer opacity-80">
+        <div class="w-2 h-2 rounded-full bg-emerald-500 mx-auto"></div>
+        <div class="font-bold text-emerald-400 text-sm">#007</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Fernanda Santos</div>
+          <div class="text-[11px] text-zinc-500">(11) 97777-8888</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-print text-zinc-500 text-[10px]"></i> Impressora HP DeskJet 2775
+        </div>
+        <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2">Não imprime. Cabeçote de impressão entupido.</div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">LM</div>
+          Lucas Mendes
+        </div>
+        <div class="text-[12px] font-medium text-emerald-400">✓ Hoje 11:32</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 120,00</div>
+        <div><span class="badge bg-emerald-600/15 text-emerald-300 border border-emerald-600/20">Baixa</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Finalizada" data-text="gustavo prado #004 iphone 13 pro sofia alves">
+      <div onclick='openModal({id:"#004",client:"Gustavo Prado",contact:"(11) 96666-7777",device:"iPhone 13 Pro",defect:"Camera traseira não focava.",tech:"Sofia Alves",timeOpen:"Finalizado",obs:"Módulo da câmera substituído. Testado e aprovado.",value:"R$ 580,00",deadline:"Hoje — concluído",status:"Finalizada",priority:"Alta",phone:"5511966667777"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-zinc-800/50 rounded-2xl cursor-pointer opacity-80">
+        <div class="w-2 h-2 rounded-full bg-emerald-500 mx-auto"></div>
+        <div class="font-bold text-emerald-400 text-sm">#004</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Gustavo Prado</div>
+          <div class="text-[11px] text-zinc-500">(11) 96666-7777</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-mobile-screen text-zinc-500 text-[10px]"></i> iPhone 13 Pro
+        </div>
+        <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2">Camera traseira não focava.</div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">SA</div>
+          Sofia Alves
+        </div>
+        <div class="text-[12px] font-medium text-emerald-400">✓ Hoje 09:15</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 580,00</div>
+        <div><span class="badge bg-red-500/15 text-red-400 border border-red-500/20">Alta</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Finalizada" data-text="amanda reis #002 notebook acer aspire marcos viana">
+      <div onclick='openModal({id:"#002",client:"Amanda Reis",contact:"(11) 94444-5555",device:"Notebook Acer Aspire 5",defect:"HD com setores defeituosos. Lentidão extrema.",tech:"Marcos Viana",timeOpen:"Finalizado",obs:"HD substituído por SSD 480GB. Sistema reinstalado.",value:"R$ 320,00",deadline:"Hoje — concluído",status:"Finalizada",priority:"Média",phone:"5511944445555"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-zinc-800/50 rounded-2xl cursor-pointer opacity-80">
+        <div class="w-2 h-2 rounded-full bg-emerald-500 mx-auto"></div>
+        <div class="font-bold text-emerald-400 text-sm">#002</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Amanda Reis</div>
+          <div class="text-[11px] text-zinc-500">(11) 94444-5555</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-laptop text-zinc-500 text-[10px]"></i> Notebook Acer Aspire 5
+        </div>
+        <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2">HD com setores defeituosos. Lentidão extrema.</div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">MV</div>
+          Marcos Viana
+        </div>
+        <div class="text-[12px] font-medium text-emerald-400">✓ Hoje 08:50</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 320,00</div>
+        <div><span class="badge bg-amber-500/15 text-amber-400 border border-amber-500/20">Média</span></div>
+      </div>
+    </div>
+
+    <div class="os-row" data-status="Finalizada" data-text="paulo ferreira #001 desktop dell optiplex lucas mendes">
+      <div onclick='openModal({id:"#001",client:"Paulo Ferreira",contact:"(11) 92222-3333",device:"Desktop Dell Optiplex",defect:"Sem vídeo. Placa de vídeo integrada com defeito.",tech:"Lucas Mendes",timeOpen:"Finalizado",obs:"Placa de vídeo dedicada instalada como solução. Aprovado.",value:"R$ 450,00",deadline:"Ontem — concluído",status:"Finalizada",priority:"Baixa",phone:"5511922223333"})'
+           class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-zinc-800/50 rounded-2xl cursor-pointer opacity-70">
+        <div class="w-2 h-2 rounded-full bg-emerald-500 mx-auto"></div>
+        <div class="font-bold text-emerald-400 text-sm">#001</div>
+        <div>
+          <div class="font-semibold text-sm text-white">Paulo Ferreira</div>
+          <div class="text-[11px] text-zinc-500">(11) 92222-3333</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-desktop text-zinc-500 text-[10px]"></i> Desktop Dell Optiplex
+        </div>
+        <div class="text-[12px] text-zinc-400 line-clamp-1 pr-2">Sem vídeo. Placa de vídeo integrada com defeito.</div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">LM</div>
+          Lucas Mendes
+        </div>
+        <div class="text-[12px] font-medium text-zinc-500">✓ Ontem</div>
+        <div class="text-[12px] font-semibold text-emerald-400">R$ 450,00</div>
+        <div><span class="badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Baixa</span></div>
+      </div>
+    </div>
+
+  </div><!-- /os-list -->
+
+  <!-- FOOTER -->
+  <footer class="mt-6 py-3 border-t border-zinc-800">
+    <div class="flex flex-wrap items-center justify-center gap-6 text-xs text-zinc-500">
+      <span><span class="text-blue-400 font-bold text-sm">8</span> Em Aberto</span>
+      <span class="text-zinc-700">•</span>
+      <span><span class="text-emerald-400 font-bold text-sm">6</span> Em Andamento</span>
+      <span class="text-zinc-700">•</span>
+      <span><span class="text-orange-400 font-bold text-sm">5</span> Aguardando Peças</span>
+      <span class="text-zinc-700">•</span>
+      <span><span class="text-red-400 font-bold text-sm">3</span> Atrasadas</span>
+      <span class="text-zinc-700">•</span>
+      <span><span class="text-emerald-400 font-bold text-sm">12</span> Finalizadas Hoje</span>
+    </div>
+    <div class="text-center text-[10px] text-zinc-700 mt-2">VOLX KDS v2.0 • ENIAC</div>
+  </footer>
+
+</div><!-- /wrapper -->
+
+<script>
+  // ── Relógio ──────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('current-time').textContent =
+      now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    document.getElementById('current-date').textContent =
+      now.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ── Tabs ─────────────────────────────────────────────
+  function setTab(btn, status) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.os-row').forEach(row => {
+      row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
+    });
+  }
+
+  // ── Busca ─────────────────────────────────────────────
+  function filterRows() {
+    const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+    document.querySelectorAll('.os-row').forEach(row => {
+      row.style.display = row.dataset.text.includes(q) ? '' : 'none';
+    });
+  }
+
+  // ── Modal ─────────────────────────────────────────────
+  const priorityColors = {
+    'Alta':  'bg-red-500/15 text-red-400 border border-red-500/20',
+    'Média': 'bg-amber-500/15 text-amber-400 border border-amber-500/20',
+    'Baixa': 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
+  };
+  const statusColors = {
+    'Em Aberto':        'bg-blue-500/15 text-blue-400 border border-blue-500/20',
+    'Em Andamento':     'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
+    'Aguardando Peças': 'bg-orange-500/15 text-orange-400 border border-orange-500/20',
+    'Atrasada':         'bg-red-500/15 text-red-400 border border-red-500/20',
+    'Finalizada':       'bg-emerald-600/15 text-emerald-300 border border-emerald-600/20',
+  };
+
+  function openModal(d) {
+    document.getElementById('modal-id').textContent = d.id;
+    document.getElementById('modal-device').textContent = d.device;
+    document.getElementById('modal-client').textContent = d.client;
+    document.getElementById('modal-contact').textContent = d.contact;
+    document.getElementById('modal-tech').textContent = d.tech;
+    document.getElementById('modal-time-open').textContent = d.timeOpen;
+    document.getElementById('modal-defect').textContent = d.defect;
+    document.getElementById('modal-value').textContent = d.value;
+    document.getElementById('modal-deadline').textContent = d.deadline;
+
+    const obsWrap = document.getElementById('modal-obs-wrap');
+    const obsEl   = document.getElementById('modal-obs');
+    if (d.obs) { obsWrap.style.display = ''; obsEl.textContent = d.obs; }
+    else        { obsWrap.style.display = 'none'; }
+
+    const sb = document.getElementById('modal-status-badge');
+    sb.className = 'badge text-[10px] ' + (statusColors[d.status] || '');
+    sb.textContent = d.status;
+
+    const pb = document.getElementById('modal-priority-badge');
+    pb.className = 'badge text-[10px] ' + (priorityColors[d.priority] || '');
+    pb.textContent = d.priority;
+
+    document.getElementById('modal-whatsapp').href =
+      'https://wa.me/' + d.phone + '?text=' +
+      encodeURIComponent('Olá ' + d.client + ', temos uma atualização sobre sua OS ' + d.id + ' na VOLX Assistência Técnica.');
+
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal(e) {
+    if (e.target === document.getElementById('modal'))
+      document.getElementById('modal').classList.remove('open');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.getElementById('modal').classList.remove('open');
+  });
+</script>
+</body>
+</html>

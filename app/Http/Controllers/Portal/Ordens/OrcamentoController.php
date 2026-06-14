@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Portal;
+namespace App\Http\Controllers\Portal\Ordens;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ordem;

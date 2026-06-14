@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>KDS • VOLX Assistência Técnica</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap');
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #09090b;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 99px; }
+
+    /* Column scroll — header 2 linhas (~110px) + col-header (~52px) + margens */
+    .col-cards {
+      max-height: calc(100vh - 230px);
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    /* Card hover */
+    .card {
+      transition: transform 0.18s cubic-bezier(.4,0,.2,1), box-shadow 0.18s cubic-bezier(.4,0,.2,1);
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 32px -8px rgba(0,0,0,.5);
+    }
+    .card:active { transform: translateY(0); }
+
+    /* Pulse overdue */
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.4); }
+      50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+    }
+    .pulse-red { animation: pulse-red 2s infinite; }
+
+    /* Progress bar */
+    .progress-bar {
+      height: 3px;
+      border-radius: 99px;
+      background: #27272a;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .4s;
+    }
+
+    /* SLA indicator */
+    @keyframes sla-blink {
+      0%,100% { opacity:1; }
+      50% { opacity:.3; }
+    }
+    .sla-critical { animation: sla-blink 1.2s infinite; }
+
+    /* Badge */
+    .badge {
+      font-size: .65rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 99px;
+      letter-spacing: .02em;
+    }
+
+    /* Gradient header accent */
+    .col-header {
+      border-radius: 12px 12px 0 0;
+    }
+
+    /* Tooltip */
+    [data-tip] { position: relative; }
+    [data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #18181b;
+      color: #a1a1aa;
+      font-size: .7rem;
+      white-space: nowrap;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #27272a;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .15s;
+      z-index: 50;
+    }
+    [data-tip]:hover::after { opacity: 1; }
+
+    /* Notification dot */
+    .notif-dot {
+      width: 8px; height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+      position: absolute;
+      top: -2px; right: -2px;
+      border: 2px solid #09090b;
+    }
+
+    /* KPI card */
+    .kpi-card {
+      background: #111113;
+      border: 1px solid #27272a;
+      border-radius: 14px;
+      padding: 14px 18px;
+      transition: border-color .2s;
+    }
+    .kpi-card:hover { border-color: #3f3f46; }
+
+    /* Search */
+    input[type="search"]::-webkit-search-cancel-button { display: none; }
+
+    /* Tag */
+    .tag {
+      font-size: .6rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    /* Modal overlay */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: #111113;
+      border: 1px solid #27272a;
+      border-radius: 20px;
+      width: 100%; max-width: 480px;
+      padding: 28px;
+      transform: scale(.96);
+      transition: transform .2s;
+    }
+    .modal-overlay.open .modal-box { transform: scale(1); }
+
+
+    /* ── Flash de limite ── */
+    @keyframes flash-red {
+      0%,100% { box-shadow: none; }
+      40%     { box-shadow: 0 0 0 3px rgba(239,68,68,.55); }
+    }
+    .col-limit-flash { animation: flash-red .55s ease; }
+
+    /* ── Toast de nova OS ── */
+    @keyframes toast-slide-in {
+      from { transform: translateX(110%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+    @keyframes toast-slide-out {
+      from { transform: translateX(0);    opacity: 1; }
+      to   { transform: translateX(110%); opacity: 0; }
+    }
+    .toast-in  { animation: toast-slide-in  .4s cubic-bezier(.4,0,.2,1) forwards; }
+    .toast-out { animation: toast-slide-out .3s cubic-bezier(.4,0,.2,1) forwards; }
+
+    /* ── Card chegando ── */
+    @keyframes card-arrive {
+      0%   { transform: scale(.93) translateY(-10px); opacity: 0; }
+      60%  { transform: scale(1.02) translateY(0);    opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    .card-arrive { animation: card-arrive .45s cubic-bezier(.4,0,.2,1) forwards; }
+
+    /* ── Painel de notificações ── */
+    .notif-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 290px;
+      background: #111113;
+      border: 1px solid #27272a;
+      border-radius: 16px;
+      padding: 12px;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px) scale(.97);
+      transition: opacity .2s, transform .2s;
+    }
+    .notif-panel.open {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0) scale(1);
+    }
+
+    /* ── Status bar dot pulse ── */
+    @keyframes dot-live { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .live-dot { animation: dot-live 1.8s infinite; }
+
+  </style>
+</head>
+<body>
+
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="flex items-start justify-between mb-5">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="font-bold text-lg" id="modal-id"></span>
+          <span id="modal-status-badge"></span>
+          <span id="modal-priority-badge"></span>
+        </div>
+        <div class="text-zinc-400 text-sm" id="modal-device"></div>
+      </div>
+      <button onclick="document.getElementById('modal').classList.remove('open')"
+              class="text-zinc-500 hover:text-white transition-colors p-1">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
+
+    <div class="space-y-3 mb-5">
+      <div class="flex gap-3">
+        <div class="flex-1 bg-zinc-900 rounded-xl p-3">
+          <div class="text-xs text-zinc-500 mb-1">Cliente</div>
+          <div class="font-medium text-sm" id="modal-client"></div>
+          <div class="text-xs text-zinc-400" id="modal-contact"></div>
+        </div>
+        <div class="flex-1 bg-zinc-900 rounded-xl p-3">
+          <div class="text-xs text-zinc-500 mb-1">Técnico</div>
+          <div class="font-medium text-sm" id="modal-tech"></div>
+          <div class="text-xs text-zinc-400" id="modal-time-open"></div>
+        </div>
+      </div>
+      <div class="bg-zinc-900 rounded-xl p-3">
+        <div class="text-xs text-zinc-500 mb-1">Defeito Relatado</div>
+        <div class="text-sm" id="modal-defect"></div>
+      </div>
+      <div class="bg-zinc-900 rounded-xl p-3" id="modal-obs-wrap">
+        <div class="text-xs text-zinc-500 mb-1">Observações Técnicas</div>
+        <div class="text-sm text-zinc-300" id="modal-obs"></div>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex-1 bg-zinc-900 rounded-xl p-3">
+          <div class="text-xs text-zinc-500 mb-1">Valor do Serviço</div>
+          <div class="font-bold text-emerald-400 text-sm" id="modal-value"></div>
+        </div>
+        <div class="flex-1 bg-zinc-900 rounded-xl p-3">
+          <div class="text-xs text-zinc-500 mb-1">Previsão de Entrega</div>
+          <div class="font-medium text-sm" id="modal-deadline"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-2">
+      <button class="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
+        <i class="fas fa-check"></i> Finalizar OS
+      </button>
+      <a id="modal-whatsapp" href="#" target="_blank"
+         class="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+        <i class="fab fa-whatsapp text-emerald-400"></i>
+      </a>
+      <button class="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+        <i class="fas fa-print text-zinc-400"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<div class="max-w-[1680px] mx-auto px-4 pt-4 pb-6">
+  <header class="bg-[#111113] border border-zinc-800 rounded-sm mb-4 overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-3.5">
+      <div class="flex items-center gap-3.5">
+        <div class="relative flex flex-col items-start">
+          <img 
+              src="/images/futuredata.png" 
+              class="h-10 w-auto flex-shrink-0" 
+              alt="FutureData"
+               style="filter: saturate(0) contrast(500%) invert(1);" 
+            />
+          <span class="text-[10px] text-zinc-500 mt-1.5 leading-none">
+            Assistência técnica especializada
+          </span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <div class="relative hidden md:block">
+          <i class="fas fa-search text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 text-xs"></i>
+          <input 
+            type="search" 
+            id="search-input" 
+            placeholder="Buscar OS, cliente…" 
+            oninput="filterCards()" 
+            class="bg-zinc-900/80 border border-zinc-700/60 text-sm text-white placeholder-zinc-500 rounded-sm pl-8 pr-3 py-1.5 w-44 focus:outline-none focus:border-blue-500/60 focus:bg-zinc-900 transition-all">
+        </div>
+
+        <select 
+          id="priority-filter" 
+          onchange="filterCards()" 
+          class="bg-zinc-900/80 border border-zinc-700/60 text-sm text-zinc-300 px-3 py-1.5 focus:outline-none focus:border-blue-500/60 transition-colors hidden md:block">
+          <option value="">Todas prioridades</option>
+          <option value="alta">🔴 Alta</option>
+          <option value="media">🟡 Média</option>
+          <option value="baixa">🟢 Baixa</option>
+        </select>
+
+        <div class="h-8 w-px bg-zinc-800/80"></div>
+        <div class="text-right min-w-[72px]">
+          <div class="text-[10px] text-zinc-500 uppercase tracking-widest leading-none mb-0.5" id="current-date">—</div>
+          <div class="text-lg font-bold tracking-tight tabular-nums leading-none" id="current-time">--:--:--</div>
+        </div>
+
+        <div class="h-8 w-px bg-zinc-800/80"></div>
+        <button 
+          onclick="simulateNewOS()" 
+          data-tip="Simular nova OS" 
+          class="bg-zinc-900/80 border border-zinc-800/60 hover:bg-zinc-800 hover:border-blue-500/40 w-9 h-9 rounded-md flex items-center justify-center transition-all group">
+          <i class="fas fa-plus text-zinc-500 group-hover:text-blue-400 text-xs transition-colors"></i>
+        </button>
+
+        <a href="kds-chamados-lista.html" class="flex items-center gap-2 bg-zinc-900/80 border border-zinc-800/60 hover:bg-zinc-800 hover:border-zinc-700 px-3.5 py-2 rounded-md text-sm font-medium transition-all text-zinc-300">
+          <i class="fas fa-list-ul text-zinc-500 text-xs"></i>
+          <span class="hidden sm:inline">Ver lista</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="border-t border-zinc-800/60 px-5 py-2.5 flex items-center justify-center gap-8 flex-wrap">
+      <div class="flex flex-col items-center gap-0.5">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Em Aberto</span>
+        </div>
+        <span class="font-bold text-blue-400 text-lg leading-none tabular-nums" id="stat-aberto">8</span>
+      </div>
+
+      <div class="w-px h-8 bg-zinc-800/80"></div>
+
+      <div class="flex flex-col items-center gap-0.5">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-md bg-emerald-500 inline-block"></span>
+          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Em Andamento</span>
+        </div>
+        <span class="font-bold text-emerald-400 text-lg leading-none tabular-nums" id="stat-andamento">6</span>
+      </div>
+
+      <div class="w-px h-8 bg-zinc-800/80"></div>
+
+      <div class="flex flex-col items-center gap-0.5">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-md bg-orange-500 inline-block"></span>
+          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Aguardando Peças</span>
+        </div>
+        <span class="font-bold text-orange-400 text-lg leading-none tabular-nums" id="stat-aguardando">5</span>
+      </div>
+
+      <div class="w-px h-8 bg-zinc-800/80"></div>
+
+      <div class="flex flex-col items-center gap-0.5 sla-critical">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-md bg-red-500 inline-block"></span>
+          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Atrasadas</span>
+        </div>
+        <span class="font-bold text-red-400 text-lg leading-none tabular-nums" id="stat-atrasadas">3</span>
+      </div>
+
+      <div class="w-px h-8 bg-zinc-800/80"></div>
+
+      <div class="flex flex-col items-center gap-0.5">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-zinc-400 inline-block"></span>
+          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Finalizadas hoje</span>
+        </div>
+        <span class="font-bold text-zinc-200 text-lg leading-none tabular-nums" id="stat-finalizadas">12</span>
+      </div>
+    </div>
+  </header>
+
+  <div id="new-os-toast" class="hidden fixed bottom-6 right-6 z-50 bg-[#111113] border border-blue-500/40 rounded-sm p-4 shadow-2xl shadow-black/60 w-80">
+    <div class="flex items-start gap-3">
+      <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-md flex items-center justify-center flex-shrink-0 shadow-sm">
+        <i class="fas fa-box-open text-white text-sm"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-0.5">
+          <span class="text-sm font-bold text-white">Nova OS recebida!</span>
+          <span id="toast-os-id" class="text-xs font-bold text-blue-400"></span>
+        </div>
+        <div id="toast-os-client" class="text-xs font-medium text-zinc-300 truncate"></div>
+        <div id="toast-os-device" class="text-[11px] text-zinc-500 truncate"></div>
+      </div>
+      <button onclick="dismissToast()" class="text-zinc-600 hover:text-zinc-300 transition-colors flex-shrink-0 mt-0.5">
+        <i class="fas fa-times text-xs"></i>
+      </button>
+    </div>
+    
+    <div class="mt-3 h-0.5 bg-zinc-800 rounded-full overflow-hidden">
+      <div id="toast-progress" class="h-full bg-blue-500 rounded-full" style="width:100%"></div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3" id="board">
+    <div class="flex flex-col">
+      <div class="col-header bg-blue-600/10 border border-blue-500/40 px-4 py-3 flex items-center justify-between mb-3 rounded-md">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+          <span class="font-semibold text-sm">Em Aberto</span>
+        </div>
+        <span class="badge bg-blue-500/20 text-blue-300 border border-blue-500/30 col-count">8</span>
+      </div>
+      <div class="col-cards space-y-2.5" data-col="aberto">
+
+        <div class="card bg-[#111113] border border-zinc-800 hover:border-blue-500/50 rounded-2xl overflow-hidden" data-priority="alta" data-client="João Silva" data-id="012" onclick='openModal({id:"#012",client:"João Silva",contact:"(11) 98765-4321",device:"Notebook Dell Inspiron 15",defect:"Não liga — sem sinal de vida ao pressionar o botão",tech:"Lucas Mendes",timeOpen:"Há 2h 15min",obs:"Suspeita de falha na placa-mãe ou fonte interna. Aguardando diagnóstico.",value:"R$ 280,00",deadline:"Hoje 18:00",status:"Em Aberto",priority:"Alta",phone:"5511987654321"})'>
+          <div class="h-0.5 bg-blue-500/70"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-blue-400 text-sm tracking-wide">#012</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-red-500/15 text-red-400 border border-red-500/20">Alta</span>
+                <span class="text-zinc-600 text-[10px]">2h atrás</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-blue-600/15 border border-blue-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-blue-300 font-bold text-xs">JS</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">João Silva</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 98765-4321</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-laptop text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Notebook Dell Inspiron 15</span>
+            </div>
+            <span class="tag bg-zinc-800/80 text-zinc-300 inline-block mb-3">Não liga</span>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <i class="fas fa-clock text-amber-400"></i>
+                <span class="text-amber-400 font-medium">Hoje 18h</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white">LM</div>
+                <span>Lucas Mendes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-[#111113] border border-zinc-800 hover:border-blue-500/50 rounded-2xl overflow-hidden"
+             data-priority="media" data-client="Maria Oliveira" data-id="015"
+             onclick='openModal({id:"#015",client:"Maria Oliveira",contact:"(11) 91234-5678",device:"iPhone 12 — Tela quebrada",defect:"Display trincado após queda. Touch funcionando parcialmente.",tech:"Sofia Alves",timeOpen:"Há 45min",obs:"",value:"R$ 420,00",deadline:"Amanhã 12:00",status:"Em Aberto",priority:"Média",phone:"5511912345678"})'>
+          <div class="h-0.5 bg-blue-500/70"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-blue-400 text-sm tracking-wide">#015</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-amber-500/15 text-amber-400 border border-amber-500/20">Média</span>
+                <span class="text-zinc-600 text-[10px]">45min atrás</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-purple-600/15 border border-purple-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-purple-300 font-bold text-xs">MO</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Maria Oliveira</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 91234-5678</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-mobile-screen text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">iPhone 12</span>
+            </div>
+            <span class="tag bg-zinc-800/80 text-zinc-300 inline-block mb-3">Tela quebrada</span>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <i class="fas fa-clock text-zinc-500"></i>
+                <span class="text-zinc-400 font-medium">Amanhã 12h</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white">SA</div>
+                <span>Sofia Alves</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-[#111113] border border-zinc-800 hover:border-blue-500/50 overflow-hidden"
+             data-priority="baixa" data-client="Pedro Henrique" data-id="017"
+             onclick='openModal({id:"#017",client:"Pedro Henrique",contact:"(11) 94567-8901",device:"Desktop HP All-in-One",defect:"Computador lento, travando ao abrir múltiplos programas.",tech:"Marcos Viana",timeOpen:"Há 20min",obs:"",value:"R$ 150,00",deadline:"06/06 14:00",status:"Em Aberto",priority:"Baixa",phone:"5511945678901"})'>
+          <div class="h-0.5 bg-blue-500/70"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-blue-400 text-sm tracking-wide">#017</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Baixa</span>
+                <span class="text-zinc-600 text-[10px]">20min atrás</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-teal-600/15 border border-teal-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-teal-300 font-bold text-xs">PH</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Pedro Henrique</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 94567-8901</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-desktop text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Desktop HP All-in-One</span>
+            </div>
+            <span class="tag bg-zinc-800/80 text-zinc-300 inline-block mb-3">Lentidão / Travamento</span>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <i class="fas fa-clock text-zinc-500"></i>
+                <span class="text-zinc-400 font-medium">06/06 14h</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center text-[9px] font-bold text-white">MV</div>
+                <span>Marcos Viana</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- #018 Luciana Torres -->
+        <div class="card bg-[#111113] border border-zinc-800 hover:border-blue-500/50 overflow-hidden"
+             data-priority="alta" data-client="Luciana Torres" data-id="018"
+             onclick='openModal({id:"#018",client:"Luciana Torres",contact:"(11) 99876-5432",device:"Samsung Galaxy S22",defect:"Celular não carrega. Porta USB-C com problema físico.",tech:"Sofia Alves",timeOpen:"Há 10min",obs:"",value:"R$ 190,00",deadline:"Hoje 20:00",status:"Em Aberto",priority:"Alta",phone:"5511998765432"})'>
+          <div class="h-0.5 bg-blue-500/70"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-blue-400 text-sm tracking-wide">#018</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-red-500/15 text-red-400 border border-red-500/20">Alta</span>
+                <span class="text-zinc-600 text-[10px]">10min atrás</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-pink-600/15 border border-pink-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-pink-300 font-bold text-xs">LT</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Luciana Torres</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 99876-5432</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-mobile-screen text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Samsung Galaxy S22</span>
+            </div>
+            <span class="tag bg-zinc-800/80 text-zinc-300 inline-block mb-3">Não carrega</span>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <i class="fas fa-clock text-amber-400"></i>
+                <span class="text-amber-400 font-medium">Hoje 20h</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white">SA</div>
+                <span>Sofia Alves</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 2. EM ANDAMENTO ── -->
+    <div class="flex flex-col">
+      <div class="col-header bg-emerald-600/10 border border-emerald-500/40 px-4 py-3 flex items-center justify-between mb-3 rounded-md">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+          <span class="font-semibold text-sm">Em Andamento</span>
+        </div>
+        <span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 col-count">6</span>
+      </div>
+      <div class="col-cards space-y-2.5" data-col="andamento">
+
+        <!-- #008 Carlos Mendes -->
+        <div class="card bg-[#111113] border border-zinc-800 hover:border-emerald-500/50 overflow-hidden"
+             data-priority="alta" data-client="Carlos Mendes" data-id="008"
+             onclick='openModal({id:"#008",client:"Carlos Mendes",contact:"(11) 97654-3210",device:"Desktop Gamer Ryzen 5600X",defect:"PC não liga após queima de fonte.",tech:"Lucas Mendes",timeOpen:"Há 3h 20min",obs:"Fonte substituída. Testando estabilidade do sistema com stress test. Progresso: 65%.",value:"R$ 350,00",deadline:"Hoje 17:00",status:"Em Andamento",priority:"Alta",phone:"5511976543210"})'>
+          <div class="h-0.5 bg-emerald-500/70"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-emerald-400 text-sm tracking-wide">#008</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-red-500/15 text-red-400 border border-red-500/20">Alta</span>
+                <span class="text-zinc-600 text-[10px]">3h 20min</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-orange-600/15 border border-orange-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-orange-300 font-bold text-xs">CM</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Carlos Mendes</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 97654-3210</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-desktop text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Desktop Gamer Ryzen 5600X</span>
+            </div>
+            <div class="text-[11px] text-emerald-400 mb-2 flex items-center gap-1.5">
+              <i class="fas fa-circle-notch fa-spin text-[9px]"></i>
+              Troca de fonte em progresso
+            </div>
+            <div class="progress-bar mb-1"><div class="progress-fill bg-emerald-500" style="width:65%"></div></div>
+            <div class="flex justify-between text-[10px] text-zinc-500 mb-3">
+              <span>Progresso</span><span class="text-emerald-400 font-semibold">65%</span>
+            </div>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <i class="fas fa-clock text-amber-400"></i>
+                <span class="text-amber-400 font-medium">Hoje 17h</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white">LM</div>
+                <span>Lucas Mendes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- #011 Beatriz Cunha -->
+        <div class="card bg-[#111113] border border-zinc-800 hover:border-emerald-500/50 overflow-hidden"
+             data-priority="media" data-client="Beatriz Cunha" data-id="011"
+             onclick='openModal({id:"#011",client:"Beatriz Cunha",contact:"(11) 93456-7890",device:"MacBook Air M1",defect:"Bateria com mau contato, desligando repentinamente.",tech:"Marcos Viana",timeOpen:"Há 1h 50min",obs:"Bateria substituída. Calibrando sistema. Progresso: 80%.",value:"R$ 520,00",deadline:"Hoje 19:00",status:"Em Andamento",priority:"Média",phone:"5511934567890"})'>
+          <div class="h-0.5 bg-emerald-500/70"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-emerald-400 text-sm tracking-wide">#011</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-amber-500/15 text-amber-400 border border-amber-500/20">Média</span>
+                <span class="text-zinc-600 text-[10px]">1h 50min</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-violet-600/15 border border-violet-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-violet-300 font-bold text-xs">BC</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Beatriz Cunha</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 93456-7890</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-laptop text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">MacBook Air M1</span>
+            </div>
+            <div class="text-[11px] text-emerald-400 mb-2 flex items-center gap-1.5">
+              <i class="fas fa-circle-notch fa-spin text-[9px]"></i>
+              Substituindo bateria
+            </div>
+            <div class="progress-bar mb-1"><div class="progress-fill bg-emerald-500" style="width:80%"></div></div>
+            <div class="flex justify-between text-[10px] text-zinc-500 mb-3">
+              <span>Progresso</span><span class="text-emerald-400 font-semibold">80%</span>
+            </div>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <i class="fas fa-clock text-zinc-500"></i>
+                <span class="text-zinc-400 font-medium">Hoje 19h</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center text-[9px] font-bold text-white">MV</div>
+                <span>Marcos Viana</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- #013 Diego Ramos -->
+        <div class="card bg-[#111113] border border-zinc-800 hover:border-emerald-500/50 overflow-hidden"
+             data-priority="baixa" data-client="Diego Ramos" data-id="013"
+             onclick='openModal({id:"#013",client:"Diego Ramos",contact:"(11) 95678-9012",device:"Smart TV Samsung 55\"",defect:"TV não liga. Suspeita de placa de alimentação.",tech:"Sofia Alves",timeOpen:"Há 2h 30min",obs:"Placa de alimentação trocada. Testando imagem e som. Progresso: 40%.",value:"R$ 480,00",deadline:"07/06 10:00",status:"Em Andamento",priority:"Baixa",phone:"5511956789012"})'>
+          <div class="h-0.5 bg-emerald-500/70"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-emerald-400 text-sm tracking-wide">#013</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Baixa</span>
+                <span class="text-zinc-600 text-[10px]">2h 30min</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-cyan-600/15 border border-cyan-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-cyan-300 font-bold text-xs">DR</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Diego Ramos</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 95678-9012</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-tv text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Smart TV Samsung 55"</span>
+            </div>
+            <div class="text-[11px] text-emerald-400 mb-2 flex items-center gap-1.5">
+              <i class="fas fa-circle-notch fa-spin text-[9px]"></i>
+              Trocando placa de alimentação
+            </div>
+            <div class="progress-bar mb-1"><div class="progress-fill bg-emerald-500" style="width:40%"></div></div>
+            <div class="flex justify-between text-[10px] text-zinc-500 mb-3">
+              <span>Progresso</span><span class="text-emerald-400 font-semibold">40%</span>
+            </div>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <i class="fas fa-clock text-zinc-500"></i>
+                <span class="text-zinc-400 font-medium">07/06 10h</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white">SA</div>
+                <span>Sofia Alves</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 3. AGUARDANDO PEÇAS ── -->
+    <div class="flex flex-col">
+      <div class="col-header bg-orange-600/10 border border-orange-500/40 px-4 py-3 flex items-center justify-between mb-3 rounded-xl">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-orange-400"></div>
+          <span class="font-semibold text-sm">Aguardando Peças</span>
+        </div>
+        <span class="badge bg-orange-500/20 text-orange-300 border border-orange-500/30 col-count">5</span>
+      </div>
+      <div class="col-cards space-y-2.5" data-col="aguardando">
+
+        <!-- #005 Ana Costa -->
+        <div class="card bg-[#111113] border border-zinc-800 hover:border-orange-500/50 overflow-hidden"
+             data-priority="media" data-client="Ana Costa" data-id="005"
+             onclick='openModal({id:"#005",client:"Ana Costa",contact:"(11) 92345-6789",device:"Monitor LG 27\" 4K",defect:"Backlight apagado. Exibe imagem escura.",tech:"Marcos Viana",timeOpen:"Há 1 dia",obs:"Painel LCD solicitado ao fornecedor. Previsão de entrega: 08/06.",value:"R$ 640,00",deadline:"09/06 17:00",status:"Aguardando Peças",priority:"Média",phone:"5511923456789"})'>
+          <div class="h-0.5 bg-orange-500/70"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-orange-400 text-sm tracking-wide">#005</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-amber-500/15 text-amber-400 border border-amber-500/20">Média</span>
+                <span class="text-zinc-600 text-[10px]">1 dia atrás</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-lime-600/15 border border-lime-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-lime-300 font-bold text-xs">AC</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Ana Costa</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 92345-6789</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-display text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Monitor LG 27" 4K</span>
+            </div>
+            <span class="tag bg-orange-900/40 text-orange-300 border border-orange-500/20 inline-block mb-2.5">Aguardando painel LCD</span>
+            <div class="bg-zinc-900 rounded-lg px-2.5 py-1.5 mb-3 text-[11px] text-zinc-400">
+              <i class="fas fa-truck text-orange-400 mr-1.5"></i>
+              Entrega prevista: <span class="text-orange-300 font-medium">08/06</span>
+            </div>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <i class="fas fa-clock text-zinc-500"></i>
+                <span class="text-zinc-400 font-medium">09/06 17h</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center text-[9px] font-bold text-white">MV</div>
+                <span>Marcos Viana</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- #009 Rafaela Nunes -->
+        <div class="card bg-[#111113] border border-zinc-800 hover:border-orange-500/50 overflow-hidden"
+             data-priority="alta" data-client="Rafaela Nunes" data-id="009"
+             onclick='openModal({id:"#009",client:"Rafaela Nunes",contact:"(11) 98901-2345",device:"PlayStation 5",defect:"HDMI não transmite imagem. Porta HDMI danificada.",tech:"Lucas Mendes",timeOpen:"Há 2 dias",obs:"Porta HDMI substituída aguardando chip controlador HDMI.",value:"R$ 380,00",deadline:"08/06 12:00",status:"Aguardando Peças",priority:"Alta",phone:"5511989012345"})'>
+          <div class="h-0.5 bg-orange-500/70"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-orange-400 text-sm tracking-wide">#009</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-red-500/15 text-red-400 border border-red-500/20">Alta</span>
+                <span class="text-zinc-600 text-[10px]">2 dias atrás</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-rose-600/15 border border-rose-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-rose-300 font-bold text-xs">RN</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Rafaela Nunes</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 98901-2345</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-gamepad text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">PlayStation 5</span>
+            </div>
+            <span class="tag bg-orange-900/40 text-orange-300 border border-orange-500/20 inline-block mb-2.5">Chip HDMI controlador</span>
+            <div class="bg-zinc-900 rounded-lg px-2.5 py-1.5 mb-3 text-[11px] text-zinc-400">
+              <i class="fas fa-truck text-orange-400 mr-1.5"></i>
+              Entrega prevista: <span class="text-orange-300 font-medium">07/06</span>
+            </div>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <i class="fas fa-clock text-zinc-500"></i>
+                <span class="text-zinc-400 font-medium">08/06 12h</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white">LM</div>
+                <span>Lucas Mendes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- #014 Eduardo Pires -->
+        <div class="card bg-[#111113] border border-zinc-800 hover:border-orange-500/50 overflow-hidden"
+             data-priority="baixa" data-client="Eduardo Pires" data-id="014"
+             onclick='openModal({id:"#014",client:"Eduardo Pires",contact:"(11) 96789-0123",device:"Impressora Epson L3150",defect:"Papel enroscando. Rolete de alimentação desgastado.",tech:"Sofia Alves",timeOpen:"Há 3 dias",obs:"Rolete solicitado. Peça de baixo giro.",value:"R$ 210,00",deadline:"10/06 17:00",status:"Aguardando Peças",priority:"Baixa",phone:"5511967890123"})'>
+          <div class="h-0.5 bg-orange-500/70"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-orange-400 text-sm tracking-wide">#014</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Baixa</span>
+                <span class="text-zinc-600 text-[10px]">3 dias atrás</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-amber-600/15 border border-amber-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-amber-300 font-bold text-xs">EP</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Eduardo Pires</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 96789-0123</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-print text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Impressora Epson L3150</span>
+            </div>
+            <span class="tag bg-orange-900/40 text-orange-300 border border-orange-500/20 inline-block mb-2.5">Rolete de alimentação</span>
+            <div class="bg-zinc-900 rounded-lg px-2.5 py-1.5 mb-3 text-[11px] text-zinc-400">
+              <i class="fas fa-truck text-orange-400 mr-1.5"></i>
+              Entrega prevista: <span class="text-orange-300 font-medium">09/06</span>
+            </div>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <i class="fas fa-clock text-zinc-500"></i>
+                <span class="text-zinc-400 font-medium">10/06 17h</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white">SA</div>
+                <span>Sofia Alves</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="flex flex-col">
+      <div class="col-header bg-red-600/10 border border-red-500/40 px-4 py-3 flex items-center justify-between mb-3 rounded-md">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-md bg-red-400 sla-critical"></div>
+          <span class="font-semibold text-sm">Atrasadas</span>
+        </div>
+        <span class="badge bg-red-500/20 text-red-300 border border-red-500/30 col-count">3</span>
+      </div>
+      <div class="col-cards space-y-2.5" data-col="atrasada">
+
+        <!-- #003 Roberto Lima -->
+        <div class="card pulse-red bg-[#111113] border border-red-500/50  overflow-hidden"
+             data-priority="alta" data-client="Roberto Lima" data-id="003"
+             onclick='openModal({id:"#003",client:"Roberto Lima",contact:"(11) 91111-2222",device:"MacBook Pro 2020 13\"",defect:"Não liga após atualização de firmware. Possível falha na NVRAM.",tech:"Lucas Mendes",timeOpen:"Há 4 dias",obs:"Tentativa de reset NVRAM falhou. Enviando para análise de placa lógica.",value:"R$ 890,00",deadline:"03/06 17:00",status:"Atrasada",priority:"Alta",phone:"5511911112222"})'>
+          <div class="h-0.5 bg-red-500"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-red-400 text-sm tracking-wide">#003</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-red-500/15 text-red-400 border border-red-500/20">Alta</span>
+                <span class="text-red-400 text-[10px] font-bold sla-critical">ATRASADO</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-red-700/20 border border-red-500/30 flex items-center justify-center flex-shrink-0">
+                <span class="text-red-300 font-bold text-xs">RL</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Roberto Lima</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 91111-2222</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-laptop text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">MacBook Pro 2020 13"</span>
+            </div>
+            <div class="bg-red-950/40 border border-red-500/20 rounded-lg px-2.5 py-2 mb-3">
+              <div class="text-[11px] text-red-400 font-medium flex items-center gap-1.5">
+                <i class="fas fa-triangle-exclamation"></i>
+                Prazo excedido há <span class="font-bold">2 dias</span>
+              </div>
+              <div class="text-[10px] text-zinc-500 mt-0.5">Venceu 03/06 às 17h</div>
+            </div>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="text-[11px] text-red-400 flex items-center gap-1.5">
+                <i class="fas fa-phone-alt"></i> Avisar cliente
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white">LM</div>
+                <span>Lucas Mendes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- #006 Silvia Monteiro -->
+        <div class="card pulse-red bg-[#111113] border border-red-500/50  overflow-hidden"
+             data-priority="alta" data-client="Silvia Monteiro" data-id="006"
+             onclick='openModal({id:"#006",client:"Silvia Monteiro",contact:"(11) 93333-4444",device:"Notebook Lenovo IdeaPad",defect:"Teclado não funciona após derramamento de líquido.",tech:"Marcos Viana",timeOpen:"Há 3 dias",obs:"Teclado foi substituído mas há corrosão na placa-mãe. Aguardando aprovação do cliente para trocar placa.",value:"R$ 670,00",deadline:"04/06 12:00",status:"Atrasada",priority:"Alta",phone:"5511933334444"})'>
+          <div class="h-0.5 bg-red-500"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-red-400 text-sm tracking-wide">#006</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-red-500/15 text-red-400 border border-red-500/20">Alta</span>
+                <span class="text-red-400 text-[10px] font-bold sla-critical">ATRASADO</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-red-700/20 border border-red-500/30 flex items-center justify-center flex-shrink-0">
+                <span class="text-red-300 font-bold text-xs">SM</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Silvia Monteiro</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 93333-4444</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-laptop text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Notebook Lenovo IdeaPad</span>
+            </div>
+            <div class="bg-red-950/40 border border-red-500/20 rounded-lg px-2.5 py-2 mb-3">
+              <div class="text-[11px] text-red-400 font-medium flex items-center gap-1.5">
+                <i class="fas fa-triangle-exclamation"></i>
+                Prazo excedido há <span class="font-bold">1 dia</span>
+              </div>
+              <div class="text-[10px] text-zinc-500 mt-0.5">Venceu 04/06 às 12h</div>
+            </div>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="text-[11px] text-red-400 flex items-center gap-1.5">
+                <i class="fas fa-phone-alt"></i> Aguard. aprovação
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center text-[9px] font-bold text-white">MV</div>
+                <span>Marcos Viana</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- #010 Thiago Mello -->
+        <div class="card pulse-red bg-[#111113] border border-red-500/50 overflow-hidden"
+             data-priority="media" data-client="Thiago Mello" data-id="010"
+             onclick='openModal({id:"#010",client:"Thiago Mello",contact:"(11) 95555-6666",device:"Xbox Series X",defect:"Superaquecimento e desligamento automático.",tech:"Sofia Alves",timeOpen:"Há 2 dias",obs:"Pasta térmica trocada e cooler limpo. Testando temperatura.",value:"R$ 240,00",deadline:"05/06 10:00",status:"Atrasada",priority:"Média",phone:"5511955556666"})'>
+          <div class="h-0.5 bg-red-500"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-red-400 text-sm tracking-wide">#010</span>
+              <div class="flex items-center gap-1.5">
+                <span class="tag bg-amber-500/15 text-amber-400 border border-amber-500/20">Média</span>
+                <span class="text-red-400 text-[10px] font-bold sla-critical">ATRASADO</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-red-700/20 border border-red-500/30 flex items-center justify-center flex-shrink-0">
+                <span class="text-red-300 font-bold text-xs">TM</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Thiago Mello</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 95555-6666</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-gamepad text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Xbox Series X</span>
+            </div>
+            <div class="bg-red-950/40 border border-red-500/20 rounded-lg px-2.5 py-2 mb-3">
+              <div class="text-[11px] text-red-400 font-medium flex items-center gap-1.5">
+                <i class="fas fa-triangle-exclamation"></i>
+                Prazo excedido há <span class="font-bold">poucas horas</span>
+              </div>
+              <div class="text-[10px] text-zinc-500 mt-0.5">Venceu 05/06 às 10h</div>
+            </div>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="text-[11px] text-red-400 flex items-center gap-1.5">
+                <i class="fas fa-phone-alt"></i> Avisar cliente
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white">SA</div>
+                <span>Sofia Alves</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 5. FINALIZADAS ── -->
+    <div class="flex flex-col">
+      <div class="col-header bg-emerald-600/10 border border-emerald-600/40 px-4 py-3 flex items-center justify-between mb-3 rounded-md">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+          <span class="font-semibold text-sm">Finalizadas</span>
+        </div>
+        <span class="badge bg-emerald-600/20 text-emerald-300 border border-emerald-600/30 col-count">12</span>
+      </div>
+
+      <div class="col-cards space-y-2.5" data-col="finalizada">
+        <div class="card bg-[#111113] border border-zinc-800/50 hover:border-emerald-600/40 overflow-hidden opacity-80"
+             data-priority="baixa" data-client="Fernanda Santos" data-id="007"
+             onclick='openModal({id:"#007",client:"Fernanda Santos",contact:"(11) 97777-8888", device:"Impressora HP DeskJet 2775",defect:"Não imprime. Cabeçote de impressão entupido.",tech:"Lucas Mendes",timeOpen:"Finalizado",obs:"Cabeçote limpo com kit de limpeza. Impressão testada e aprovada. Aguarda retirada.",value:"R$ 120,00",deadline:"Hoje — concluído",status:"Finalizada",priority:"Baixa",phone:"5511977778888"})'>
+          <div class="h-0.5 bg-emerald-600/60"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-emerald-400 text-sm tracking-wide">#007</span>
+              <span class="text-emerald-400 text-[10px] font-semibold">✓ Hoje 11:32</span>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-emerald-600/15 border border-emerald-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-emerald-300 font-bold text-xs">FS</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Fernanda Santos</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 97777-8888</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-print text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Impressora HP DeskJet 2775</span>
+            </div>
+            <span class="tag bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 inline-block mb-3">✓ Aguardando retirada</span>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="text-[11px] text-emerald-400 font-bold">R$ 120,00</div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white">LM</div>
+                <span>Lucas Mendes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-[#111113] border border-zinc-800/50 hover:border-emerald-600/40 overflow-hidden opacity-80"
+             data-priority="alta" data-client="Gustavo Prado" data-id="004"
+             onclick='openModal({id:"#004",client:"Gustavo Prado",contact:"(11) 96666-7777",device:"iPhone 13 Pro",defect:"Camera traseira não focava.",tech:"Sofia Alves",timeOpen:"Finalizado",obs:"Módulo da câmera substituído. Testado e aprovado.",value:"R$ 580,00",deadline:"Hoje — concluído",status:"Finalizada",priority:"Alta",phone:"5511966667777"})'>
+          <div class="h-0.5 bg-emerald-600/60"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-emerald-400 text-sm tracking-wide">#004</span>
+              <span class="text-emerald-400 text-[10px] font-semibold">✓ Hoje 09:15</span>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-emerald-600/15 border border-emerald-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-emerald-300 font-bold text-xs">GP</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Gustavo Prado</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 96666-7777</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-mobile-screen text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">iPhone 13 Pro</span>
+            </div>
+            <span class="tag bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 inline-block mb-3">✓ Retirado</span>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="text-[11px] text-emerald-400 font-bold">R$ 580,00</div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[9px] font-bold text-white">SA</div>
+                <span>Sofia Alves</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-[#111113] border border-zinc-800/50 hover:border-emerald-600/40 overflow-hidden opacity-80"
+             data-priority="media" data-client="Amanda Reis" data-id="002"
+             onclick='openModal({id:"#002",client:"Amanda Reis",contact:"(11) 94444-5555",device:"Notebook Acer Aspire 5",defect:"HD com setores defeituosos. Lentidão extrema.",tech:"Marcos Viana",timeOpen:"Finalizado",obs:"HD substituído por SSD 480GB. Sistema reinstalado.",value:"R$ 320,00",deadline:"Hoje — concluído",status:"Finalizada",priority:"Média",phone:"5511944445555"})'>
+          <div class="h-0.5 bg-emerald-600/60"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-emerald-400 text-sm tracking-wide">#002</span>
+              <span class="text-emerald-400 text-[10px] font-semibold">✓ Hoje 08:50</span>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-emerald-600/15 border border-emerald-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-emerald-300 font-bold text-xs">AR</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Amanda Reis</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 94444-5555</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-laptop text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Notebook Acer Aspire 5</span>
+            </div>
+            <span class="tag bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 inline-block mb-3">✓ Retirado</span>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="text-[11px] text-emerald-400 font-bold">R$ 320,00</div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center text-[9px] font-bold text-white">MV</div>
+                <span>Marcos Viana</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- #001 Paulo Ferreira -->
+        <div class="card bg-[#111113] border border-zinc-800/50 hover:border-emerald-600/40 overflow-hidden opacity-70"
+             data-priority="baixa" data-client="Paulo Ferreira" data-id="001"
+             onclick='openModal({id:"#001",client:"Paulo Ferreira",contact:"(11) 92222-3333",device:"Desktop Dell Optiplex",defect:"Sem vídeo. Placa de vídeo integrada com defeito.",tech:"Lucas Mendes",timeOpen:"Finalizado",obs:"Placa de vídeo dedicada instalada como solução. Aprovado.",value:"R$ 450,00",deadline:"Ontem — concluído",status:"Finalizada",priority:"Baixa",phone:"5511922223333"})'>
+          <div class="h-0.5 bg-emerald-600/60"></div>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-emerald-400 text-sm tracking-wide">#001</span>
+              <span class="text-zinc-500 text-[10px] font-semibold">✓ Ontem</span>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-emerald-600/15 border border-emerald-500/25 flex items-center justify-center flex-shrink-0">
+                <span class="text-emerald-300 font-bold text-xs">PF</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white text-[13px] leading-tight">Paulo Ferreira</div>
+                <div class="text-[10px] text-zinc-500 mt-0.5">(11) 92222-3333</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+              <i class="fas fa-desktop text-zinc-500 text-[11px] w-3 text-center"></i>
+              <span class="text-[11px] text-zinc-300 truncate">Desktop Dell Optiplex</span>
+            </div>
+            <span class="tag bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 inline-block mb-3">✓ Retirado</span>
+            <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+              <div class="text-[11px] text-emerald-400 font-bold">R$ 450,00</div>
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white">LM</div>
+                <span>Lucas Mendes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="mt-5 py-3 border-t border-zinc-800">
+    <div class="flex flex-wrap items-center justify-center gap-6 text-xs text-zinc-500">
+      <span><span class="text-blue-400 font-bold text-sm">8</span> Em Aberto</span>
+      <span class="text-zinc-700">•</span>
+      <span><span class="text-emerald-400 font-bold text-sm">6</span> Em Andamento</span>
+      <span class="text-zinc-700">•</span>
+      <span><span class="text-orange-400 font-bold text-sm">5</span> Aguardando Peças</span>
+      <span class="text-zinc-700">•</span>
+      <span><span class="text-red-400 font-bold text-sm">3</span> Atrasadas</span>
+      <span class="text-zinc-700">•</span>
+      <span><span class="text-emerald-400 font-bold text-sm">12</span> Finalizadas Hoje</span>
+    </div>
+    <div class="text-center text-[10px] text-zinc-700 mt-2">VOLX KDS v2.0 • ENIAC</div>
+  </footer>
+
+</div>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('current-time').textContent =
+      now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    document.getElementById('current-date').textContent =
+      now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ── Modal ────────────────────────────────────────────
+  const priorityColors = {
+    'Alta':  'bg-red-500/15 text-red-400 border border-red-500/20',
+    'Média': 'bg-amber-500/15 text-amber-400 border border-amber-500/20',
+    'Baixa': 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
+  };
+
+  const statusColors = {
+    'Em Aberto':       'bg-blue-500/15 text-blue-400 border border-blue-500/20',
+    'Em Andamento':    'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
+    'Aguardando Peças':'bg-orange-500/15 text-orange-400 border border-orange-500/20',
+    'Atrasada':        'bg-red-500/15 text-red-400 border border-red-500/20',
+    'Finalizada':      'bg-emerald-600/15 text-emerald-300 border border-emerald-600/20',
+  };
+
+  function openModal(d) {
+    document.getElementById('modal-id').textContent = d.id;
+    document.getElementById('modal-device').textContent = d.device;
+    document.getElementById('modal-client').textContent = d.client;
+    document.getElementById('modal-contact').textContent = d.contact;
+    document.getElementById('modal-tech').textContent = d.tech;
+    document.getElementById('modal-time-open').textContent = d.timeOpen;
+    document.getElementById('modal-defect').textContent = d.defect;
+    document.getElementById('modal-value').textContent = d.value;
+    document.getElementById('modal-deadline').textContent = d.deadline;
+
+    const obsWrap = document.getElementById('modal-obs-wrap');
+    const obsEl = document.getElementById('modal-obs');
+    if (d.obs) {
+      obsWrap.style.display = '';
+      obsEl.textContent = d.obs;
+    } else {
+      obsWrap.style.display = 'none';
+    }
+
+    const sb = document.getElementById('modal-status-badge');
+    sb.className = 'badge text-[10px] ' + (statusColors[d.status] || '');
+    sb.textContent = d.status;
+
+    const pb = document.getElementById('modal-priority-badge');
+    pb.className = 'badge text-[10px] ' + (priorityColors[d.priority] || '');
+    pb.textContent = d.priority;
+
+    document.getElementById('modal-whatsapp').href =
+      'https://wa.me/' + d.phone + '?text=' + encodeURIComponent('Olá ' + d.client + ', temos uma atualização sobre sua OS ' + d.id + ' na VOLX Assistência Técnica.');
+
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal(e) {
+    if (e.target === document.getElementById('modal'))
+      document.getElementById('modal').classList.remove('open');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.getElementById('modal').classList.remove('open');
+  });
+
+
+  // ── Injeta descrição do defeito nos cards ───────────
+  document.querySelectorAll('.card[onclick]').forEach(card => {
+    const m = card.getAttribute('onclick').match(/defect:"((?:[^"\\]|\\.)*)"/);
+    if (!m) return;
+    const defect = m[1].replace(/\\"/g, '"');
+    const deviceEl = card.querySelector('.bg-zinc-900\\/70');
+    if (!deviceEl) return;
+    const el = document.createElement('p');
+    el.className = 'text-[11px] text-zinc-400 leading-snug mb-2.5 line-clamp-2';
+    el.textContent = defect;
+    deviceEl.insertAdjacentElement('afterend', el);
+  });
+
+  // ── Busca e filtro ───────────────────────────────────
+  function filterCards() {
+    const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+    const p = (document.getElementById('priority-filter')?.value || '').toLowerCase();
+
+    document.querySelectorAll('[data-col] .card').forEach(card => {
+      const text = card.textContent.toLowerCase();
+      const priority = (card.dataset.priority || '').toLowerCase();
+      const matchQ = !q || text.includes(q);
+      const matchP = !p || priority === p;
+      card.style.display = matchQ && matchP ? '' : 'none';
+    });
+  }
+
+  // ── Timer de última atualização ─────────────────────
+  let _lastUpdateSec = 0;
+  setInterval(() => {
+    _lastUpdateSec++;
+    const el = document.getElementById('last-update-label');
+    if (!el) return;
+    el.textContent = _lastUpdateSec < 60
+      ? _lastUpdateSec + 's'
+      : Math.floor(_lastUpdateSec / 60) + 'min';
+  }, 1000);
+
+  // ── Som de nova OS (Mario Coin) ──────────────────────
+  function playSoundNewOS() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const tone = (freq, t, dur, vol = 0.22, type = 'square') => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = type;
+        o.frequency.setValueAtTime(freq, ctx.currentTime + t);
+        g.gain.setValueAtTime(vol, ctx.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + dur);
+        o.start(ctx.currentTime + t);
+        o.stop(ctx.currentTime + t + dur + 0.02);
+      };
+
+      // Clássico Mario coin: B5 → E6
+      tone(987.77, 0,    0.08);
+      tone(1318.5, 0.08, 0.22);
+    } catch(e) {}
+  }
+
+  // ── Toast de nova OS ─────────────────────────────────
+  let _toastTimer, _toastProgressTimer;
+  function showNewOSToast(data) {
+    const toast   = document.getElementById('new-os-toast');
+    const bar     = document.getElementById('toast-progress');
+    document.getElementById('toast-os-id').textContent     = data.id;
+    document.getElementById('toast-os-client').textContent  = data.client;
+    document.getElementById('toast-os-device').textContent  = data.device;
+    toast.classList.remove('hidden', 'toast-out');
+    toast.classList.add('toast-in');
+
+    // barra de progresso regressiva
+    bar.style.transition = 'none';
+    bar.style.width = '100%';
+    clearTimeout(_toastTimer);
+    clearTimeout(_toastProgressTimer);
+    _toastProgressTimer = setTimeout(() => {
+      bar.style.transition = 'width 6s linear';
+      bar.style.width = '0%';
+    }, 50);
+    _toastTimer = setTimeout(dismissToast, 6200);
+  }
+
+  function dismissToast() {
+    const toast = document.getElementById('new-os-toast');
+    toast.classList.remove('toast-in');
+    toast.classList.add('toast-out');
+    setTimeout(() => toast.classList.add('hidden'), 350);
+  }
+
+  // ── Notificações (painel removido — funções mantidas como no-op) ──
+  let _notifCount = 0;
+  function toggleNotifPanel() {}
+  function clearNotifs() {}
+  function addNotifItem(data) {}
+
+  // ── Adiciona card dinamicamente ao board ─────────────
+  const MAX_ABERTO = 8;
+
+  function addNewOSCard(data) {
+    const col = document.querySelector('[data-col="aberto"]');
+    if (!col) return;
+
+    if (col.querySelectorAll('.card').length >= MAX_ABERTO) {
+      showLimitWarning();
+      return;
+    }
+
+    const initials = data.client.trim().split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
+    const techInit = data.tech.trim().split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
+
+    const prioMap = {
+      'Alta':  'bg-red-500/15 text-red-400 border border-red-500/20',
+      'Média': 'bg-amber-500/15 text-amber-400 border border-amber-500/20',
+      'Baixa': 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
+    };
+
+    const devLower = (data.device||'').toLowerCase();
+    const devIcon  = devLower.includes('notebook') || devLower.includes('lenovo') || devLower.includes('dell') ? 'laptop'
+                   : devLower.includes('iphone') || devLower.includes('celular') || devLower.includes('samsung') ? 'mobile-screen'
+                   : devLower.includes('tablet')  ? 'tablet-screen-button'
+                   : 'desktop';
+
+    const card = document.createElement('div');
+
+    card.className = 'card bg-[#111113] border border-blue-500/50 hover:border-blue-500/80 rounded-2xl overflow-hidden card-arrive';
+    card.dataset.priority = (data.priority||'').toLowerCase();
+    card.dataset.client   = data.client;
+    card.dataset.id       = (data.id||'').replace('#','');
+
+    const safeData = JSON.stringify(data).replace(/'/g, "\\'");
+    card.setAttribute('onclick', `openModal(${safeData})`);
+
+    card.innerHTML = `
+      <div class="h-0.5 bg-blue-500"></div>
+      <div class="p-4">
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-bold text-blue-400 text-sm tracking-wide">${data.id}</span>
+          <div class="flex items-center gap-1.5">
+            <span class="tag ${prioMap[data.priority]||''}">${data.priority}</span>
+            <span class="text-zinc-600 text-[10px]">agora</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5 mb-3">
+          <div class="w-9 h-9 rounded-xl bg-blue-600/15 border border-blue-500/25 flex items-center justify-center flex-shrink-0">
+            <span class="text-blue-300 font-bold text-xs">${initials}</span>
+          </div>
+          <div class="min-w-0">
+            <div class="font-bold text-white text-[13px] leading-tight">${data.client}</div>
+            <div class="text-[10px] text-zinc-500 mt-0.5">${data.contact}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+          <i class="fas fa-${devIcon} text-zinc-500 text-[11px] w-3 text-center"></i>
+          <span class="text-[11px] text-zinc-300 truncate">${data.device}</span>
+        </div>
+        <p class="text-[11px] text-zinc-400 leading-snug mb-2.5 line-clamp-2">${data.defect}</p>
+        <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+          <div class="flex items-center gap-1.5 text-[11px]">
+            <i class="fas fa-clock text-amber-400"></i>
+            <span class="text-amber-400 font-medium">${data.deadline}</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+            <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white">${techInit}</div>
+            <span>${data.tech}</span>
+          </div>
+        </div>
+      </div>`;
+
+    col.prepend(card);
+
+    // Remove borda de chegada após animação
+    setTimeout(() => {
+      card.classList.remove('card-arrive');
+      card.style.borderColor = '';
+      card.className = card.className.replace('border-blue-500/50 hover:border-blue-500/80','border-zinc-800 hover:border-blue-500/50');
+    }, 1800);
+
+    // Incrementa contador da barra de status
+    const stat = document.getElementById('stat-aberto');
+    if (stat) stat.textContent = parseInt(stat.textContent||'0') + 1;
+    _lastUpdateSec = 0;
+  }
+
+  // ── Aviso de fila cheia ───────────────────────────────
+  function showLimitWarning() {
+    // Flash na borda do col-header de Em Aberto
+    const header = document.querySelector('[data-col="aberto"]')?.previousElementSibling;
+    if (header) {
+      header.classList.remove('col-limit-flash');
+      void header.offsetWidth; // reflow para reiniciar animação
+      header.classList.add('col-limit-flash');
+      setTimeout(() => header.classList.remove('col-limit-flash'), 600);
+    }
+
+    // Toast de aviso
+    const existing = document.getElementById('limit-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'limit-toast';
+    toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 bg-[#1a0f0f] border border-red-500/40 text-red-300 text-sm font-medium px-4 py-2.5 rounded-2xl shadow-xl shadow-black/50 toast-in';
+    toast.innerHTML = `<i class="fas fa-triangle-exclamation text-red-400 text-xs"></i>Fila cheia — Em Aberto atingiu o limite de ${MAX_ABERTO} OS`;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.replace('toast-in', 'toast-out');
+      setTimeout(() => toast.remove(), 350);
+    }, 3000);
+  }
+
+  // ── Dados mock para simulação ─────────────────────────
+  const _mockOS = [
+    {id:'#021',client:'Fernando Rocha',contact:'(11) 97000-1122',device:'Notebook Lenovo IdeaPad 3',defect:'Teclado com teclas travando e bateria não carregando mesmo conectado',tech:'Lucas Mendes',timeOpen:'Agora',obs:'',value:'R$ 150,00',deadline:'Amanhã 14h',status:'Em Aberto',priority:'Média',phone:'5511970001122'},
+    {id:'#022',client:'Bruna Martins',contact:'(11) 95500-9988',device:'iPhone 14 Pro',defect:'Touch screen não responde no canto inferior direito após atualização do iOS',tech:'Sofia Alves',timeOpen:'Agora',obs:'',value:'R$ 380,00',deadline:'Hoje 20h',status:'Em Aberto',priority:'Alta',phone:'5511955009988'},
+    {id:'#023',client:'Rafael Costa',contact:'(11) 98800-3344',device:'PC Desktop — GTX 1660 Ti',defect:'Liga mas não dá sinal de vídeo. Monitor já testado e funcionando normalmente.',tech:'Lucas Mendes',timeOpen:'Agora',obs:'',value:'R$ 200,00',deadline:'Amanhã 10h',status:'Em Aberto',priority:'Baixa',phone:'5511988003344'},
+  ];
+  let _mockIdx = 0;
+
+  function simulateNewOS() {
+    const data = _mockOS[_mockIdx % _mockOS.length];
+    _mockIdx++;
+    playSoundNewOS();
+    showNewOSToast(data);
+    addNewOSCard(data);
+    addNotifItem(data);
+  }
+</script>
+
+</body>
+</html>

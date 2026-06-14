@@ -483,40 +483,161 @@
     /* ═══════════════════════════════════════════════
        ORÇAMENTO
     ═══════════════════════════════════════════════ */
-    .orc-table {
-      width: 100%;
-      border-collapse: collapse;
+    .orc-modified-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: #fffbeb;
+      border-bottom: 1px solid #fde68a;
+      padding: 10px 20px;
+      font-size: 12.5px;
+      color: #92400e;
+      font-weight: 500;
     }
-    .orc-table thead th {
-      padding: 8px 0 10px;
-      text-align: left;
-      font-size: 11px;
+    .orc-modified-banner.show { display: flex; }
+    .orc-modified-banner i { color: #d97706; flex-shrink: 0; }
+
+    .orc-category-label {
+      font-size: 10px;
       font-weight: 700;
-      letter-spacing: .08em;
+      letter-spacing: .12em;
       text-transform: uppercase;
       color: var(--slate-400);
-      border-bottom: 1px solid var(--slate-100);
+      padding: 4px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .orc-table thead th:last-child { text-align: right; }
-    .orc-table tbody tr { border-bottom: 1px solid #f8fafc; }
-    .orc-table tbody td {
-      padding: 12px 0;
+    .orc-category-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--slate-100);
+    }
+
+    .orc-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f8fafc;
+      transition: opacity .25s;
+    }
+    .orc-item:last-of-type { border-bottom: none; }
+    .orc-item.removed {
+      opacity: .32;
+      pointer-events: none;
+    }
+    .orc-item.removed .orc-item-name,
+    .orc-item.removed .orc-item-value { text-decoration: line-through; }
+
+    .orc-item-icon {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .orc-item-info { flex: 1; min-width: 0; }
+    .orc-item-name {
       font-size: 13.5px;
-      color: var(--slate-700);
+      font-weight: 600;
+      color: var(--slate-800);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .orc-table tbody td:last-child { text-align: right; font-weight: 500; }
-    .orc-table tfoot td {
-      padding-top: 14px;
-      border-top: 2px solid var(--slate-200);
+    .orc-item-sub { font-size: 11px; color: var(--slate-400); margin-top: 2px; }
+    .orc-item-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--slate-100);
+      color: var(--slate-500);
+      border-radius: 20px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .orc-item-value {
       font-size: 14px;
       font-weight: 700;
       color: var(--slate-800);
+      white-space: nowrap;
+      flex-shrink: 0;
     }
-    .orc-table tfoot td:last-child {
-      text-align: right;
-      font-size: 20px;
-      color: var(--slate-900);
+    .orc-item-remove {
+      width: 28px; height: 28px;
+      border: 1px solid #fee2e2;
+      border-radius: 7px;
+      background: #fff5f5;
+      color: #ef4444;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background .15s, border-color .15s, transform .1s;
     }
+    .orc-item-remove:hover { background: #fee2e2; border-color: #fca5a5; transform: scale(1.08); }
+    .orc-item-remove:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+
+    .orc-separator { height: 1px; background: var(--slate-200); margin: 12px 0; }
+
+    .orc-subtotals { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+    .orc-subtotal-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      color: var(--slate-500);
+    }
+    .orc-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 2px solid var(--slate-200);
+      margin-top: 4px;
+    }
+    .orc-total-label { font-size: 14px; font-weight: 700; color: var(--slate-700); }
+    .orc-total-value { font-size: 24px; font-weight: 800; color: var(--slate-900); }
+
+    .orc-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .orc-meta-item {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-100);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .orc-meta-icon { font-size: 18px; flex-shrink: 0; }
+    .orc-meta-label { font-size: 10.5px; color: var(--slate-400); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+    .orc-meta-value { font-size: 13px; font-weight: 700; color: var(--slate-800); margin-top: 3px; }
+    .orc-meta-sub   { font-size: 11px; color: var(--slate-400); margin-top: 1px; }
+
+    .orc-obs {
+      background: var(--green-bg);
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 14px 0 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .orc-obs-icon { color: var(--green); font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .orc-obs-text { font-size: 12.5px; color: #14532d; line-height: 1.6; }
+    .orc-obs-text strong { display: block; margin-bottom: 2px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+
     .orc-info {
       display: flex;
       align-items: flex-start;
@@ -525,14 +646,36 @@
       border: 1px solid var(--blue-mid);
       border-radius: 10px;
       padding: 12px 14px;
-      margin-top: 16px;
+      margin-top: 12px;
     }
     .orc-info-icon { color: var(--blue); font-size: 15px; margin-top: 1px; flex-shrink: 0; }
     .orc-info-text { font-size: 12.5px; color: #1e40af; line-height: 1.5; }
+
+    .orc-restore {
+      display: none;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px;
+      margin-top: 12px;
+      border: 1px dashed var(--slate-300);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--slate-500);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    .orc-restore:hover { background: var(--slate-50); border-color: var(--slate-400); color: var(--slate-700); }
+    .orc-restore.show { display: flex; }
+
     .orc-btns {
       display: flex;
       gap: 10px;
-      margin-top: 16px;
+      margin-top: 14px;
     }
     .btn-approve, .btn-reject {
       flex: 1;
@@ -543,11 +686,105 @@
       font-weight: 600;
       cursor: pointer;
       border: none;
-      transition: filter .15s, transform .1s;
+      font-family: inherit;
+      transition: filter .15s, transform .1s, opacity .2s;
     }
-    .btn-approve:hover, .btn-reject:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .btn-approve:hover:not(:disabled), .btn-reject:hover:not(:disabled) { filter: brightness(1.05); transform: translateY(-1px); }
     .btn-approve { background: #16a34a; color: #fff; }
     .btn-reject  { background: #fff; color: var(--slate-600); border: 1px solid var(--slate-200); }
+    .btn-approve:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .btn-reject:disabled  { opacity: .45; cursor: not-allowed; transform: none; }
+
+    /* Modal confirmação */
+    .orc-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(2px);
+    }
+    .orc-modal-overlay.open { display: flex; }
+    .orc-modal {
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px 28px 24px;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .orc-modal-icon {
+      width: 52px; height: 52px;
+      background: #fee2e2;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      color: #dc2626;
+      margin: 0 auto 16px;
+    }
+    .orc-modal-title { font-size: 16px; font-weight: 700; color: var(--slate-900); text-align: center; margin-bottom: 8px; }
+    .orc-modal-desc  { font-size: 13px; color: var(--slate-500); text-align: center; line-height: 1.6; margin-bottom: 22px; }
+    .orc-modal-desc strong { color: var(--slate-800); }
+    .orc-modal-btns { display: flex; gap: 10px; }
+    .btn-modal-cancel {
+      flex: 1; padding: 10px;
+      border: 1px solid var(--slate-200); border-radius: 10px;
+      background: #fff; color: var(--slate-600);
+      font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .btn-modal-cancel:hover { background: var(--slate-50); }
+    .btn-modal-confirm {
+      flex: 1; padding: 10px;
+      border: none; border-radius: 10px;
+      background: #dc2626; color: #fff;
+      font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .btn-modal-confirm:hover { background: #b91c1c; }
+
+    /* Spinner */
+    .spinner {
+      width: 15px; height: 15px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      display: inline-block;
+      animation: spin .65s linear infinite;
+      vertical-align: middle;
+    }
+    .spinner-slate { border-color: rgba(71,85,105,.2); border-top-color: var(--slate-500); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Estado aprovado */
+    .orc-approved-msg {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 18px 0 8px;
+      gap: 8px;
+    }
+    .orc-approved-msg.show { display: flex; }
+    .orc-approved-icon {
+      width: 54px; height: 54px;
+      background: var(--green-bg);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; color: var(--green);
+      border: 2px solid #bbf7d0;
+    }
+    .orc-approved-title { font-size: 15px; font-weight: 700; color: var(--slate-800); }
+    .orc-approved-sub   { font-size: 12.5px; color: var(--slate-500); line-height: 1.55; max-width: 280px; }
+
+    @media (max-width: 600px) {
+      .orc-meta  { grid-template-columns: 1fr; }
+      .orc-btns  { flex-direction: column; }
+      .orc-item-name { font-size: 12.5px; }
+    }
 
     /* ═══════════════════════════════════════════════
        FOTOS
@@ -1125,60 +1362,171 @@
     </div>
 
     <!-- ── Orçamento ── -->
-    <div class="card">
+    <div class="card" id="card-orcamento">
       <div class="card-head">
         <div class="card-head-left">
           <div class="card-icon icon-slate"><i class="fa-regular fa-file-lines"></i></div>
           <span class="card-title">Orçamento</span>
         </div>
-        <span class="badge badge-solid-amber">
+        <span class="badge badge-solid-amber" id="orc-status-badge">
           <i class="fa-solid fa-clock" style="font-size:10px"></i>
           Aguardando aprovação
         </span>
       </div>
+
+      <!-- Banner: orçamento modificado -->
+      <div class="orc-modified-banner" id="orc-modified-banner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>Orçamento modificado — aguardando nova aprovação</span>
+      </div>
+
       <div class="card-body">
-        <table class="orc-table">
-          <thead>
-            <tr>
-              <th>Descrição</th>
-              <th>Valor</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Diagnóstico técnico</td>
-              <td>R$ 80,00</td>
-            </tr>
-            <tr>
-              <td>Troca do conector de carga</td>
-              <td>R$ 150,00</td>
-            </tr>
-            <tr>
-              <td>Mão de obra</td>
-              <td>R$ 120,00</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <td>Total</td>
-              <td>R$ 350,00</td>
-            </tr>
-          </tfoot>
-        </table>
+
+        <!-- Prazo estimado e garantia -->
+        <div class="orc-meta">
+          <div class="orc-meta-item">
+            <div class="orc-meta-icon">⏱️</div>
+            <div>
+              <div class="orc-meta-label">Prazo estimado</div>
+              <div class="orc-meta-value">2 a 3 dias úteis</div>
+              <div class="orc-meta-sub">Após aprovação</div>
+            </div>
+          </div>
+          <div class="orc-meta-item">
+            <div class="orc-meta-icon">🛡️</div>
+            <div>
+              <div class="orc-meta-label">Garantia</div>
+              <div class="orc-meta-value">90 dias</div>
+              <div class="orc-meta-sub">Sobre mão de obra</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Itens -->
+        <div id="orc-items-container">
+
+          <div class="orc-category-label">
+            <i class="fa-solid fa-magnifying-glass" style="font-size:9px"></i>
+            Diagnóstico
+          </div>
+
+          <div class="orc-item" data-id="1">
+            <div class="orc-item-icon icon-slate"><i class="fa-solid fa-microscope" style="font-size:13px"></i></div>
+            <div class="orc-item-info">
+              <div class="orc-item-name">Diagnóstico técnico</div>
+              <div class="orc-item-sub">Análise completa do equipamento</div>
+            </div>
+            <span class="orc-item-badge"><i class="fa-solid fa-lock" style="font-size:8px"></i> Obrigatório</span>
+            <div class="orc-item-value">R$ 80,00</div>
+          </div>
+
+          <div class="orc-category-label" style="margin-top:12px">
+            <i class="fa-solid fa-screwdriver-wrench" style="font-size:9px"></i>
+            Peças &amp; Serviços
+          </div>
+
+          <div class="orc-item" data-id="2">
+            <div class="orc-item-icon icon-blue"><i class="fa-solid fa-plug" style="font-size:13px"></i></div>
+            <div class="orc-item-info">
+              <div class="orc-item-name">Troca do conector de carga</div>
+              <div class="orc-item-sub">Peça original + instalação</div>
+            </div>
+            <div class="orc-item-value">R$ 150,00</div>
+            <button class="orc-item-remove" data-remove="2" data-label="Troca do conector de carga" title="Remover item">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+
+          <div class="orc-category-label" style="margin-top:12px">
+            <i class="fa-solid fa-hammer" style="font-size:9px"></i>
+            Mão de obra
+          </div>
+
+          <div class="orc-item" data-id="3">
+            <div class="orc-item-icon icon-amber"><i class="fa-solid fa-wrench" style="font-size:13px"></i></div>
+            <div class="orc-item-info">
+              <div class="orc-item-name">Mão de obra</div>
+              <div class="orc-item-sub">Serviço técnico especializado</div>
+            </div>
+            <div class="orc-item-value">R$ 120,00</div>
+            <button class="orc-item-remove" data-remove="3" data-label="Mão de obra" title="Remover item">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+
+        </div><!-- /orc-items-container -->
+
+        <div class="orc-separator"></div>
+
+        <div class="orc-subtotals">
+          <div class="orc-subtotal-row">
+            <span>Subtotal diagnóstico</span>
+            <span id="sub-diag">R$ 80,00</span>
+          </div>
+          <div class="orc-subtotal-row">
+            <span>Subtotal peças &amp; serviços</span>
+            <span id="sub-servicos">R$ 270,00</span>
+          </div>
+        </div>
+
+        <div class="orc-total-row">
+          <span class="orc-total-label">Total a pagar</span>
+          <span class="orc-total-value" id="orc-total">R$ 350,00</span>
+        </div>
+
+        <!-- Garantia e observações -->
+        <div class="orc-obs">
+          <i class="fa-solid fa-shield-halved orc-obs-icon"></i>
+          <div class="orc-obs-text">
+            <strong>Garantia &amp; Observações</strong>
+            90 dias de garantia sobre mão de obra. Peças com garantia do fabricante. Desconto de 10% para pagamento no Pix.
+          </div>
+        </div>
 
         <div class="orc-info">
           <i class="fa-solid fa-circle-info orc-info-icon"></i>
-          <p class="orc-info-text">Após a aprovação do orçamento, iniciaremos o reparo do seu equipamento.</p>
+          <p class="orc-info-text">Você pode remover itens antes de aprovar. Após aprovação, os itens ficam bloqueados.</p>
         </div>
 
-        <div class="orc-btns">
-          <button class="btn-approve">
+        <button class="orc-restore" id="orc-restore-btn">
+          <i class="fa-solid fa-rotate-left"></i>
+          Restaurar orçamento original
+        </button>
+
+        <div class="orc-approved-msg" id="orc-approved-msg">
+          <div class="orc-approved-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="orc-approved-title">Orçamento aprovado!</div>
+          <div class="orc-approved-sub">Ótimo! Iniciaremos o reparo em breve. Você receberá uma notificação quando estiver pronto.</div>
+        </div>
+
+        <div class="orc-btns" id="orc-action-btns">
+          <button class="btn-approve" id="btn-approve">
             <i class="fa-solid fa-circle-check"></i>
             Aprovar orçamento
           </button>
-          <button class="btn-reject">
+          <button class="btn-reject" id="btn-reject">
             <i class="fa-solid fa-xmark"></i>
             Recusar orçamento
+          </button>
+        </div>
+
+      </div><!-- /card-body -->
+    </div><!-- /card-orcamento -->
+
+    <!-- Modal de confirmação de remoção -->
+    <div class="orc-modal-overlay" id="orc-modal">
+      <div class="orc-modal">
+        <div class="orc-modal-icon"><i class="fa-solid fa-trash-can"></i></div>
+        <div class="orc-modal-title">Remover item?</div>
+        <div class="orc-modal-desc">
+          Deseja remover <strong id="modal-item-name">este item</strong> do orçamento?<br>
+          O total será recalculado automaticamente.
+        </div>
+        <div class="orc-modal-btns">
+          <button class="btn-modal-cancel" id="btn-modal-cancel">Cancelar</button>
+          <button class="btn-modal-confirm" id="btn-modal-confirm">
+            <i class="fa-solid fa-trash-can"></i>
+            Remover
           </button>
         </div>
       </div>
@@ -1463,9 +1811,124 @@
 </footer>
 
 <script>
-  // Scroll suave ao clicar em "Ver histórico"
+  // ─── Timeline toggle ───────────────────────────
   document.querySelector('.tl-btn-hist').addEventListener('click', function () {
     this.textContent = this.textContent.includes('Ver') ? '▲ Ocultar histórico' : '▼ Ver histórico completo';
+  });
+
+  // ─── Orçamento interativo ──────────────────────
+  const ORC_ITEMS = [
+    { id: 1, category: 'diag',     value: 80,  removable: false },
+    { id: 2, category: 'servicos', value: 150, removable: true  },
+    { id: 3, category: 'servicos', value: 120, removable: true  },
+  ];
+
+  const removedIds = new Set();
+  let pendingRemoveId = null;
+
+  function fmt(v) {
+    return 'R$ ' + v.toFixed(2).replace('.', ',');
+  }
+
+  function recalculate() {
+    let diagTotal = 0, servicosTotal = 0;
+    ORC_ITEMS.forEach(item => {
+      if (removedIds.has(item.id)) return;
+      if (item.category === 'diag') diagTotal += item.value;
+      else servicosTotal += item.value;
+    });
+
+    document.getElementById('sub-diag').textContent     = fmt(diagTotal);
+    document.getElementById('sub-servicos').textContent = fmt(servicosTotal);
+    document.getElementById('orc-total').textContent    = fmt(diagTotal + servicosTotal);
+
+    const modified = removedIds.size > 0;
+    const hasItems = ORC_ITEMS.some(i => !removedIds.has(i.id));
+
+    const badge = document.getElementById('orc-status-badge');
+    if (modified) {
+      badge.className = 'badge badge-solid-amber';
+      badge.innerHTML = '<i class="fa-solid fa-pen" style="font-size:10px"></i> Modificado — reenviar aprovação';
+    } else {
+      badge.className = 'badge badge-solid-amber';
+      badge.innerHTML = '<i class="fa-solid fa-clock" style="font-size:10px"></i> Aguardando aprovação';
+    }
+
+    document.getElementById('orc-modified-banner').classList.toggle('show', modified);
+    document.getElementById('orc-restore-btn').classList.toggle('show', modified);
+    document.getElementById('btn-approve').disabled = !hasItems;
+  }
+
+  // Botões de remover (event delegation)
+  document.getElementById('orc-items-container').addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-remove]');
+    if (!btn) return;
+    pendingRemoveId = parseInt(btn.dataset.remove);
+    document.getElementById('modal-item-name').textContent = '"' + btn.dataset.label + '"';
+    document.getElementById('orc-modal').classList.add('open');
+  });
+
+  document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
+  document.getElementById('orc-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeModal();
+  });
+
+  document.getElementById('btn-modal-confirm').addEventListener('click', function () {
+    if (pendingRemoveId === null) return;
+    removedIds.add(pendingRemoveId);
+    document.querySelector(`.orc-item[data-id="${pendingRemoveId}"]`).classList.add('removed');
+    closeModal();
+    recalculate();
+  });
+
+  document.getElementById('orc-restore-btn').addEventListener('click', function () {
+    removedIds.clear();
+    document.querySelectorAll('.orc-item.removed').forEach(el => el.classList.remove('removed'));
+    recalculate();
+  });
+
+  function closeModal() {
+    document.getElementById('orc-modal').classList.remove('open');
+    pendingRemoveId = null;
+  }
+
+  document.getElementById('btn-approve').addEventListener('click', function () {
+    const btn = this;
+    const rejectBtn = document.getElementById('btn-reject');
+    btn.innerHTML = '<span class="spinner"></span> Aprovando...';
+    btn.disabled = true;
+    rejectBtn.disabled = true;
+
+    setTimeout(() => {
+      document.getElementById('orc-action-btns').style.display = 'none';
+      document.getElementById('orc-restore-btn').classList.remove('show');
+      document.getElementById('orc-modified-banner').classList.remove('show');
+
+      const badge = document.getElementById('orc-status-badge');
+      badge.className = 'badge badge-solid-green';
+      badge.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size:10px"></i> Aprovado';
+
+      document.getElementById('orc-approved-msg').classList.add('show');
+      document.querySelectorAll('.orc-item-remove').forEach(b => { b.disabled = true; });
+    }, 1600);
+  });
+
+  document.getElementById('btn-reject').addEventListener('click', function () {
+    const btn = this;
+    const approveBtn = document.getElementById('btn-approve');
+    btn.innerHTML = '<span class="spinner spinner-slate"></span> Recusando...';
+    btn.disabled = true;
+    approveBtn.disabled = true;
+
+    setTimeout(() => {
+      document.getElementById('orc-action-btns').style.display = 'none';
+      document.getElementById('orc-restore-btn').classList.remove('show');
+      document.getElementById('orc-modified-banner').classList.remove('show');
+
+      const badge = document.getElementById('orc-status-badge');
+      badge.className = 'badge badge-solid-slate';
+      badge.innerHTML = '<i class="fa-solid fa-xmark" style="font-size:10px"></i> Recusado';
+    }, 1600);
   });
 </script>
 

@@ -1,12 +1,11 @@
-{{-- ═══ HEADER ═══ --}}
 @php
     $notificacoesRecentes = auth()->user()->unreadNotifications()->latest()->take(5)->get();
     $totalNaoLidas        = auth()->user()->unreadNotifications()->count();
 @endphp
 
-<header class="sticky top-0 z-30 flex h-[58px] items-center gap-3 border-b border-slate-200/70 bg-white/[0.97] px-4 shadow-[0_1px_0_rgba(0,0,0,0.05)] backdrop-blur-md sm:px-6">
+<header class="sticky top-0 z-30 flex h-[64px] items-center gap-3 border-b border-slate-200/70 bg-white/[0.97] px-4 shadow-[0_1px_0_rgba(0,0,0,0.05)] backdrop-blur-md sm:px-6">
 
-    {{-- Mobile menu toggle --}}
+    {{-- Mobile menu button --}}
     <button @click="mobileOpen = true" type="button"
             class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 lg:hidden"
             aria-label="Abrir menu">
@@ -15,39 +14,34 @@
         </svg>
     </button>
 
-    {{-- Breadcrumbs --}}
-    <div class="flex min-w-0 flex-1 items-center gap-1.5 text-[13px] text-slate-500">
-        @yield('breadcrumbs')
+    {{-- Global search --}}
+    <div class="hidden md:block">
+        <div class="relative">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg class="h-3.5 w-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                </svg>
+            </div>
+            <input type="search"
+                   placeholder="Buscar OS, cliente…"
+                   class="h-9 w-[240px] rounded-xl border border-slate-200 bg-slate-50/80 pl-9 pr-4 text-[13px] text-slate-800 placeholder-slate-400 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-500/10">
+        </div>
     </div>
 
-    {{-- Actions --}}
-    <div class="flex items-center gap-1">
+    {{-- Right: actions --}}
+    <div class="ml-auto flex items-center gap-1">
 
-        {{-- Search bar (desktop) --}}
-        <button type="button"
-                class="hidden h-8 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-[12.5px] font-medium text-slate-400 transition hover:border-slate-300 hover:bg-white hover:text-slate-700 sm:flex"
-                aria-label="Buscar">
-            <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-            </svg>
-            Buscar…
-            <kbd class="hidden h-[18px] items-center rounded border border-slate-200 bg-white px-1 text-[10px] text-slate-400 xl:flex">⌘K</kbd>
-        </button>
-
-        {{-- Separator --}}
-        <div class="mx-1 h-5 w-px bg-slate-200 sm:block hidden"></div>
-
-        {{-- Notifications --}}
+        {{-- Notification bell --}}
         <div class="relative" x-data="{ open: false }">
             <button @click="open = !open" type="button"
-                    class="relative flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                    class="relative flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
                     aria-label="Notificações">
                 <svg class="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.73 21a2 2 0 0 1-3.46 0"/>
                 </svg>
                 @if($totalNaoLidas > 0)
-                    <span class="absolute right-0.5 top-0.5 flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-red-500 px-1 text-[8.5px] font-bold leading-none text-white">
+                    <span class="absolute right-1 top-1 flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-red-500 px-1 text-[8.5px] font-bold leading-none text-white">
                         {{ $totalNaoLidas > 9 ? '9+' : $totalNaoLidas }}
                     </span>
                 @endif
@@ -100,13 +94,23 @@
                                 {{ $tipo === 'mensagem_portal' ? 'bg-emerald-100 text-emerald-600' : '' }}
                                 {{ !in_array($tipo, ['os_criada','os_status','mensagem_portal']) ? 'bg-slate-100 text-slate-500' : '' }}">
                                 @if($tipo === 'os_criada')
-                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                                    <rect x="9" y="3" width="6" height="4" rx="1"/>
+                                </svg>
                                 @elseif($tipo === 'os_status')
-                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+                                    <path d="M21 3v5h-5"/>
+                                </svg>
                                 @elseif($tipo === 'mensagem_portal')
-                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
                                 @else
-                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                </svg>
                                 @endif
                             </div>
                             <div class="min-w-0 flex-1">
@@ -133,12 +137,23 @@
             </div>
         </div>
 
+        <div class="mx-1 h-5 w-px bg-slate-200"></div>
+
         {{-- User avatar --}}
         <div class="relative" x-data="{ open: false }">
             <button @click="open = !open" type="button"
-                    class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-[11px] font-bold text-white ring-2 ring-offset-1 ring-transparent transition hover:ring-blue-200"
+                    class="flex items-center gap-2 rounded-xl px-2 py-1.5 transition hover:bg-slate-100"
                     aria-label="Menu do usuário">
-                {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-[11px] font-bold text-white">
+                    {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}
+                </div>
+                <div class="hidden flex-col items-start sm:flex">
+                    <span class="text-[12.5px] font-semibold leading-tight text-slate-800">{{ auth()->user()->name ?? 'Usuário' }}</span>
+                    <span class="text-[11px] leading-tight text-slate-400">{{ auth()->user()->email ?? '' }}</span>
+                </div>
+                <svg class="hidden h-3.5 w-3.5 shrink-0 text-slate-400 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
+                </svg>
             </button>
 
             <div x-show="open" @click.outside="open = false"
@@ -149,7 +164,7 @@
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-[0.97]"
                  class="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-black/[0.07]"
-                 style="display:none">
+                 style="display: none">
 
                 <div class="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5">
                     <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-[12px] font-bold text-white">

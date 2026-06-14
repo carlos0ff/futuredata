@@ -4,18 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>@yield('title', 'Painel') — Future Data</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
     @stack('styles')
 </head>
-<body
-    x-data="{
+
+<body x-data="{
         collapsed: false,
         mobileOpen: false,
         tooltip: { visible: false, text: '', x: 0, y: 0 },
@@ -30,7 +32,6 @@
     class="min-h-screen bg-[#f0f2f6] text-slate-900 antialiased [font-family:'DM_Sans',sans-serif]"
 >
 
-{{-- ═══ TOOLTIP GLOBAL ═══ --}}
 <div
     x-show="tooltip.visible && collapsed"
     x-transition:enter="transition ease-out duration-100"
@@ -47,40 +48,34 @@
     <span x-text="tooltip.text"></span>
 </div>
 
-{{-- ═══ MOBILE OVERLAY ═══ --}}
-<div
-    x-show="mobileOpen"
-    x-transition:enter="transition-opacity ease-out duration-200"
-    x-transition:enter-start="opacity-0"
-    x-transition:enter-end="opacity-100"
-    x-transition:leave="transition-opacity ease-in duration-150"
-    x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
-    @click="mobileOpen = false"
-    class="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
-    style="display:none"
-></div>
+<div x-show="mobileOpen" x-transition:enter="transition-opacity ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+    x-transition:leave="transition-opacity ease-in duration-150" x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0" @click="mobileOpen = false" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
+    style="display:none"></div>
 
-{{-- ═══ SIDEBAR ═══ --}}
 @include('layouts.partials.sidebar')
 
-{{-- ═══ CONTEÚDO PRINCIPAL ═══ --}}
-<div
-    :class="collapsed ? 'lg:ml-[68px]' : 'lg:ml-[240px]'"
-    class="flex min-h-screen flex-1 flex-col transition-[margin] duration-300 ease-in-out"
->
-    {{-- Header --}}
+<div :class="collapsed ? 'lg:ml-[68px]' : 'lg:ml-[252px]'" class="flex min-h-screen flex-1 flex-col transition-[margin] duration-300 ease-in-out">
     @include('layouts.partials.header')
 
-    {{-- Flash alerts --}}
+    @hasSection('breadcrumbs')
+    <div class="border-b border-slate-200/60 bg-white px-4 py-2.5 sm:px-6">
+        <div class="flex items-center gap-1.5 text-[13px] text-slate-500">
+            @yield('breadcrumbs')
+        </div>
+    </div>
+    @endif
+
     @include('layouts.partials.alerts')
 
-    {{-- Page content --}}
-    <main class="flex-1 px-5 py-6 pb-12 sm:px-7">
+    <main class="@hasSection('fullpage') flex flex-1 overflow-hidden @else flex-1 px-5 py-6 pb-12 sm:px-7 @endif">
         @yield('content')
     </main>
 </div>
 
+@include('layouts.partials.live-refresh')
+
 @stack('scripts')
+
 </body>
 </html>

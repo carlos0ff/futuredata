@@ -2,6 +2,7 @@
 @section('title', 'Mensagens')
 
 @section('content')
+<div class="mx-auto max-w-7xl px-4 sm:px-6 py-8">
 
 <div class="mb-5">
     <h1 class="text-[22px] font-bold text-slate-900">Mensagens</h1>
@@ -76,7 +77,7 @@
                         <p class="text-[12px] text-slate-500">{{ $ordemAtiva->equipamento->modelo ?? '' }}</p>
                     </div>
                     <x-ui.badge :variant="'primary'" :dot="true">
-                        {{ $ordemAtiva->status_label ?? 'Em andamento' }}
+                        {{ \App\Models\Ordem::STATUS[$ordemAtiva->status]['label'] ?? 'Em andamento' }}
                     </x-ui.badge>
                 </div>
             </div>
@@ -84,7 +85,7 @@
             {{-- Messages --}}
             <div class="max-h-[420px] overflow-y-auto space-y-4 p-5">
                 @foreach($thread as $msg)
-                @php $isMe = $msg->autor_tipo === 'cliente'; @endphp
+                @php $isMe = $msg->tipo === 'cliente'; @endphp
                 <div class="flex {{ $isMe ? 'justify-end' : 'justify-start' }} gap-3">
                     @if(!$isMe)
                         <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-600">
@@ -140,4 +141,5 @@
 
 </div>
 
+</div>
 @endsection

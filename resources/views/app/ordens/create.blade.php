@@ -11,15 +11,11 @@
 @php
 $tipos = [
     ['Notebook',   'M2 6h20v12H2z M1 18h22 M8 21h8 M12 18v3'],
-    ['Celular',    'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z M12 18h.01'],
-    ['PC',         'M8 3h8 M4 7h16 M6 7l2 13h8l2-13 M12 10v4'],
+    ['Desktop',         'M8 3h8 M4 7h16 M6 7l2 13h8l2-13 M12 10v4'],
     ['Impressora', 'M6 9V2h12v7 M4 9h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2v4H6v-4H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z'],
-    ['Monitor',    'M2 3h20v14H2z M8 21h8 M12 17v4'],
-    ['Tablet',     'M5 2h14a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z M12 18h.01'],
-    ['TV',         'M2 7h20v15H2z M17 2l-5 5-5-5'],
-    ['Videogame',  'M2 8h20v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z M6 12h4 M8 10v4 M15 12h.01 M18 12h.01'],
     ['Outro',      'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M9 9a3 3 0 1 1 5 2.83c-.5.66-1 1.17-1 2.17 M12 17h.01'],
 ];
+
 $formas = [
     ['balcao',   'Balcão',   'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10'],
     ['coleta',   'Coleta',   'M1 3h15v13H1z M16 8l4 2v5h-4 M5.5 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M18.5 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z'],
@@ -272,32 +268,21 @@ $formas = [
             </div>
         </div>
 
-        {{-- Card cliente selecionado --}}
-        <div x-show="found"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-[0.98]"
-             x-transition:enter-end="opacity-100 scale-100"
-             class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3"
-             style="display:none">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 text-[12px] font-bold text-white"
-                 x-text="found?.iniciais||'?'"></div>
+        <div x-show="found" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-[0.98]" x-transition:enter-end="opacity-100 scale-100" class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3" style="display:none">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 text-[12px] font-bold text-white" x-text="found?.iniciais||'?'"></div>
             <div class="min-w-0 flex-1">
                 <p class="truncate text-[13.5px] font-bold text-slate-900" x-text="found?.nome"></p>
                 <p class="text-[12px] text-slate-500" x-text="[found?.cpf_cnpj, found?.telefone].filter(Boolean).join(' · ')"></p>
             </div>
-            <button type="button" @click="limparCliente()"
-                    class="shrink-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500 transition hover:bg-slate-50">
+            <button type="button" @click="limparCliente()" class="shrink-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500 transition hover:bg-slate-50">
                 trocar
             </button>
         </div>
 
-        {{-- Campos --}}
         <div class="grid gap-3.5 sm:grid-cols-2">
             <div class="sm:col-span-2">
                 <label class="mb-1.5 block text-[12.5px] font-semibold text-slate-700">Nome completo <span class="text-red-500">*</span></label>
-                <input type="text" name="nome" x-ref="nome" x-model="nome"
-                       placeholder="Nome completo"
-                       class="h-10 w-full rounded-xl border px-3 text-[13px] placeholder:text-slate-400 outline-none transition {{ $errors->has('nome') ? 'border-red-400 bg-red-50/30' : 'border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15' }}">
+                <input type="text" name="nome" x-ref="nome" x-model="nome" placeholder="Nome completo" class="h-10 w-full rounded-xl border px-3 text-[13px] placeholder:text-slate-400 outline-none transition {{ $errors->has('nome') ? 'border-red-400 bg-red-50/30' : 'border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15' }}" />
                 @error('nome')<p class="mt-1 text-[11.5px] text-red-500">{{ $message }}</p>@enderror
             </div>
             <div>
@@ -331,7 +316,6 @@ $formas = [
             </div>
         </div>
 
-        {{-- Endereço --}}
         <div>
             <button type="button" @click="endOpen=!endOpen"
                     class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 transition hover:border-slate-300">
@@ -386,7 +370,6 @@ $formas = [
     </div>
 </div>
 
-{{-- ── 2 · EQUIPAMENTO ──────────────────────────────────────── --}}
 <div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.06]">
     <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
         <div class="flex items-center gap-3">
@@ -398,24 +381,18 @@ $formas = [
             <span class="text-[11.5px] font-semibold text-white" x-text="tipo"></span>
         </div>
     </div>
-    <div class="p-6 space-y-5">
 
-        {{-- TIPO DE EQUIPAMENTO — usa has-[:checked]: CSS puro --}}
+    <div class="p-6 space-y-5">
         <div>
             <label class="mb-3 block text-[12.5px] font-semibold text-slate-700">
                 Tipo de equipamento <span class="text-red-500">*</span>
             </label>
             <div class="grid grid-cols-3 gap-2.5 sm:grid-cols-5">
                 @foreach($tipos as [$tipo, $paths])
-                <label class="relative flex cursor-pointer flex-col items-center gap-2.5 rounded-2xl border-2 border-slate-200 bg-white px-2 py-4 text-center text-slate-500 transition-all duration-150 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.96]
-                              has-[:checked]:border-slate-900 has-[:checked]:bg-slate-900 has-[:checked]:text-white">
+                <label class="relative flex cursor-pointer flex-col items-center gap-2.5 rounded-2xl border-2 border-slate-200 bg-white px-2 py-4 text-center text-slate-500 transition-all duration-150 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.96] has-[:checked]:border-slate-900 has-[:checked]:bg-slate-900 has-[:checked]:text-white">
 
-                    <input type="radio" name="equipamento_tipo" value="{{ $tipo }}"
-                           @change="tipo = '{{ $tipo }}'"
-                           class="sr-only"
-                           @checked(old('equipamento_tipo') === $tipo)>
+                    <input type="radio" name="equipamento_tipo" value="{{ $tipo }}" @change="tipo = '{{ $tipo }}'" class="sr-only" @checked(old('equipamento_tipo') === $tipo) />
 
-                    {{-- Checkmark --}}
                     <div class="absolute right-2 top-2 h-4 w-4 rounded-full bg-transparent transition has-[:checked]:bg-white/25 [label:has(:checked)_&]:opacity-100 opacity-0 flex items-center justify-center pointer-events-none">
                         <svg class="h-2.5 w-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>
                     </div>
@@ -432,7 +409,6 @@ $formas = [
             @error('equipamento_tipo')<p class="mt-1.5 text-[12px] text-red-500">{{ $message }}</p>@enderror
         </div>
 
-        {{-- Campos do equipamento --}}
         <div class="grid gap-3.5 sm:grid-cols-2">
             <div>
                 <label class="mb-1.5 block text-[12.5px] font-semibold text-slate-700">Marca</label>
@@ -466,7 +442,6 @@ $formas = [
             </div>
         </div>
 
-        {{-- FORMA DE ENTRADA — também has-[:checked]: --}}
         <div>
             <label class="mb-3 block text-[12.5px] font-semibold text-slate-700">Como chegou? <span class="text-red-500">*</span></label>
             <div class="grid grid-cols-5 gap-2">
@@ -489,7 +464,6 @@ $formas = [
     </div>
 </div>
 
-{{-- ── 3 · DEFEITO E OS ─────────────────────────────────────── --}}
 <div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.06]">
     <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
         <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-[11px] font-black text-white">3</span>
@@ -536,7 +510,6 @@ $formas = [
     </div>
 </div>
 
-{{-- ── 4 · FOTOS ─────────────────────────────────────────────── --}}
 <div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.06]">
     <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
         <div class="flex items-center gap-3">
@@ -574,7 +547,6 @@ $formas = [
     </div>
 </div>
 
-{{-- Submit mobile --}}
 <div class="flex gap-3 pb-2 lg:hidden">
     <a href="{{ route('app.os.index') }}" class="flex h-11 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white text-[13px] font-semibold text-slate-700 transition hover:bg-slate-50">Cancelar</a>
     <button type="submit" :disabled="busy"
@@ -585,13 +557,11 @@ $formas = [
     </button>
 </div>
 
-</div>{{-- /esquerda --}}
+</div>
 
-{{-- ══ PAINEL DIREITO (sticky) ════════════════════════════ --}}
 <div class="hidden lg:block">
     <div class="sticky top-[74px] space-y-4">
 
-        {{-- Resumo ao vivo --}}
         <div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.06]">
             <div class="border-b border-slate-100 px-5 py-3.5">
                 <p class="text-[10.5px] font-black uppercase tracking-widest text-slate-400">Resumo da OS</p>
@@ -649,7 +619,6 @@ $formas = [
             </div>
         </div>
 
-        {{-- CTA --}}
         <button type="submit" :disabled="busy" class="flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 disabled:opacity-60 active:scale-[0.98]">
             <svg x-show="!busy" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
             <svg x-show="busy" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" style="display:none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
@@ -665,7 +634,7 @@ $formas = [
             </p>
         </div>
     </div>
-</div>{{-- /direita --}}
+</div>
 
 </form>
 </div>

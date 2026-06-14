@@ -12,15 +12,6 @@
 
 @section('content')
 
-{{-- Flash --}}
-@if(session('success'))
-<div class="mb-4 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[13.5px] font-medium text-emerald-700">
-    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-    </svg>
-    {{ session('success') }}
-</div>
-@endif
 
 {{-- Page header --}}
 <div class="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">

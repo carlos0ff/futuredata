@@ -11,6 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Webhook do WhatsApp não precisa de CSRF
+        $middleware->validateCsrfTokens(except: [
+            'webhook/whatsapp',
+        ]);
+
         // Usuários não autenticados → login da equipe
         $middleware->redirectGuestsTo(fn () => route('auth.entrar'));
 

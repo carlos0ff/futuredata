@@ -3,14 +3,20 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Portal\LoginController as PortalLoginController;
-use App\Http\Controllers\Portal\PortalController;
-use App\Http\Controllers\Portal\MessageController;
 
-/**
- * 
- */
+// ── Módulo: Auth ──────────────────────────────────────────────────────────────
+use App\Http\Controllers\Auth\AuthController;
+
+// ── Módulo: Portal ────────────────────────────────────────────────────────────
+use App\Http\Controllers\Portal\Auth\LoginController as PortalLoginController;
+use App\Http\Controllers\Portal\Ordens\PortalController;
+use App\Http\Controllers\Portal\Mensagens\MessageController;
+
+/*
+|--------------------------------------------------------------------------
+| Autenticação interna (técnicos e gerentes)
+|--------------------------------------------------------------------------
+*/
 Route::prefix('auth')->name('auth.')->group(function () {
 
     Route::middleware('guest')->group(function () {
@@ -26,7 +32,7 @@ Route::prefix('auth')->name('auth.')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Portal do cliente — autenticação via CPF + data de nascimento (sessão)
+| Portal do cliente — autenticação via código da OS (sessão)
 |--------------------------------------------------------------------------
 */
 Route::prefix('portal')->name('portal.')->group(function () {
@@ -34,17 +40,18 @@ Route::prefix('portal')->name('portal.')->group(function () {
     // Login / logout (sem middleware — lógica interna no controller)
     Route::get('/entrar',  [PortalLoginController::class, 'index'])->name('entrar');
     Route::post('/entrar', [PortalLoginController::class, 'authenticate'])->name('entrar.post');
-    
     Route::post('/sair',   [PortalLoginController::class, 'sair'])->name('sair');
 
     // Páginas protegidas pelo middleware de sessão do portal
     Route::middleware('portal.auth')->group(function () {
-        Route::get('/',              [PortalController::class, 'index'])->name('index');
-        Route::get('/os/{ordem}',    [PortalController::class, 'show'])->name('show');
+        Route::get('/',                        [PortalController::class, 'index'])->name('index');
+        Route::get('/os/{ordem}',              [PortalController::class, 'show'])->name('show');
+        Route::post('/os/{ordem}/orcamento',   [PortalController::class, 'responderOrcamento'])->name('os.orcamento');
+        Route::get('/os/{ordem}/arquivos/{arquivo}', [PortalController::class, 'arquivo'])->name('os.arquivo');
 
-        Route::prefix('mensagens')->name('mensagens.')->group(function () {
-            Route::get('/',  [MessageController::class, 'index'])->name('index');
-            Route::post('/', [MessageController::class, 'store'])->name('store');
+        Route::prefix('mensagens')->name('mensagens.')->controller(MessageController::class)->group(function () {
+            Route::get('/',  'index')->name('index');
+            Route::post('/', 'store')->name('store');
         });
     });
 });

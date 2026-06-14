@@ -126,19 +126,21 @@
             </blockquote>
         </div>
 
-        {{-- Autor --}}
-        <div class="relative z-10 space-y-4">
-            <div class="flex items-center gap-3">
-                <img
-                    src="https://media.licdn.com/dms/image/v2/D4D03AQF7xzwKIYFwwQ/profile-displayphoto-crop_800_800/B4DZw4KyXeKwAI-/0/1770468879303?e=1781136000&v=beta&t=Oilvt6HaBEHqwFh_pLWFFyYDfJ4ntX-glf0wzHR6sGM"
-                    class="h-11 w-11 rounded-full ring-2 ring-slate-600 object-cover flex-shrink-0"
-                    alt="Gustavo Web"
-                >
-                <div>
-                    <p class="text-slate-500 text-[10px] tracking-widest uppercase mb-0.5">Produzido por</p>
-                    <p class="text-white text-sm font-semibold leading-none" style="font-family:'Sora',sans-serif;">Gustavo Web</p>
-                    <p class="text-slate-400 text-xs mt-0.5">Fundador da BlackDev</p>
+        {{-- Trust indicators --}}
+        <div class="relative z-10">
+            <div class="flex flex-col gap-3">
+                @foreach([
+                    ['icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>', 'text' => 'Dados protegidos com criptografia'],
+                    ['icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>', 'text' => 'Notificações automáticas via WhatsApp'],
+                    ['icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>', 'text' => 'Acompanhe cada etapa em tempo real'],
+                ] as $feat)
+                <div class="flex items-center gap-3">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/5 ring-1 ring-white/10">
+                        <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">{!! $feat['icon'] !!}</svg>
+                    </div>
+                    <span class="text-[13px] text-slate-400">{{ $feat['text'] }}</span>
                 </div>
+                @endforeach
             </div>
         </div>
 
@@ -160,71 +162,37 @@
                 <h1 class="text-[2.25rem] font-bold text-slate-900 leading-tight" style="font-family:'Sora',sans-serif;">
                     Acessar minha OS
                 </h1>
-                <p class="text-slate-500 mt-2 text-sm">Informe seus dados para acompanhar o status do reparo.</p>
+                <p class="text-slate-500 mt-2 text-sm">Use o código que recebeu via WhatsApp ou no comprovante.</p>
             </div>
 
             {{-- Formulário --}}
             <form method="POST" action="{{ route('portal.entrar.post') }}" class="space-y-5">
                 @csrf
 
-                {{-- CPF / CNPJ --}}
+                {{-- Código de acesso --}}
                 <div class="space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">CPF ou CNPJ</label>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Código de acesso</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="fas fa-id-card text-slate-400 text-sm"></i>
+                            <i class="fas fa-key text-slate-400 text-sm"></i>
                         </span>
                         <input
-                            id="cpf_cnpj"
-                            name="cpf_cnpj"
+                            id="codigo"
+                            name="codigo"
                             type="text"
-                            value="{{ old('cpf_cnpj') }}"
+                            value="{{ old('codigo') }}"
                             autocomplete="off"
                             autofocus
-                            placeholder="000.000.000-00"
-                            inputmode="numeric"
-                            maxlength="18"
-                            x-on:input="
-                                let v = $el.value.replace(/\D/g, '');
-                                if (v.length <= 11) {
-                                    v = v.replace(/(\d{3})(\d)/, '$1.$2')
-                                         .replace(/(\d{3})(\d)/, '$1.$2')
-                                         .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-                                } else {
-                                    v = v.replace(/^(\d{2})(\d)/, '$1.$2')
-                                         .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-                                         .replace(/\.(\d{3})(\d)/, '.$1/$2')
-                                         .replace(/(\d{4})(\d)/, '$1-$2');
-                                }
-                                $el.value = v;
-                            "
-                            class="w-full pl-11 pr-4 py-3 text-sm rounded-xl border transition-all focus:outline-none
-                                {{ $errors->has('cpf_cnpj')
+                            placeholder="Ex: OS-2024-0042"
+                            class="w-full pl-11 pr-4 py-3 text-sm font-mono rounded-xl border transition-all focus:outline-none tracking-widest uppercase
+                                {{ $errors->has('codigo')
                                     ? 'border-red-300 bg-red-50 text-red-700 placeholder-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100'
                                     : 'border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 hover:border-slate-300 focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-100' }}"
                         >
                     </div>
-                </div>
-
-                {{-- Data de nascimento --}}
-                <div class="space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Data de nascimento</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="fas fa-calendar text-slate-400 text-sm"></i>
-                        </span>
-                        <input
-                            id="data_nascimento"
-                            name="data_nascimento"
-                            type="date"
-                            value="{{ old('data_nascimento') }}"
-                            max="{{ now()->toDateString() }}"
-                            class="w-full pl-11 pr-4 py-3 text-sm rounded-xl border transition-all focus:outline-none
-                                {{ $errors->has('data_nascimento')
-                                    ? 'border-red-300 bg-red-50 text-red-700 focus:border-red-400 focus:ring-2 focus:ring-red-100'
-                                    : 'border-slate-200 bg-slate-50 text-slate-800 hover:border-slate-300 focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-100' }}"
-                        >
-                    </div>
+                    @error('codigo')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- Botão --}}
@@ -234,12 +202,12 @@
 
             </form>
 
-            {{-- Dica de acesso por link --}}
-            <div class="mt-6 flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3.5">
-                <i class="fas fa-circle-info text-amber-500 text-sm mt-0.5 shrink-0"></i>
+            {{-- Dica --}}
+            <div class="mt-6 flex items-start gap-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3.5">
+                <i class="fas fa-circle-info text-blue-500 text-sm mt-0.5 shrink-0"></i>
                 <p class="text-xs text-slate-500 leading-relaxed">
-                    <span class="font-semibold text-slate-600">Acesso por link:</span>
-                    se recebeu um link pelo WhatsApp ou e-mail, clique diretamente — não precisa de login.
+                    <span class="font-semibold text-slate-600">Onde encontrar o código?</span>
+                    Ele está no comprovante impresso, no link enviado pelo WhatsApp ou no e-mail da assistência.
                 </p>
             </div>
 
