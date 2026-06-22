@@ -169,10 +169,12 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
         ->prefix('whatsapp')->name('whatsapp.')
         ->controller(WhatsappConfigController::class)
         ->group(function () {
-            Route::get('/',             'index')->name('index');
-            Route::post('/save',        'save')->name('save');
-            Route::get('/status',       'status')->name('status');
-            Route::get('/qrcode',       'qrcode')->name('qrcode');
-            Route::post('/bot-toggle',  'botToggle')->name('bot-toggle');
+            Route::get('/',                    'index')->name('index');
+            Route::post('/save',               'save')->name('save');
+            Route::get('/status',              'status')->name('status');
+            Route::get('/qrcode',              'qrcode')->name('qrcode');
+            Route::post('/bot-toggle',         'botToggle')->name('bot-toggle');
+            Route::post('/register-webhook',   'registerWebhook')->name('register-webhook');
+            Route::post('/test-n8n',           'testN8n')->name('test-n8n');
         });
 });

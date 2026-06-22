@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\App\Configuracoes;
 
 use App\Http\Controllers\Controller;
-use App\Services\WhatsappService;
+use App\Models\Mensagem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,23 +11,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
-/**
- * Configuração e monitoramento do WhatsApp / Evolution API.
- *
- * Rotas:
- * - GET  /app/whatsapp            → index()       — tela principal
- * - POST /app/whatsapp/save       → save()        — salva .env / config
- * - GET  /app/whatsapp/status     → status()      — status de conexão (AJAX)
- * - GET  /app/whatsapp/qrcode     → qrcode()      — QR code para conexão (AJAX)
- * - POST /app/whatsapp/connect    → connect()     — inicia instância
- * - POST /app/whatsapp/disconnect → disconnect()  — desconecta instância
- * - POST /app/whatsapp/bot-toggle → botToggle()   — habilita/desabilita bot
- */
 class WhatsappConfigController extends Controller
 {
-    /**
-     * Tela de configuração do WhatsApp.
-     */
     public function index(): View
     {
         $config = [
@@ -35,36 +20,51 @@ class WhatsappConfigController extends Controller
             'key'      => config('whatsapp.evolution.key', ''),
             'instance' => config('whatsapp.evolution.instance', 'futuredata'),
             'enabled'  => config('whatsapp.bot_enabled', true),
+            'n8n_url'  => config('services.n8n.webhook_url', ''),
         ];
 
-        return view('app.configuracoes.whatsapp', compact('config'));
+        $stats = [
+            'hoje'      => Mensagem::whereDate('created_at', today())->count(),
+            'total'     => Mensagem::count(),
+            'recebidas' => Mensagem::where('tipo', 'cliente')->whereDate('created_at', today())->count(),
+            'enviadas'  => Mensagem::where('tipo', 'tecnico')->whereDate('created_at', today())->count(),
+        ];
+
+        $recentes = Mensagem::with('ordem.cliente')
+            ->whereDate('created_at', today())
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('app.configuracoes.whatsapp', compact('config', 'stats', 'recentes'));
     }
 
-    /**
-     * Salva as configurações no arquivo .env do projeto.
-     */
     public function save(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'url'      => 'required|url',
             'key'      => 'required|string',
-            'instance' => 'required|string|alpha_dash',
+            'instance' => 'required|string',
             'secret'   => 'nullable|string',
+            'n8n_url'  => 'nullable|url',
         ]);
 
-        $this->updateEnv([
+        $env = [
             'WHATSAPP_EVOLUTION_URL'      => $data['url'],
             'WHATSAPP_EVOLUTION_KEY'      => $data['key'],
             'WHATSAPP_EVOLUTION_INSTANCE' => $data['instance'],
             'WHATSAPP_WEBHOOK_SECRET'     => $data['secret'] ?? '',
-        ]);
+        ];
 
-        return back()->with('success', 'Configurações do WhatsApp salvas com sucesso!');
+        if (! empty($data['n8n_url'])) {
+            $env['N8N_WEBHOOK_URL'] = $data['n8n_url'];
+        }
+
+        $this->updateEnv($env);
+
+        return back()->with('success', 'Configurações salvas com sucesso!');
     }
 
-    /**
-     * Retorna o status de conexão da instância Evolution API (AJAX).
-     */
     public function status(): JsonResponse
     {
         $cfg = config('whatsapp.evolution');
@@ -74,29 +74,24 @@ class WhatsappConfigController extends Controller
         }
 
         try {
-            $response = Http::timeout(5)
+            $res = Http::timeout(5)
                 ->withHeaders(['apikey' => $cfg['key']])
                 ->get("{$cfg['url']}/instance/connectionState/{$cfg['instance']}");
 
-            if ($response->successful()) {
-                $body  = $response->json();
-                $state = $body['instance']['state']
-                      ?? $body['state']
-                      ?? 'unknown';
+            if ($res->successful()) {
+                $body  = $res->json();
+                $state = $body['instance']['state'] ?? $body['state'] ?? 'unknown';
+                $phone = $body['instance']['profileName'] ?? $body['instance']['wuid'] ?? null;
 
-                return response()->json(['state' => $state]);
+                return response()->json(['state' => $state, 'phone' => $phone]);
             }
 
-            return response()->json(['state' => 'error', 'code' => $response->status()]);
+            return response()->json(['state' => 'error', 'code' => $res->status()]);
         } catch (\Throwable $e) {
-            Log::warning('WhatsApp status check failed', ['error' => $e->getMessage()]);
             return response()->json(['state' => 'offline']);
         }
     }
 
-    /**
-     * Retorna o QR code base64 para conexão da instância (AJAX).
-     */
     public function qrcode(): JsonResponse
     {
         $cfg = config('whatsapp.evolution');
@@ -106,20 +101,19 @@ class WhatsappConfigController extends Controller
         }
 
         try {
-            // Tenta o endpoint v2 primeiro; fallback para v1
-            $response = Http::timeout(10)
+            $res = Http::timeout(10)
                 ->withHeaders(['apikey' => $cfg['key']])
                 ->get("{$cfg['url']}/instance/connect/{$cfg['instance']}");
 
-            if (! $response->successful()) {
-                return response()->json(['error' => 'Falha ao obter QR code'], 422);
+            if (! $res->successful()) {
+                return response()->json(['error' => 'Falha ao obter QR code (HTTP ' . $res->status() . ')'], 422);
             }
 
-            $body = $response->json();
+            $body = $res->json();
             $qr   = $body['base64'] ?? $body['qrcode']['base64'] ?? null;
 
             if (! $qr) {
-                return response()->json(['error' => 'QR code não disponível', 'raw' => $body], 422);
+                return response()->json(['error' => 'Instância já conectada ou QR indisponível.'], 422);
             }
 
             return response()->json(['qr' => $qr]);
@@ -128,9 +122,59 @@ class WhatsappConfigController extends Controller
         }
     }
 
-    /**
-     * Alterna o estado do bot automático (enable/disable) via .env.
-     */
+    /** Registra o webhook na Evolution API automaticamente. */
+    public function registerWebhook(Request $request): JsonResponse
+    {
+        $cfg        = config('whatsapp.evolution');
+        $webhookUrl = url('/webhook/whatsapp');
+
+        if (empty($cfg['url']) || empty($cfg['key'])) {
+            return response()->json(['error' => 'Evolution API não configurada.'], 422);
+        }
+
+        try {
+            $res = Http::timeout(10)
+                ->withHeaders(['apikey' => $cfg['key'], 'Content-Type' => 'application/json'])
+                ->post("{$cfg['url']}/webhook/set/{$cfg['instance']}", [
+                    'url'               => $webhookUrl,
+                    'webhook_by_events' => false,
+                    'webhook_base64'    => false,
+                    'events'            => ['MESSAGES_UPSERT', 'CONNECTION_UPDATE'],
+                ]);
+
+            if ($res->successful()) {
+                return response()->json(['ok' => true, 'url' => $webhookUrl]);
+            }
+
+            return response()->json(['error' => 'Evolution retornou: ' . $res->status()], 422);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /** Testa o webhook n8n disparando um evento de teste. */
+    public function testN8n(): JsonResponse
+    {
+        $url = config('services.n8n.webhook_url');
+
+        if (! $url) {
+            return response()->json(['error' => 'URL do n8n não configurada.'], 422);
+        }
+
+        try {
+            $res = Http::timeout(5)->post($url, [
+                'event'     => 'test',
+                'source'    => 'FutureData',
+                'message'   => 'Teste de conexão do FutureData com n8n.',
+                'timestamp' => now()->toIso8601String(),
+            ]);
+
+            return response()->json(['ok' => true, 'status' => $res->status()]);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
     public function botToggle(Request $request): JsonResponse
     {
         $enabled = (bool) $request->input('enabled', true);
@@ -139,9 +183,6 @@ class WhatsappConfigController extends Controller
         return response()->json(['enabled' => $enabled]);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
-    /** Atualiza variáveis no arquivo .env do projeto. */
     private function updateEnv(array $values): void
     {
         $envPath = base_path('.env');
