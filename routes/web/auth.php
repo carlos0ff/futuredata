@@ -50,8 +50,9 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('/os/{ordem}/arquivos/{arquivo}', [PortalController::class, 'arquivo'])->name('os.arquivo');
 
         Route::prefix('mensagens')->name('mensagens.')->controller(MessageController::class)->group(function () {
-            Route::get('/',  'index')->name('index');
-            Route::post('/', 'store')->name('store');
+            Route::get('/',         'index')->name('index');
+            Route::post('/',        'store')->name('store');
+            Route::get('/{ordem}',  'thread')->name('thread');
         });
     });
 });

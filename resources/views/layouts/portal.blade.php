@@ -21,6 +21,12 @@
     $portalNome     = $portalCliente?->nome ?? 'Cliente';
     $portalLogado   = session()->has('portal_cliente_id');
     $portalTelefone = preg_replace('/\D/', '', $portalCliente?->telefone ?? '');
+    $portalOrdem    = $portalCliente
+        ? \App\Models\Ordem::where('cliente_id', $portalCliente->id)
+            ->whereNotIn('status', ['cancelado'])
+            ->latest()->first()
+            ?? \App\Models\Ordem::where('cliente_id', $portalCliente->id)->latest()->first()
+        : null;
 @endphp
 
 @php $navTransparente = trim($__env->yieldContent('transparent-nav')) !== ''; @endphp
@@ -214,6 +220,311 @@
 </footer>
 
 @include('layouts.partials.live-refresh')
+
+{{-- ── Widget de chat flutuante (apenas para clientes logados com OS) ──────── --}}
+@if($portalLogado && $portalOrdem)
+<div
+    x-data="chatWidget({
+        ordemId:  {{ $portalOrdem->id }},
+        ordemNum: '{{ $portalOrdem->numero }}',
+        nome:     '{{ addslashes(explode(' ', $portalNome)[0]) }}',
+        threadUrl: '{{ route('portal.mensagens.thread', $portalOrdem) }}',
+        storeUrl:  '{{ route('portal.mensagens.store') }}',
+        csrfToken: '{{ csrf_token() }}'
+    })"
+    class="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3"
+>
+    {{-- ── Janela do chat ───────────────────────────────────────────────── --}}
+    <div
+        x-show="open"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+        x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+        class="w-[360px] overflow-hidden rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-200 bg-white origin-bottom-right"
+        style="display:none"
+    >
+        {{-- Header --}}
+        <div class="relative flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3.5">
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                <svg class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-[13.5px] font-bold text-white leading-tight">Future Data</p>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="relative flex h-2 w-2">
+                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+                    </span>
+                    <span class="text-[11px] font-medium text-blue-100">Há operadores online!</span>
+                </div>
+            </div>
+            <button @click="open = false" class="flex h-7 w-7 items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        {{-- OS badge --}}
+        <div class="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2">
+            <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <span class="text-[11.5px] font-semibold text-slate-500">OS {{ $portalOrdem->numero }}</span>
+        </div>
+
+        {{-- Mensagens --}}
+        <div
+            x-ref="messagesArea"
+            class="flex h-64 flex-col gap-3 overflow-y-auto px-4 py-4 scroll-smooth"
+        >
+            {{-- Loading --}}
+            <template x-if="loading && messages.length === 0">
+                <div class="flex items-center justify-center py-8">
+                    <svg class="h-5 w-5 animate-spin text-slate-300" viewBox="0 0 24 24" fill="none">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                </div>
+            </template>
+
+            {{-- Empty state (antes do primeiro carregamento) --}}
+            <template x-if="!loading && messages.length === 0">
+                <div class="flex flex-col items-center justify-center gap-2 py-8 text-center">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
+                        <svg class="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                    </div>
+                    <p class="text-[12.5px] font-semibold text-slate-600">Iniciando chat...</p>
+                </div>
+            </template>
+
+            {{-- Mensagens --}}
+            <template x-for="msg in messages" :key="msg.id">
+                <div :class="msg.from === 'me' ? 'flex justify-end' : 'flex justify-start items-end'" class="gap-2">
+
+                    {{-- Avatar do bot / operador (lado esquerdo) --}}
+                    <template x-if="msg.from !== 'me'">
+                        <div class="shrink-0 self-end">
+                            {{-- Operador humano: círculo colorido com iniciais --}}
+                            <template x-if="msg.from === 'operator'">
+                                <div
+                                    class="flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                                    :style="'background-color:' + (msg.author_color || '#2563eb')"
+                                    :title="msg.author_name"
+                                    x-text="msg.author_initials"
+                                ></div>
+                            </template>
+                            {{-- Bot: ícone FD --}}
+                            <template x-if="msg.from === 'bot'">
+                                <div class="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-[9px] font-bold text-white">FD</div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <div class="max-w-[78%]">
+                        {{-- Nome do operador acima da mensagem --}}
+                        <template x-if="msg.from === 'operator'">
+                            <p class="mb-1 text-[10.5px] font-semibold text-slate-500" x-text="msg.author_name"></p>
+                        </template>
+                        <div
+                            :class="msg.from === 'me'
+                                ? 'bg-blue-600 text-white rounded-2xl rounded-br-sm'
+                                : 'bg-slate-100 text-slate-800 rounded-2xl rounded-bl-sm'"
+                            class="px-3.5 py-2.5"
+                        >
+                            <p class="text-[13px] leading-relaxed whitespace-pre-line" x-text="msg.text"></p>
+                        </div>
+                        <p :class="msg.from === 'me' ? 'text-right' : ''" class="mt-1 text-[10.5px] text-slate-400" x-text="msg.time"></p>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        {{-- Chips --}}
+        <div class="border-t border-slate-100 bg-slate-50/80 px-4 py-3">
+            {{-- Sugestões rápidas (antes do cliente enviar a primeira mensagem) --}}
+            <template x-if="clientMessages() === 0">
+                <div class="flex flex-wrap gap-2">
+                    <template x-for="chip in chips" :key="chip">
+                        <button
+                            @click="sendChip(chip)"
+                            class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 shadow-sm transition hover:border-blue-300 hover:text-blue-600"
+                            x-text="chip"
+                        ></button>
+                    </template>
+                </div>
+            </template>
+            {{-- Falar com técnico: só aparece após o bot ter respondido ao menos uma vez --}}
+            <template x-if="clientMessages() > 0">
+                <button
+                    @click="sendChip('Desejo falar com o técnico')"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] font-semibold text-emerald-700 transition hover:bg-emerald-100 active:scale-[0.98]"
+                >
+                    <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Falar com o técnico
+                </button>
+            </template>
+        </div>
+
+        {{-- Input --}}
+        <div class="flex items-center gap-2.5 border-t border-slate-100 bg-white px-4 py-3">
+            <input
+                x-model="input"
+                @keydown.enter.prevent="send()"
+                type="text"
+                placeholder="Digite sua mensagem..."
+                class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-[13px] text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
+            />
+            <button
+                @click="send()"
+                :disabled="!input.trim() || sending"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    {{-- ── Botão flutuante ─────────────────────────────────────────────────── --}}
+    <button
+        @click="toggleChat()"
+        class="group relative flex items-center gap-3 overflow-hidden rounded-2xl bg-blue-600 py-3 pl-4 pr-5 text-white shadow-lg shadow-blue-600/40 transition-all duration-300 hover:bg-blue-700 hover:shadow-blue-600/50 active:scale-[0.97]"
+    >
+        {{-- Dot de notificação --}}
+        <template x-if="unread > 0 && !open">
+            <span class="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white" x-text="unread"></span>
+        </template>
+
+        <span class="relative flex h-8 w-8 shrink-0 items-center justify-center">
+            {{-- Ícone chat (quando fechado) --}}
+            <svg
+                x-show="!open"
+                class="h-5 w-5 transition-transform group-hover:scale-110"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            {{-- Ícone fechar (quando aberto) --}}
+            <svg
+                x-show="open"
+                class="h-5 w-5"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                style="display:none"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </span>
+
+        <div x-show="!open" class="leading-tight" style="">
+            <p class="text-[13px] font-bold leading-none">Fale conosco</p>
+            <div class="mt-0.5 flex items-center gap-1">
+                <span class="relative flex h-1.5 w-1.5">
+                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75"></span>
+                    <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-300"></span>
+                </span>
+                <span class="text-[11px] font-medium text-blue-100">estamos online!</span>
+            </div>
+        </div>
+    </button>
+</div>
+
+<script>
+function chatWidget({ ordemId, ordemNum, nome, threadUrl, storeUrl, csrfToken }) {
+    return {
+        open: false,
+        loading: false,
+        sending: false,
+        input: '',
+        messages: [],
+        unread: 0,
+        nome,
+        chips: ['Ver status da OS', 'Qual o prazo?', 'Informações do orçamento'],
+        _poll: null,
+
+        toggleChat() {
+            this.open = !this.open;
+            if (this.open) {
+                this.unread = 0;
+                this.loadMessages();
+                this.startPolling();
+            } else {
+                this.stopPolling();
+            }
+        },
+
+        async loadMessages() {
+            this.loading = true;
+            try {
+                const res  = await fetch(threadUrl);
+                const data = await res.json();
+                const prev = this.messages.length;
+                this.messages = data;
+                if (!this.open && data.length > prev) this.unread += (data.length - prev);
+                this.$nextTick(() => this.scrollBottom());
+            } catch {}
+            this.loading = false;
+        },
+
+        async send() {
+            const text = this.input.trim();
+            if (!text || this.sending) return;
+
+            this.messages.push({
+                id: Date.now(), from: 'me', text,
+                time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            });
+            this.input = '';
+            this.$nextTick(() => this.scrollBottom());
+
+            this.sending = true;
+            try {
+                await fetch(storeUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    body: JSON.stringify({ conteudo: text, ordem_id: ordemId }),
+                });
+                await this.loadMessages();
+            } catch {}
+            this.sending = false;
+        },
+
+        sendChip(chip) {
+            this.input = chip;
+            this.send();
+        },
+
+        clientMessages() {
+            return this.messages.filter(m => m.from === 'me').length;
+        },
+
+        scrollBottom() {
+            const el = this.$refs.messagesArea;
+            if (el) el.scrollTop = el.scrollHeight;
+        },
+
+        startPolling() {
+            this.stopPolling();
+            this._poll = setInterval(() => this.loadMessages(), 5000);
+        },
+
+        stopPolling() {
+            if (this._poll) { clearInterval(this._poll); this._poll = null; }
+        },
+    };
+}
+</script>
+@endif
 
 @stack('scripts')
 </body>

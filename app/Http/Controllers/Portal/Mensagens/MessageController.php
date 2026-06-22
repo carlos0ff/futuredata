@@ -7,6 +7,8 @@ use App\Models\Mensagem;
 use App\Models\Ordem;
 use App\Models\User;
 use App\Notifications\MensagemPortal;
+use App\Services\PortalBotService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
@@ -15,19 +17,15 @@ use Illuminate\View\View;
 /**
  * Central de mensagens do portal do cliente.
  *
- * Lista as conversas (uma por OS) e permite que o cliente envie mensagens
- * para a equipe interna. Após salvar, notifica todos os gerentes e o técnico
- * responsável pela OS. A mensagem é salva com `tipo = "cliente"` e `user_id = null`.
- *
  * Rotas (prefixo: portal/mensagens):
- * - GET  / → index()
- * - POST / → store()
+ * - GET  /            → index()  — página de mensagens (legado)
+ * - POST /            → store()  — envia mensagem (web form ou JSON)
+ * - GET  /{ordem}     → thread() — retorna mensagens de uma OS (JSON, widget)
  */
 class MessageController extends Controller
 {
     /**
-     * Central de conversas: uma thread por OS do cliente logado.
-     * `?ordem={id}` abre a thread correspondente.
+     * Página de mensagens (lista de threads por OS).
      */
     public function index(Request $request): View
     {
@@ -39,7 +37,6 @@ class MessageController extends Controller
             ->latest()
             ->get();
 
-        // Última mensagem de cada OS (resumo da thread)
         $mensagens = $ordens->map(fn (Ordem $ordem) => $ordem->mensagens->first());
 
         $ordemAtiva = null;
@@ -59,9 +56,56 @@ class MessageController extends Controller
     }
 
     /**
-     * Salva a mensagem do cliente e notifica a equipe interna.
+     * Retorna as mensagens de uma OS como JSON (usado pelo widget flutuante).
+     * Se ainda não há mensagens, cria a saudação inicial do bot.
      */
-    public function store(Request $request): RedirectResponse
+    public function thread(Ordem $ordem): JsonResponse
+    {
+        abort_if($ordem->cliente_id !== session('portal_cliente_id'), 403);
+
+        // Cria saudação inicial do bot na primeira abertura
+        if ($ordem->mensagens()->count() === 0) {
+            $cliente     = \App\Models\Cliente::find(session('portal_cliente_id'));
+            $primeiroNome = $cliente ? explode(' ', trim($cliente->nome))[0] : 'Cliente';
+
+            Mensagem::create([
+                'ordem_id' => $ordem->id,
+                'user_id'  => null,
+                'tipo'     => 'tecnico',
+                'conteudo' => "Olá, {$primeiroNome}! 👋 Sou o assistente virtual da Future Data.\n\nComo posso te ajudar hoje?\n• Dúvidas sobre o status do reparo\n• Informações sobre orçamento\n• Prazo de entrega\n\nOu clique em **\"Desejo falar com o técnico\"** para falar diretamente com nossa equipe.",
+            ]);
+        }
+
+        $msgs = $ordem->mensagens()
+            ->with('autor')
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn ($m) => [
+                'id'             => $m->id,
+                'from'           => $m->tipo === 'cliente' ? 'me' : ($m->user_id ? 'operator' : 'bot'),
+                'text'           => $m->conteudo,
+                'time'           => $m->created_at->format('H:i'),
+                'author_name'    => $m->user_id ? $m->autor->name : 'Assistente FD',
+                'author_initials'=> $m->user_id ? $m->autor->iniciais : 'FD',
+                'author_avatar'  => null,
+                'author_color'   => $m->user_id ? $this->operatorColor($m->user_id) : null,
+            ]);
+
+        return response()->json($msgs);
+    }
+
+    private function operatorColor(int $userId): string
+    {
+        $palette = ['#2563eb', '#7c3aed', '#059669', '#d97706', '#e11d48', '#0284c7', '#0d9488'];
+
+        return $palette[$userId % count($palette)];
+    }
+
+    /**
+     * Salva a mensagem do cliente e aciona o bot automático.
+     * Aceita request normal (redirect) ou XHR/JSON (retorna JSON).
+     */
+    public function store(Request $request, PortalBotService $bot): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'conteudo' => 'required|string|max:1000',
@@ -79,16 +123,19 @@ class MessageController extends Controller
             'conteudo' => $data['conteudo'],
         ]);
 
-        $mensagem->load('ordem');
         $gerentes = User::where('role', 'gerente')->get();
-        Notification::send($gerentes, new MensagemPortal($mensagem));
+        Notification::send($gerentes, new MensagemPortal($mensagem->load('ordem')));
 
         if ($ordemServico->tecnico_id) {
             $ordemServico->tecnico->notify(new MensagemPortal($mensagem));
         }
 
-        return back()
-            ->with('success', 'Mensagem enviada com sucesso!')
-            ->withFragment('mensagens');
+        $bot->handle(session('portal_cliente_id'), $ordemServico->id, $data['conteudo']);
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return back()->with('success', 'Mensagem enviada!')->withFragment('mensagens');
     }
 }

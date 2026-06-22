@@ -20,4 +20,10 @@ return [
      */
     'webhook_secret' => env('WHATSAPP_WEBHOOK_SECRET'),
 
+    /*
+     | Ativa ou desativa respostas automáticas do bot.
+     | Quando false, mensagens são recebidas/salvas mas o bot não responde.
+     */
+    'bot_enabled' => env('WHATSAPP_BOT_ENABLED', true),
+
 ];

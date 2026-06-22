@@ -7,7 +7,6 @@
     $primeiroNome  = explode(' ', $cliente->nome ?? 'Cliente')[0];
     $equipamento   = $ordem->equipamento;
     $tecnico       = $ordem->tecnico;
-    $mensagens     = $ordem->mensagens()->oldest()->get();
     $arquivos      = $ordem->arquivos()->latest()->get();
 
     $statusConfig = \App\Models\Ordem::STATUS[$ordem->status] ?? ['label' => $ordem->status, 'color' => 'default'];
@@ -657,82 +656,6 @@
             </div>
             @endif
 
-            {{-- ── Mensagens ── --}}
-            <div class="rounded-2xl bg-white border border-slate-200 overflow-hidden">
-                <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100">
-                            <svg class="h-3.5 w-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                            </svg>
-                        </div>
-                        <h3 class="text-[13.5px] font-bold text-slate-800">Mensagens</h3>
-                        @if($mensagens->isNotEmpty())
-                        <span class="ml-0.5 rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-bold text-indigo-700">{{ $mensagens->count() }}</span>
-                        @endif
-                    </div>
-                </div>
-
-                {{-- Chat --}}
-                <div x-data x-init="$el.scrollTop = $el.scrollHeight"
-                     class="max-h-72 overflow-y-auto bg-slate-50/50 p-4 flex flex-col gap-3 [scrollbar-width:thin]">
-                    @if($mensagens->isEmpty())
-                    <div class="flex flex-col items-center justify-center py-8 text-center">
-                        <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
-                            <svg class="h-[18px] w-[18px] text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                            </svg>
-                        </div>
-                        <p class="text-[12.5px] font-semibold text-slate-600">Nenhuma mensagem</p>
-                        <p class="text-[11.5px] text-slate-400 mt-0.5">Envie uma mensagem abaixo.</p>
-                    </div>
-                    @else
-                    @foreach($mensagens as $msg)
-                    @if($msg->tipo === 'tecnico')
-                    <div class="flex items-end gap-2">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-[9px] font-bold text-white">FD</div>
-                        <div class="max-w-[85%]">
-                            <div class="rounded-2xl rounded-bl-sm bg-white px-3.5 py-2 shadow-sm ring-1 ring-slate-100">
-                                <p class="text-[12.5px] leading-relaxed text-slate-800">{{ $msg->conteudo }}</p>
-                            </div>
-                            <p class="mt-0.5 text-[10px] text-slate-400 ml-1">{{ $msg->created_at->format('d/m H:i') }}</p>
-                        </div>
-                    </div>
-                    @else
-                    <div class="flex items-end justify-end gap-2">
-                        <div class="max-w-[85%]">
-                            <div class="rounded-2xl rounded-br-sm bg-blue-600 px-3.5 py-2">
-                                <p class="text-[12.5px] leading-relaxed text-white">{{ $msg->conteudo }}</p>
-                            </div>
-                            <p class="mt-0.5 text-right text-[10px] text-slate-400 mr-1">{{ $msg->created_at->format('d/m H:i') }}</p>
-                        </div>
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-300 text-[9px] font-bold text-slate-700">
-                            {{ strtoupper(substr($cliente->nome, 0, 1)) }}
-                        </div>
-                    </div>
-                    @endif
-                    @endforeach
-                    @endif
-                </div>
-
-                {{-- Input --}}
-                <form method="POST" action="{{ route('portal.mensagens.store') }}"
-                      class="border-t border-slate-100 p-3 flex gap-2"
-                      x-data="{ msg: '' }">
-                    @csrf
-                    <input type="hidden" name="ordem_id" value="{{ $ordem->id }}">
-                    <input type="text" name="conteudo" x-model="msg"
-                           placeholder="Mensagem para a equipe..."
-                           autocomplete="off" maxlength="1000"
-                           class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-[12.5px] text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-400/20">
-                    <button type="submit" :disabled="!msg.trim()"
-                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white transition hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
-                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m22 2-11 11M22 2 15 22l-4-9-9-4 20-7z"/>
-                        </svg>
-                    </button>
-                </form>
-            </div>
 
         </div>{{-- /col-right --}}
     </div>{{-- /grid --}}

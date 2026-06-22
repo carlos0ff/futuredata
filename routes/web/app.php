@@ -18,6 +18,7 @@ use App\Http\Controllers\App\Relatorios\RelatorioController;
 use App\Http\Controllers\App\Notificacoes\NotificacaoController;
 use App\Http\Controllers\App\Usuarios\UsuarioController;
 use App\Http\Controllers\App\Configuracoes\ConfiguracaoController;
+use App\Http\Controllers\App\Configuracoes\WhatsappConfigController;
 use App\Http\Controllers\App\Servicos\ServiceController;
 
 Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
@@ -161,5 +162,17 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
             Route::put('/empresa', 'empresa')->name('empresa');
             Route::put('/sistema', 'sistema')->name('sistema');
             Route::put('/email',   'email')->name('email');
+        });
+
+    // ── WhatsApp / Bot ────────────────────────────────────────────────────────
+    Route::middleware('role:gerente,admin')
+        ->prefix('whatsapp')->name('whatsapp.')
+        ->controller(WhatsappConfigController::class)
+        ->group(function () {
+            Route::get('/',             'index')->name('index');
+            Route::post('/save',        'save')->name('save');
+            Route::get('/status',       'status')->name('status');
+            Route::get('/qrcode',       'qrcode')->name('qrcode');
+            Route::post('/bot-toggle',  'botToggle')->name('bot-toggle');
         });
 });
