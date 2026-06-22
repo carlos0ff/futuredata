@@ -9,131 +9,178 @@ FutureData ──► n8n webhook ──► processa evento ──► Evolution A
 ```
 
 ```
-WhatsApp ──► Evolution API ──► n8n ──► FutureData webhook ──► salva + bot responde
+WhatsApp ──► Evolution API ──► n8n (Agente IA) ──► responde automaticamente via WhatsApp
 ```
 
 ---
 
-## 1. Configurar n8n na VPS
+## Infraestrutura atual
 
-### Porta padrão
-n8n roda em `http://2.24.205.178:5678`
+| Serviço | URL |
+|---------|-----|
+| n8n | `http://2.24.205.178:32772` |
+| Evolution API | `http://2.24.205.178:32774` |
+| Instância WhatsApp | `carlos0ff.dev` |
+| Evolution Manager | `http://2.24.205.178:32774/manager` |
 
-### Abrir no firewall (se necessário)
-```bash
-sudo ufw allow 5678
-```
+**Credenciais n8n:** `carlosiilva66@gmail.com` / ver `.env`
 
 ---
 
-## 2. Criar o Webhook no n8n (recebe eventos do FutureData)
+## Workflow principal — Agente WhatsApp com IA
 
-### 2.1 Criar workflow "FutureData Events"
+**ID:** `xBDFXlgalz5kMG36`
+**Nome:** FutureData — Agente WhatsApp com IA
+**Status:** Ativo
 
-1. Acesse `http://2.24.205.178:5678`
-2. **New Workflow** → nome: `FutureData Events`
-3. Adicione node **Webhook**:
-   - **HTTP Method**: POST
-   - **Path**: `futuredata`
-   - Anote a URL gerada: `http://2.24.205.178:5678/webhook/futuredata`
-
-4. Adicione node **Switch** (logo após o Webhook):
-   - **Mode**: Rules
-   - **Value**: `{{ $json.event }}`
-   - Regras:
-     - `os.criada`
-     - `os.status_alterado`
-     - `os.orcamento_respondido`
-
-### 2.2 Ramo: `os.criada` → WhatsApp boas-vindas
-
-Adicione node **HTTP Request**:
+### Webhook de entrada
 ```
-Method: POST
+URL: http://2.24.205.178:32772/webhook/5acbbf43-ed70-4111-9049-b88bca8370a9
+Método: POST
+```
+
+### Fluxo dos nodes
+
+```
+Recebe mensagem (Webhook)
+    │
+    ▼
+Filtra fromMe e grupos (Filter)
+    │  Bloqueia: fromMe=true, grupos @g.us, eventos ≠ messages.upsert
+    ▼
+Coleta (Set)
+    │  Extrai: mensagem, nome, remoteJid
+    ▼
+Verifica tipo de arquivo (Switch)
+    │  Rota: texto | audio | imagem | documento
+    ▼
+Edit Fields (Set)
+    ▼
+Merge
+    ▼
+Agente Future Data (AI Agent — LangChain)
+    │  Modelo: Google Gemini 2.0 Flash
+    │  Memória: Simple Memory (buffer)
+    ▼
+SEPARA MENSAGENS2 (Code)
+    │  Divide resposta por \\ para múltiplas mensagens
+    ▼
+Loop Over Items1 (SplitInBatches)
+    ▼
+Envia mensagem para o WhatsApp (HTTP Request)
+    │  POST http://2.24.205.178:32774/message/sendText/carlos0ff.dev
+    ▼
+DELAY 1 SEGUNDO (Wait)
+    └──► Loop Over Items1
+```
+
+### Node: Envia mensagem para o WhatsApp
+
+```
+Método: POST
 URL: http://2.24.205.178:32774/message/sendText/carlos0ff.dev
 Headers:
   apikey: 6AF3EE269CF3-4175-B338-B6FD8EEA2F0C
-  Content-Type: application/json
-Body (JSON):
-{
-  "number": "55{{ $json.cliente.telefone }}",
-  "text": "Olá, {{ $json.cliente.nome }}! 👋\n\nSeu equipamento foi recebido com sucesso.\n\n📄 OS: {{ $json.os.numero }}\n📱 Equipamento: {{ $json.equipamento.nome }}\n\nAcompanhe pelo portal do cliente:\n{{ $json.os.url_portal }}\n\nFuture Data Assistência Técnica 🔧"
-}
+Body:
+  number: {{ $('Recebe mensagem').item.json.body.data.key.remoteJid }}
+  text:   {{ $json.item }}
 ```
 
-### 2.3 Ramo: `os.status_alterado` → notifica mudança
+### Node: Filtro anti-loop
 
-Adicione node **HTTP Request**:
-```json
-{
-  "number": "55{{ $json.cliente.telefone }}",
-  "text": "📋 *{{ $json.os.numero }}* — Status atualizado!\n\nDe: {{ $json.status_anterior_label }}\nPara: *{{ $json.os.status_label }}*\n\nDetalhes: {{ $json.os.url_portal }}"
-}
-```
-
-### 2.4 Ramo: `os.orcamento_respondido` → confirma para a equipe
-
-Adicione node **HTTP Request** (envia para número da loja/gerente):
-```json
-{
-  "number": "555581994821792",
-  "text": "💰 Orçamento *{{ $json.resposta | upper }}*\nOS: {{ $json.os.numero }}\nCliente: {{ $json.cliente.nome }}\nEquipamento: {{ $json.equipamento.nome }}"
-}
-```
-
-5. **Activate** o workflow (toggle no canto superior direito)
+Condições (AND):
+- `$json.body.data.key.fromMe` ≠ `true` — evita o bot responder a si mesmo
+- `$json.body.data.key.remoteJid` não contém `@g.us` — ignora grupos
+- `$json.body.event` = `messages.upsert` — só mensagens recebidas
 
 ---
 
-## 3. Configurar Evolution → n8n (mensagens WhatsApp entram no n8n)
+## Webhook Evolution API → n8n
 
-No painel Evolution Manager (`2.24.205.178:32774/manager`):
+Configurado via API:
 
-1. Vá em **Integrações → n8n**
-2. Preencha:
-   - **n8n API URL**: `http://2.24.205.178:5678`
-   - **Webhook URL**: `http://2.24.205.178:5678/webhook/whatsapp-in`
-3. Salve
-
-### Criar workflow "WhatsApp Recebido" no n8n
-
-1. **New Workflow** → nome: `WhatsApp Recebido`
-2. Node **Webhook** → Path: `whatsapp-in`
-3. Node **IF** → condição: `{{ $json.event }}` equals `messages.upsert`
-4. Node **HTTP Request** → repassa para o FutureData:
-```
-Method: POST
-URL: http://SEU-APP/webhook/whatsapp
-Body: {{ $json }}
-```
-
-> Isso permite inserir lógica no n8n antes de chegar ao FutureData (ex: filtros, logs, CRM externo).
-
----
-
-## 4. Testar o fluxo
-
-### Testar evento os.criada
 ```bash
-curl -X POST http://2.24.205.178:5678/webhook/futuredata \
+curl -X POST "http://2.24.205.178:32774/webhook/set/carlos0ff.dev" \
   -H "Content-Type: application/json" \
+  -H "apikey: 6AF3EE269CF3-4175-B338-B6FD8EEA2F0C" \
   -d '{
-    "event": "os.criada",
-    "os": { "numero": "OS202600001", "status_label": "Entrada", "url_portal": "https://exemplo.com/r/abc" },
-    "equipamento": { "nome": "Notebook Dell Inspiron" },
-    "cliente": { "nome": "João Silva", "telefone": "11999999999" },
-    "timestamp": "2026-06-22T10:00:00"
+    "webhook": {
+      "url": "http://2.24.205.178:32772/webhook/5acbbf43-ed70-4111-9049-b88bca8370a9",
+      "events": ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
+      "webhookByEvents": false,
+      "webhookBase64": false,
+      "enabled": true
+    }
   }'
 ```
 
-### Confirmar no FutureData (.env)
-```env
-N8N_WEBHOOK_URL=http://2.24.205.178:5678/webhook/futuredata
+---
+
+## Modelo de IA
+
+**Atual:** Google Gemini 2.0 Flash
+**Credencial n8n:** `Google Gemini - FutureData` (tipo: `googlePalmApi`)
+**Observações:**
+- Tier gratuito: 15 req/min, ~1.500 req/dia
+- Quota reseta diariamente à meia-noite
+- Safety settings configurados como `BLOCK_NONE` para evitar bloqueios de conteúdo
+
+Para trocar o modelo, editar o node `Google Gemini Chat Model` no workflow `xBDFXlgalz5kMG36`.
+
+---
+
+## System Prompt do Agente
+
+O agente se identifica como assistente virtual da **Future Data Assistência Técnica** e responde perguntas sobre:
+- Status e prazo de OS
+- Orçamentos (aprovação/recusa)
+- Acesso ao portal do cliente
+- Transferência para técnico humano
+
+Configurado diretamente no node `Agente Future Data` → campo `System Message`.
+
+---
+
+## Testar o webhook manualmente
+
+```bash
+curl -X POST "http://2.24.205.178:32772/webhook/5acbbf43-ed70-4111-9049-b88bca8370a9" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event": "messages.upsert",
+    "instance": "carlos0ff.dev",
+    "data": {
+      "key": {
+        "remoteJid": "5581994821792@s.whatsapp.net",
+        "fromMe": false,
+        "id": "test-001"
+      },
+      "pushName": "Cliente Teste",
+      "messageType": "conversation",
+      "message": {"conversation": "Olá, qual o prazo de entrega?"}
+    }
+  }'
+```
+
+Resposta esperada: `{"message":"Workflow was started"}`
+
+---
+
+## Enviar mensagem diretamente (sem webhook)
+
+```bash
+curl -X POST "http://2.24.205.178:32774/message/sendText/carlos0ff.dev" \
+  -H "Content-Type: application/json" \
+  -H "apikey: 6AF3EE269CF3-4175-B338-B6FD8EEA2F0C" \
+  -d '{
+    "number": "5581994821792",
+    "text": "Mensagem de teste da Future Data 🔧"
+  }'
 ```
 
 ---
 
-## Eventos disparados pelo FutureData
+## Eventos disparados pelo FutureData → n8n
 
 | Evento | Quando | Dados extras |
 |--------|--------|-------------|
@@ -141,7 +188,8 @@ N8N_WEBHOOK_URL=http://2.24.205.178:5678/webhook/futuredata
 | `os.status_alterado` | Técnico muda status | `status_anterior`, `status_anterior_label` |
 | `os.orcamento_respondido` | Cliente aprova/recusa | `resposta: aprovado\|recusado` |
 
-### Estrutura do payload (todos os eventos)
+### Estrutura do payload
+
 ```json
 {
   "event": "os.criada",
@@ -151,9 +199,6 @@ N8N_WEBHOOK_URL=http://2.24.205.178:5678/webhook/futuredata
     "numero": "OS202600001",
     "status": "entrada",
     "status_label": "Entrada",
-    "diagnostico": null,
-    "status_orcamento": null,
-    "previsao_entrega": null,
     "url_portal": "https://seuapp.com/r/TOKEN"
   },
   "equipamento": {
@@ -168,4 +213,10 @@ N8N_WEBHOOK_URL=http://2.24.205.178:5678/webhook/futuredata
     "email": "joao@email.com"
   }
 }
+```
+
+### Configurar URL no .env
+
+```env
+N8N_WEBHOOK_URL=http://2.24.205.178:32772/webhook/futuredata
 ```
