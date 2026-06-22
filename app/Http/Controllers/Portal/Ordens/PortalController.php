@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cliente;
 use App\Models\Ordem;
 use App\Models\OrdemArquivo;
+use App\Services\N8nService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -35,6 +36,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class PortalController extends Controller
 {
+    public function __construct(private N8nService $n8n) {}
+
     /**
      * Dashboard do portal — lista de OS do cliente logado.
      */
@@ -113,6 +116,10 @@ class PortalController extends Controller
         ]);
 
         $ordem->update(['status_orcamento' => $validated['resposta']]);
+
+        $this->n8n->dispatch('os.orcamento_respondido', $ordem->load('cliente', 'equipamento'), [
+            'resposta' => $validated['resposta'],
+        ]);
 
         $payload = $validated['resposta'] === 'aprovado'
             ? ['status' => 'aprovado', 'msg' => 'Orçamento aprovado! Nossa equipe iniciará o reparo em breve.']

@@ -12,6 +12,7 @@ use App\Models\OrdemHistorico;
 use App\Models\User;
 use App\Notifications\OrdemCriada;
 use App\Notifications\OrdemStatusAlterado;
+use App\Services\N8nService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
@@ -43,6 +44,7 @@ use Illuminate\View\View;
  */
 class OrdemServicoController extends Controller
 {
+    public function __construct(private N8nService $n8n) {}
     /**
      * Lista paginada de OS com filtros por busca e status.
      * Técnicos veem apenas suas próprias OS.
@@ -237,6 +239,8 @@ class OrdemServicoController extends Controller
             $ordem->tecnico->notify(new OrdemCriada($ordem));
         }
 
+        $this->n8n->dispatch('os.criada', $ordem->load('cliente', 'equipamento'));
+
         // Monta link do WhatsApp para envio manual pelo atendente
         $nomeEquip  = trim("{$equipamento->marca} {$equipamento->modelo}") ?: $equipamento->tipo;
         $linkPortal = route('portal.token', $ordem->token);
@@ -417,6 +421,13 @@ class OrdemServicoController extends Controller
         }
 
         $this->notificarMudancaStatus($ordemServico, $anterior, $dados['status']);
+
+        if ($dados['status'] !== $anterior) {
+            $this->n8n->dispatch('os.status_alterado', $ordemServico->load('cliente', 'equipamento'), [
+                'status_anterior'       => $anterior,
+                'status_anterior_label' => Ordem::STATUS[$anterior]['label'] ?? $anterior,
+            ]);
+        }
 
         return back()->with('success', 'Status atualizado com sucesso.');
     }

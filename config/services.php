@@ -39,4 +39,8 @@ return [
         'key' => env('ANTHROPIC_API_KEY'),
     ],
 
+    'n8n' => [
+        'webhook_url' => env('N8N_WEBHOOK_URL'),
+    ],
+
 ];
