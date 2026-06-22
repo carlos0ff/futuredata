@@ -31,11 +31,11 @@
 
 {{-- ───── Hero ───── --}}
 <div class="relative overflow-hidden bg-[#0d1117]">
-    {{-- Imagem de fundo + overlays --}}
-    <div class="absolute inset-0 bg-cover bg-center"
-         style="background-image:url('https://thumbs.dreamstime.com/b/processo-de-reparo-do-dispositivo-da-tabuleta-do-pc-perto-da-chave-de-fenda-e-mordido-no-fundo-de-madeira-preto-desmontado-o-vidro-82189381.jpg?w=992')"></div>
-    <div class="absolute inset-0 bg-gradient-to-r from-[#0d1117] via-[#0d1117]/90 to-[#0d1117]/55"></div>
-    <div class="absolute inset-0 bg-gradient-to-t from-[#0d1117] via-transparent to-transparent"></div>
+    {{-- Gradientes de fundo --}}
+    <div class="absolute inset-0 bg-gradient-to-br from-[#0d1117] via-[#0f1623] to-[#0d1117]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.18),transparent_55%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(16,185,129,0.10),transparent_55%)]"></div>
+    <div class="absolute inset-0 opacity-[0.035]" style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M0 0h1v60H0zM60 0h1v60H60zM0 0v1h60V0zM0 60v1h60V60z' fill='%23ffffff'/%3E%3C/svg%3E\");background-size:60px 60px"></div>
 
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 pt-28 pb-14 sm:pt-32 sm:pb-16">
         <div class="flex flex-col md:flex-row md:items-start gap-10">
@@ -540,29 +540,46 @@
 
             {{-- ── Equipamento ── --}}
             @if($equipamento)
+            @php
+                $tipoSidebar = strtolower($equipamento->tipo ?? '');
+                $sidebarIcon = match(true) {
+                    str_contains($tipoSidebar, 'celular') || str_contains($tipoSidebar, 'smartphone') || str_contains($tipoSidebar, 'iphone') =>
+                        '<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3"/>',
+                    str_contains($tipoSidebar, 'notebook') || str_contains($tipoSidebar, 'laptop') || str_contains($tipoSidebar, 'macbook') =>
+                        '<path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25A2.25 2.25 0 0 1 5.25 3h13.5A2.25 2.25 0 0 1 21 5.25z"/>',
+                    str_contains($tipoSidebar, 'tablet') || str_contains($tipoSidebar, 'ipad') =>
+                        '<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5h3m-6.75 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-15a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 4.5v15a2.25 2.25 0 0 0 2.25 2.25z"/>',
+                    str_contains($tipoSidebar, 'impressora') =>
+                        '<path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5z"/>',
+                    default =>
+                        '<path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 7.409A2.25 2.25 0 0 1 2.25 5.493V5.25"/>',
+                };
+            @endphp
             <div class="rounded-2xl bg-white border border-slate-200 overflow-hidden">
-                <div class="px-5 py-4 border-b border-slate-100">
-                    <h3 class="text-[13.5px] font-bold text-slate-800">Informações do equipamento</h3>
-                </div>
-                <div class="p-5 flex gap-4">
-                    <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-100 border border-slate-200">
-                        <svg class="h-8 w-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <rect x="2" y="3" width="20" height="14" rx="2"/>
-                            <path d="M8 21h8M12 17v4"/>
+                <div class="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5">
+                    <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100">
+                        <svg class="h-3.5 w-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25zm.75-12h9v9h-9v-9z"/>
                         </svg>
                     </div>
-                    <div class="space-y-1">
-                        <p class="text-[14px] font-bold text-slate-800">
+                    <h3 class="text-[13.5px] font-bold text-slate-800">Equipamento</h3>
+                </div>
+                <div class="p-5 flex gap-4">
+                    <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-200 shadow-inner">
+                        <svg class="h-8 w-8 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">{!! $sidebarIcon !!}</svg>
+                    </div>
+                    <div class="space-y-1.5 min-w-0">
+                        <p class="text-[14.5px] font-bold text-slate-800 leading-tight">
                             {{ $equipamento->marca }} {{ $equipamento->modelo }}
                         </p>
-                        @if($equipamento->numero_serie)
-                        <p class="text-[12px] text-slate-500">Nº de Série: {{ $equipamento->numero_serie }}</p>
-                        @endif
                         @if($equipamento->tipo)
-                        <p class="text-[12px] text-slate-500">Tipo: {{ $equipamento->tipo }}</p>
+                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">{{ $equipamento->tipo }}</span>
+                        @endif
+                        @if($equipamento->numero_serie)
+                        <p class="text-[12px] text-slate-400 font-mono">S/N: {{ $equipamento->numero_serie }}</p>
                         @endif
                         @if($equipamento->condicao_entrada)
-                        <p class="text-[12px] text-slate-500">Condição: {{ $equipamento->condicao_entrada }}</p>
+                        <p class="text-[12px] text-slate-500">Condição: <span class="font-medium">{{ $equipamento->condicao_entrada }}</span></p>
                         @endif
                     </div>
                 </div>
