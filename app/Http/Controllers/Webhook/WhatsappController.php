@@ -117,12 +117,7 @@ class WhatsappController extends Controller
         }
 
         if (! $this->isBusinessHours()) {
-            $this->whatsapp->send($phone,
-                "Olá! 👋 Obrigado por entrar em contato com a *Future Data*.\n\n" .
-                "⏰ Nosso horário de atendimento é:\n" .
-                "*Segunda a Sábado: 8h às 18h*\n\n" .
-                "Sua mensagem foi registrada e retornaremos assim que possível. 😊"
-            );
+            $this->whatsapp->send($phone, $this->outOfHoursMessage());
             return;
         }
 
@@ -149,6 +144,26 @@ class WhatsappController extends Controller
         if ($weekday === 0) return false; // Domingo fechado
 
         return $hour >= 8 && $hour < 18;
+    }
+
+    /** Mensagem de fora do horário — meme de madrugada ou aviso padrão. */
+    private function outOfHoursMessage(): string
+    {
+        $hour = now()->setTimezone('America/Sao_Paulo')->hour;
+
+        // Madrugada: 0h às 6h
+        if ($hour >= 0 && $hour < 6) {
+            return "😴 *O PAI TÁ DORMINDO.*\n\n" .
+                   "Mano, que horas são essas?! 💀\n" .
+                   "Tô no modo avião, no modo soneca, no modo *nem sonho que trabalho agora.*\n\n" .
+                   "⏰ Volta das *8h às 18h* (Seg–Sáb) que aí o pai acorda e te atende direitinho!\n\n" .
+                   "_Future Data — sua eletrônica em boas mãos (de dia)._ 🛠️";
+        }
+
+        return "Olá! 👋 Obrigado por entrar em contato com a *Future Data*.\n\n" .
+               "⏰ Nosso horário de atendimento é:\n" .
+               "*Segunda a Sábado: 8h às 18h*\n\n" .
+               "Sua mensagem foi registrada e retornaremos assim que possível. 😊";
     }
 
     /** Repassa o payload bruto para o n8n (agente IA), se configurado. */
