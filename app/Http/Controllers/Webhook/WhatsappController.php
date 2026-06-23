@@ -108,12 +108,19 @@ class WhatsappController extends Controller
                     ->first();
 
             if ($ordem) {
-                Mensagem::create([
-                    'ordem_id' => $ordem->id,
-                    'user_id'  => null,
-                    'tipo'     => 'cliente',
-                    'conteudo' => $text,
-                ]);
+                try {
+                    Mensagem::create([
+                        'ordem_id' => $ordem->id,
+                        'user_id'  => null,
+                        'tipo'     => 'cliente',
+                        'conteudo' => $text,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning('WhatsApp: falha ao salvar mensagem na OS', [
+                        'ordem_id' => $ordem->id,
+                        'error'    => $e->getMessage(),
+                    ]);
+                }
             }
         } else {
             Log::info('WhatsApp webhook: cliente não encontrado', ['phone' => $phone]);
@@ -275,21 +282,31 @@ class WhatsappController extends Controller
      */
     private function findClienteByText(string $text): ?Cliente
     {
-        $digits = preg_replace('/\D/', '', $text);
-        $upper  = strtoupper(trim($text));
+        try {
+            $digits = preg_replace('/\D/', '', $text);
+            $upper  = strtoupper(trim($text));
 
-        // CPF (11 dígitos) ou CNPJ (14 dígitos) — ignora formatação do campo armazenado
-        if (strlen($digits) === 11 || strlen($digits) === 14) {
-            return Cliente::whereRaw(
-                "REPLACE(REPLACE(REPLACE(REPLACE(cpf_cnpj, '.', ''), '-', ''), '/', ''), ' ', '') = ?",
-                [$digits]
-            )->first();
-        }
+            // CPF (11 dígitos) ou CNPJ (14 dígitos)
+            if (strlen($digits) === 11 || strlen($digits) === 14) {
+                // Busca exata (sem formatação) ou formatada com pontos e traço
+                $formatted = strlen($digits) === 11
+                    ? substr($digits, 0, 3) . '.' . substr($digits, 3, 3) . '.' . substr($digits, 6, 3) . '-' . substr($digits, 9, 2)
+                    : substr($digits, 0, 2) . '.' . substr($digits, 2, 3) . '.' . substr($digits, 5, 3) . '/' . substr($digits, 8, 4) . '-' . substr($digits, 12, 2);
 
-        // Número de OS no formato do sistema: OS202600008
-        if (preg_match('/^OS\d+$/', $upper)) {
-            $ordem = Ordem::where('numero', $upper)->with('cliente')->first();
-            return $ordem?->cliente;
+                return Cliente::where('cpf_cnpj', $digits)
+                    ->orWhere('cpf_cnpj', $formatted)
+                    ->first();
+            }
+
+            // Número de OS no formato do sistema: OS202600008
+            if (preg_match('/^OS\d+$/', $upper)) {
+                $ordem = Ordem::where('numero', $upper)->first();
+                if ($ordem) {
+                    return Cliente::find($ordem->cliente_id);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('findClienteByText error', ['text' => $text, 'error' => $e->getMessage()]);
         }
 
         return null;
