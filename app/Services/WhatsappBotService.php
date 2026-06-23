@@ -48,22 +48,38 @@ class WhatsappBotService
     /**
      * Detecta palavras-chave "orçamento" e "laudo técnico" e responde com dados da OS.
      * Funciona 24h, independentemente do horário comercial.
-     * Retorna true se foi tratado.
+     * Retorna true se a palavra-chave foi detectada (mesmo sem OS, para não cair no check de horário).
      */
     public function tryHandleKeyword(string $phone, string $text, ?Cliente $cliente = null): bool
     {
         $input = mb_strtolower(trim($text), 'UTF-8');
 
-        $isOrcamento = str_contains($input, 'orçamento') || str_contains($input, 'orcamento')
-                    || str_contains($input, 'valor') || str_contains($input, 'preço')
-                    || str_contains($input, 'preco') || str_contains($input, 'custo');
+        $isOrcamento = str_contains($input, 'orçamento')
+                    || str_contains($input, 'orcamento')
+                    || str_contains($input, 'valor')
+                    || str_contains($input, 'preço')
+                    || str_contains($input, 'preco')
+                    || str_contains($input, 'custo');
 
-        $isLaudo     = str_contains($input, 'laudo') || str_contains($input, 'diagnóstico')
-                    || str_contains($input, 'diagnostico') || str_contains($input, 'defeito')
-                    || str_contains($input, 'problema');
+        $isLaudo = str_contains($input, 'laudo')
+                || str_contains($input, 'diagnóstico') // diagnóstico
+                || str_contains($input, 'diagnostico')
+                || str_contains($input, 'defeito')
+                || str_contains($input, 'problema');
 
         if (! $isOrcamento && ! $isLaudo) return false;
-        if (! $cliente) return false;
+
+        $keyword = $isOrcamento ? 'orçamento' : 'laudo técnico';
+
+        // Keyword detectada mas cliente não identificado — pede identificação e retorna true
+        // para evitar que a verificação de horário comercial intercepte
+        if (! $cliente) {
+            $this->whatsapp->send($phone,
+                "Para consultar o *{$keyword}*, preciso te identificar primeiro. 🔍\n\n" .
+                "Por favor, informe seu *CPF* ou o *código da OS* (ex: OS00001). 😊"
+            );
+            return true;
+        }
 
         $ordem = Ordem::with('equipamento')
             ->where('cliente_id', $cliente->id)
@@ -71,15 +87,22 @@ class WhatsappBotService
             ->latest()
             ->first();
 
-        if (! $ordem) return false;
-
-        if ($isOrcamento) {
-            $this->whatsapp->send($phone, $this->buildOrcamentoMessage($ordem));
+        if (! $ordem) {
+            $nome = explode(' ', trim($cliente->nome))[0];
+            $this->whatsapp->send($phone,
+                "Olá, *{$nome}*! Não encontrei nenhuma OS ativa para sua conta. 🔎\n\n" .
+                "Entre em contato conosco para mais informações:\n" .
+                "_Future Data — (81) 9482-1792_"
+            );
             return true;
         }
 
-        // isLaudo
-        $this->whatsapp->send($phone, $this->buildLaudoMessage($ordem));
+        if ($isOrcamento) {
+            $this->whatsapp->send($phone, $this->buildOrcamentoMessage($ordem));
+        } else {
+            $this->whatsapp->send($phone, $this->buildLaudoMessage($ordem));
+        }
+
         return true;
     }
 
