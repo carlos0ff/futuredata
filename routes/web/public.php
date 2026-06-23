@@ -10,3 +10,4 @@ Route::redirect('/', '/auth/entrar')->name('home');
 
 /** Webhook WhatsApp (sem autenticação nem CSRF) */
 Route::post('/webhook/whatsapp', [WhatsappController::class, 'receive'])->name('webhook.whatsapp');
+Route::get('/webhook/whatsapp', fn () => response()->json(['ok' => true]))->name('webhook.whatsapp.verify');

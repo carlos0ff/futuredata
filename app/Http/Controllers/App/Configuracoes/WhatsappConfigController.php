@@ -136,10 +136,13 @@ class WhatsappConfigController extends Controller
             $res = Http::timeout(10)
                 ->withHeaders(['apikey' => $cfg['key'], 'Content-Type' => 'application/json'])
                 ->post("{$cfg['url']}/webhook/set/{$cfg['instance']}", [
-                    'url'               => $webhookUrl,
-                    'webhook_by_events' => false,
-                    'webhook_base64'    => false,
-                    'events'            => ['MESSAGES_UPSERT', 'CONNECTION_UPDATE'],
+                    'webhook' => [
+                        'url'            => $webhookUrl,
+                        'enabled'        => true,
+                        'webhookByEvents' => false,
+                        'webhookBase64'  => false,
+                        'events'         => ['MESSAGES_UPSERT', 'CONNECTION_UPDATE'],
+                    ],
                 ]);
 
             if ($res->successful()) {
