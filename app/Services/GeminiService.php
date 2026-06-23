@@ -53,23 +53,34 @@ class GeminiService
             ];
         }
 
-        try {
-            $url      = sprintf(self::API_URL, self::MODEL, $apiKey);
-            $response = Http::timeout(15)->post($url, $payload);
+        $url = sprintf(self::API_URL, self::MODEL, $apiKey);
 
-            if (! $response->successful()) {
-                Log::warning('GeminiService: erro na API', [
-                    'status' => $response->status(),
-                    'body'   => $response->body(),
-                ]);
+        // Tenta até 2 vezes para absorver 503 temporários de alta demanda
+        for ($attempt = 1; $attempt <= 2; $attempt++) {
+            try {
+                $response = Http::timeout(15)->post($url, $payload);
+
+                if ($response->status() === 503 && $attempt < 2) {
+                    sleep(2);
+                    continue;
+                }
+
+                if (! $response->successful()) {
+                    Log::warning('GeminiService: erro na API', [
+                        'status' => $response->status(),
+                        'body'   => $response->body(),
+                    ]);
+                    return null;
+                }
+
+                return $response->json('candidates.0.content.parts.0.text');
+            } catch (\Throwable $e) {
+                Log::error('GeminiService: exceção', ['error' => $e->getMessage()]);
                 return null;
             }
-
-            return $response->json('candidates.0.content.parts.0.text');
-        } catch (\Throwable $e) {
-            Log::error('GeminiService: exceção', ['error' => $e->getMessage()]);
-            return null;
         }
+
+        return null;
     }
 
     public function isConfigured(): bool
