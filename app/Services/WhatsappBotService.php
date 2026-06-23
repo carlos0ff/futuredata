@@ -81,7 +81,8 @@ class WhatsappBotService
 
     private function replyWithGemini(BotSession $session, string $text, ?Cliente $cliente): string
     {
-        $systemPrompt = $this->buildSystemPrompt($session, $cliente);
+        $statusJaEnviado = $session->context['status_enviado'] ?? false;
+        $systemPrompt    = $this->buildSystemPrompt($session, $cliente, $statusJaEnviado);
 
         $reply = $this->gemini->chat($text, $systemPrompt);
 
@@ -90,16 +91,29 @@ class WhatsappBotService
             return $this->engine->handle($session, $text, saveReply: true);
         }
 
+        // Marca que o status foi enviado ao menos uma vez
+        if (! $statusJaEnviado) {
+            $session->transition($session->state, ['status_enviado' => true]);
+        }
+
         $session->update(['last_activity' => now()]);
 
         return $reply;
     }
 
-    private function buildSystemPrompt(BotSession $session, ?Cliente $cliente): string
+    private function buildSystemPrompt(BotSession $session, ?Cliente $cliente, bool $statusJaEnviado = false): string
     {
         $prompt  = "Você é o assistente virtual da *Future Data*, empresa de assistência técnica de eletrônicos.\n";
         $prompt .= "Responda sempre em português, de forma curta, amigável e direta. Use emojis com moderação.\n";
-        $prompt .= "Nunca invente informações sobre OS ou valores que não estejam no contexto abaixo.\n\n";
+        $prompt .= "Nunca invente informações sobre OS ou valores que não estejam no contexto abaixo.\n";
+
+        if ($statusJaEnviado) {
+            $prompt .= "IMPORTANTE: O status da OS já foi informado anteriormente nesta conversa. ";
+            $prompt .= "NÃO repita o status completo novamente a menos que o cliente peça explicitamente. ";
+            $prompt .= "Responda de forma curta e direta à dúvida atual.\n";
+        }
+
+        $prompt .= "\n";
 
         if (! $cliente) {
             $prompt .= "O cliente ainda não foi identificado. Peça educadamente o CPF ou o código da OS (ex: OS00001) para prosseguir.";
