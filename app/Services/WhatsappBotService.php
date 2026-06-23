@@ -30,6 +30,7 @@ class WhatsappBotService
     public function handle(string $phone, string $text, ?Cliente $cliente = null): void
     {
         if (! config('whatsapp.bot_enabled', true)) {
+            \Log::info('Bot: desativado');
             return;
         }
 
@@ -40,11 +41,16 @@ class WhatsappBotService
             $session->refresh();
         }
 
+        \Log::info('Bot: gemini configurado?', ['gemini' => $this->gemini->isConfigured()]);
+
         $reply = $this->gemini->isConfigured()
             ? $this->replyWithGemini($session, $text, $cliente)
             : $this->engine->handle($session, $text, saveReply: true);
 
-        $this->whatsapp->send($phone, $reply);
+        \Log::info('Bot: reply gerado', ['reply' => substr($reply, 0, 80)]);
+
+        $sent = $this->whatsapp->send($phone, $reply);
+        \Log::info('Bot: mensagem enviada?', ['sent' => $sent]);
     }
 
     private function replyWithGemini(BotSession $session, string $text, ?Cliente $cliente): string
