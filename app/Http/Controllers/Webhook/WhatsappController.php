@@ -116,6 +116,16 @@ class WhatsappController extends Controller
             Log::info('WhatsApp webhook: cliente não encontrado', ['phone' => $phone]);
         }
 
+        if (! $this->isBusinessHours()) {
+            $this->whatsapp->send($phone,
+                "Olá! 👋 Obrigado por entrar em contato com a *Future Data*.\n\n" .
+                "⏰ Nosso horário de atendimento é:\n" .
+                "*Segunda a Sábado: 8h às 18h*\n\n" .
+                "Sua mensagem foi registrada e retornaremos assim que possível. 😊"
+            );
+            return;
+        }
+
         try {
             $this->bot->handle($phone, $text, $cliente);
         } catch (\Throwable $e) {
@@ -127,6 +137,18 @@ class WhatsappController extends Controller
                 "Por favor, informe seu *CPF* ou o *código da OS* (ex: OS00001)."
             );
         }
+    }
+
+    /** Verifica se está dentro do horário de atendimento (Seg–Sáb 8h–18h, fuso Brasil). */
+    private function isBusinessHours(): bool
+    {
+        $now     = now()->setTimezone('America/Sao_Paulo');
+        $weekday = $now->dayOfWeek; // 0=Dom, 1=Seg, ..., 6=Sáb
+        $hour    = $now->hour;
+
+        if ($weekday === 0) return false; // Domingo fechado
+
+        return $hour >= 8 && $hour < 18;
     }
 
     /** Repassa o payload bruto para o n8n (agente IA), se configurado. */
