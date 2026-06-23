@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Notifications\OrdemCriada;
 use App\Notifications\OrdemStatusAlterado;
 use App\Services\N8nService;
+use App\Services\WhatsappService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
@@ -365,8 +366,14 @@ class OrdemServicoController extends Controller
             'observacao_status' => 'nullable|string',
         ]);
 
-        $statusAnterior = $ordemServico->status;
+        $statusAnterior   = $ordemServico->status;
+        $orcamentoAnterior = $ordemServico->status_orcamento;
         $ordemServico->update($dados);
+
+        // Notifica cliente via WhatsApp quando orçamento é definido como pendente
+        if (($dados['status_orcamento'] ?? null) === 'pendente' && $orcamentoAnterior !== 'pendente') {
+            $this->notificarOrcamentoWhatsapp($ordemServico->fresh(['cliente', 'equipamento']));
+        }
 
         if ($dados['status'] !== $statusAnterior) {
             OrdemHistorico::create([
@@ -447,6 +454,39 @@ class OrdemServicoController extends Controller
         } elseif ($ordem->tecnico_id && $ordem->tecnico_id !== $usuario->id) {
             $ordem->tecnico->notify($notificacao);
         }
+    }
+
+    /** Envia notificação de orçamento pendente para o cliente via WhatsApp. */
+    private function notificarOrcamentoWhatsapp(Ordem $ordem): void
+    {
+        $cliente = $ordem->cliente;
+        if (! $cliente?->telefone) return;
+
+        $whatsapp = app(WhatsappService::class);
+        $device   = $ordem->equipamento
+            ? trim("{$ordem->equipamento->marca} {$ordem->equipamento->modelo}")
+            : 'Equipamento';
+
+        $total   = 'R$ ' . number_format($ordem->total, 2, ',', '.');
+        $servico = $ordem->valor_servico > 0 ? 'R$ ' . number_format($ordem->valor_servico, 2, ',', '.') : null;
+        $pecas   = $ordem->valor_pecas   > 0 ? 'R$ ' . number_format($ordem->valor_pecas,   2, ',', '.') : null;
+
+        $msg  = "💰 *Orçamento pronto para aprovação!*\n";
+        $msg .= "────────────────────\n";
+        $msg .= "🔢 OS: *{$ordem->numero}*\n";
+        $msg .= "📱 Equipamento: *{$device}*\n";
+        if ($ordem->diagnostico) $msg .= "🔬 Diagnóstico: {$ordem->diagnostico}\n";
+        $msg .= "────────────────────\n";
+        if ($servico) $msg .= "🔧 Mão de obra: *{$servico}*\n";
+        if ($pecas)   $msg .= "🔩 Peças: *{$pecas}*\n";
+        $msg .= "💵 *Total: {$total}*\n";
+        $msg .= "────────────────────\n\n";
+        $msg .= "Para *AUTORIZAR* o serviço, responda: *SIM*\n";
+        $msg .= "Para *RECUSAR*, responda: *NÃO*\n\n";
+        $msg .= "_Você também pode responder pelo portal:_\n";
+        $msg .= url("/portal/{$ordem->token}");
+
+        $whatsapp->send($cliente->telefone, $msg);
     }
 
     /**

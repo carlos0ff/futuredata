@@ -30,7 +30,6 @@ class WhatsappBotService
     public function handle(string $phone, string $text, ?Cliente $cliente = null): void
     {
         if (! config('whatsapp.bot_enabled', true)) {
-            \Log::info('Bot: desativado');
             return;
         }
 
@@ -41,16 +40,43 @@ class WhatsappBotService
             $session->refresh();
         }
 
-        \Log::info('Bot: gemini configurado?', ['gemini' => $this->gemini->isConfigured()]);
+        // Verifica se é resposta de autorização de orçamento
+        if ($session->cliente_id && $this->handleOrcamentoResposta($session, $text)) {
+            return;
+        }
 
         $reply = $this->gemini->isConfigured()
             ? $this->replyWithGemini($session, $text, $cliente)
             : $this->engine->handle($session, $text, saveReply: true);
 
-        \Log::info('Bot: reply gerado', ['reply' => substr($reply, 0, 80)]);
+        $this->whatsapp->send($phone, $reply);
+    }
 
-        $sent = $this->whatsapp->send($phone, $reply);
-        \Log::info('Bot: mensagem enviada?', ['sent' => $sent]);
+    /** Detecta SIM/NÃO para orçamento pendente e atualiza a OS. */
+    private function handleOrcamentoResposta(BotSession $session, string $text): bool
+    {
+        $ordem = Ordem::where('cliente_id', $session->cliente_id)
+            ->where('status_orcamento', 'pendente')
+            ->latest()
+            ->first();
+
+        if (! $ordem) return false;
+
+        $input = mb_strtolower(trim(preg_replace('/\s+/', '', $text)));
+        $sim   = in_array($input, ['sim', 's', 'autorizo', 'autorizar', 'aprovar', 'aprovado', 'ok', 'pode']);
+        $nao   = in_array($input, ['nao', 'não', 'n', 'recuso', 'recusar', 'recusado', 'negar', 'negado']);
+
+        if (! $sim && ! $nao) return false;
+
+        $ordem->update(['status_orcamento' => $sim ? 'aprovado' : 'recusado']);
+
+        $reply = $sim
+            ? "✅ *Serviço autorizado!*\n\nPerfeito! Nossa equipe já foi notificada e dará andamento ao conserto.\nEntraremos em contato quando estiver pronto. 😊"
+            : "❌ *Serviço recusado.*\n\nEntendemos! Sua OS foi marcada como recusada.\nEntre em contato conosco para combinar a devolução do equipamento.\n\n_Future Data — (81) 9482-1792_";
+
+        $this->whatsapp->send($session->phone, $reply);
+
+        return true;
     }
 
     private function replyWithGemini(BotSession $session, string $text, ?Cliente $cliente): string
