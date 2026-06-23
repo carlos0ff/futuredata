@@ -205,11 +205,11 @@ class WhatsappController extends Controller
 
         // Após expediente ou fim de semana
         return "😴 *Eita... pegou a gente no modo economia de energia!* 😂\n\n" .
-               "A equipe da Future Data já foi descansar. 💀\n\n" .
+               "A equipe da Future Data já foi descansar. \n\n" .
                "⏰ *Horário de atendimento:*\n" .
                "📅 Segunda a sexta: *08h às 18h*\n" .
                "📅 Sábado: *08h às 14h*\n\n" .
-               "Deixa sua mensagem aí que, assim que o expediente começar, a gente responde. Valeu pela paciência! 🚀";
+               "Deixa sua mensagem aí, assim que o expediente começar, a gente responde. Valeu pela paciência! 🚀";
     }
 
     /** Repassa o payload bruto para o n8n (agente IA), se configurado. */
@@ -228,17 +228,31 @@ class WhatsappController extends Controller
     /**
      * Busca cliente por sufixo de telefone para tolerar diferentes formatos
      * armazenados no banco ("(11) 99999-9999", "11999999999", etc.).
+     *
+     * A Evolution API remove o 9 de números BR de 13 dígitos (55+DDD+9+8d → 55+DDD+8d).
+     * Ex.: 5581994821792 → 558194821792. Reinsere o 9 para ampliar a busca.
      */
     private function findClienteByPhone(string $phone): ?Cliente
     {
-        $s9  = substr($phone, -9);
-        $s10 = substr($phone, -10);
-        $s11 = substr($phone, -11);
+        $phones = [$phone];
 
-        return Cliente::where(function ($q) use ($s9, $s10, $s11) {
-            $q->where('telefone', 'like', "%{$s9}")
-              ->orWhere('telefone', 'like', "%{$s10}")
-              ->orWhere('telefone', 'like', "%{$s11}");
+        // Reconstrói a versão com o 9 retirado pela Evolution (55 + DDD de 2 dígitos + 9 + 8 dígitos)
+        if (strlen($phone) === 12 && str_starts_with($phone, '55')) {
+            $phones[] = substr($phone, 0, 4) . '9' . substr($phone, 4); // 558194821792 → 5581994821792
+        }
+
+        $suffixes = [];
+        foreach ($phones as $p) {
+            $suffixes[] = substr($p, -9);
+            $suffixes[] = substr($p, -10);
+            $suffixes[] = substr($p, -11);
+        }
+        $suffixes = array_unique($suffixes);
+
+        return Cliente::where(function ($q) use ($suffixes) {
+            foreach ($suffixes as $suffix) {
+                $q->orWhere('telefone', 'like', "%{$suffix}");
+            }
         })->first();
     }
 }

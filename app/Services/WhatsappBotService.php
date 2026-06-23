@@ -47,7 +47,8 @@ class WhatsappBotService
         }
 
         // Verifica se é resposta de autorização de orçamento
-        if ($session->cliente_id && $this->handleOrcamentoResposta($session, $text)) {
+        // Usa session->cliente_id ou o $cliente passado diretamente (fallback para telefones normalizados)
+        if (($session->cliente_id || $cliente) && $this->handleOrcamentoResposta($session, $text, $cliente)) {
             return;
         }
 
@@ -78,9 +79,13 @@ class WhatsappBotService
     }
 
     /** Detecta SIM/NÃO para orçamento pendente e atualiza a OS. */
-    private function handleOrcamentoResposta(BotSession $session, string $text): bool
+    private function handleOrcamentoResposta(BotSession $session, string $text, ?Cliente $cliente = null): bool
     {
-        $ordem = Ordem::where('cliente_id', $session->cliente_id)
+        $clienteId = $session->cliente_id ?? $cliente?->id;
+
+        if (! $clienteId) return false;
+
+        $ordem = Ordem::where('cliente_id', $clienteId)
             ->where('status_orcamento', 'pendente')
             ->latest()
             ->first();
