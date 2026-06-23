@@ -71,9 +71,12 @@ class WhatsappBotService
 
         $keyword = $isOrcamento ? 'orçamento' : 'laudo técnico';
 
-        // Keyword detectada mas cliente não identificado — pede identificação e retorna true
-        // para evitar que a verificação de horário comercial intercepte
+        // Keyword detectada mas cliente não identificado — pede identificação e salva intenção
         if (! $cliente) {
+            $session = BotSession::forPhone($phone);
+            $session->transition($session->state, [
+                'keyword_pendente' => $isOrcamento ? 'orcamento' : 'laudo',
+            ]);
             $this->whatsapp->send($phone,
                 "Para consultar o *{$keyword}*, preciso te identificar primeiro. 🔍\n\n" .
                 "Por favor, informe seu *CPF* ou o *código da OS* (ex: OS00001). 😊"
@@ -180,8 +183,24 @@ class WhatsappBotService
             $this->whatsapp->send($phone, $this->greetingMessage($cliente));
         }
 
+        // Se o cliente acabou de se identificar e havia keyword pendente (orçamento/laudo), despacha direto
+        $keywordPendente = $session->context['keyword_pendente'] ?? null;
+        if ($keywordPendente && $cliente) {
+            $session->transition($session->state, ['keyword_pendente' => null]);
+            $ordem = Ordem::with('equipamento')
+                ->where('cliente_id', $cliente->id)
+                ->whereNotIn('status', ['cancelado'])
+                ->latest()->first();
+            if ($ordem) {
+                $msg = ($keywordPendente === 'orcamento')
+                    ? $this->buildOrcamentoMessage($ordem)
+                    : $this->buildLaudoMessage($ordem);
+                $this->whatsapp->send($phone, $msg);
+                return;
+            }
+        }
+
         // Verifica se é resposta de autorização de orçamento
-        // Usa session->cliente_id ou o $cliente passado diretamente (fallback para telefones normalizados)
         if (($session->cliente_id || $cliente) && $this->handleOrcamentoResposta($session, $text, $cliente)) {
             return;
         }

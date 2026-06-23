@@ -92,7 +92,8 @@ class WhatsappController extends Controller
      */
     private function processMessage(string $phone, string $text): void
     {
-        $cliente = $this->findClienteByPhone($phone);
+        $cliente = $this->findClienteByPhone($phone)
+                ?? $this->findClienteByText($text);
         $ordem   = null;
 
         if ($cliente) {
@@ -254,10 +255,41 @@ class WhatsappController extends Controller
 
         if (strlen($clean) === 11) return true; // CPF
 
-        $trimmed = trim($text);
-        if (preg_match('/^os\d+$/i', $trimmed)) return true; // OS00001
+        if (preg_match('/^os\d+$/i', trim($text))) return true; // OS00001
 
         return false;
+    }
+
+    /**
+     * Busca cliente pelo CPF ou número de OS enviados no texto.
+     * Permite identificação mesmo quando o telefone não está cadastrado.
+     */
+    private function findClienteByText(string $text): ?Cliente
+    {
+        $clean   = preg_replace('/\D/', '', $text);
+        $trimmed = trim($text);
+
+        // Busca por CPF/CNPJ (11 ou 14 dígitos)
+        if (strlen($clean) === 11 || strlen($clean) === 14) {
+            $cliente = Cliente::where('cpf_cnpj', $clean)
+                ->orWhere('cpf_cnpj', preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $clean))
+                ->first();
+            if ($cliente) return $cliente;
+        }
+
+        // Busca por número de OS (ex: OS202500001 ou só o número)
+        if (preg_match('/^os\d+$/i', $trimmed)) {
+            $ordem = Ordem::where('numero', strtoupper($trimmed))->first();
+            return $ordem ? Cliente::find($ordem->cliente_id) : null;
+        }
+
+        // Busca por número sequencial da OS (ex: "1", "42")
+        if (ctype_digit($clean) && strlen($clean) <= 6) {
+            $ordem = Ordem::whereRaw("numero LIKE ?", ["%{$clean}"])->first();
+            return $ordem ? Cliente::find($ordem->cliente_id) : null;
+        }
+
+        return null;
     }
 
     /**
