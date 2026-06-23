@@ -27,6 +27,24 @@ class WhatsappBotService
         private GeminiService   $gemini,
     ) {}
 
+    /**
+     * Verifica e processa resposta de orçamento (SIM/NÃO) independentemente do horário.
+     * Retorna true se era uma resposta de orçamento e foi tratada.
+     */
+    public function tryHandleOrcamento(string $phone, string $text, ?Cliente $cliente = null): bool
+    {
+        $session   = BotSession::forPhone($phone);
+
+        if ($cliente && ! $session->cliente_id) {
+            $session->update(['cliente_id' => $cliente->id]);
+            $session->refresh();
+        }
+
+        if (! ($session->cliente_id || $cliente)) return false;
+
+        return $this->handleOrcamentoResposta($session, $text, $cliente);
+    }
+
     public function handle(string $phone, string $text, ?Cliente $cliente = null): void
     {
         if (! config('whatsapp.bot_enabled', true)) {
