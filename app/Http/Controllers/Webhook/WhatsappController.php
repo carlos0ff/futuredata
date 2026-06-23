@@ -7,6 +7,7 @@ use App\Models\Cliente;
 use App\Models\Mensagem;
 use App\Models\Ordem;
 use App\Services\WhatsappBotService;
+use App\Services\WhatsappService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
@@ -31,7 +32,10 @@ use Illuminate\Support\Facades\Log;
  */
 class WhatsappController extends Controller
 {
-    public function __construct(private WhatsappBotService $bot) {}
+    public function __construct(
+        private WhatsappBotService $bot,
+        private WhatsappService    $whatsapp,
+    ) {}
 
     public function receive(Request $request): Response
     {
@@ -112,7 +116,17 @@ class WhatsappController extends Controller
             Log::info('WhatsApp webhook: cliente não encontrado', ['phone' => $phone]);
         }
 
-        $this->bot->handle($phone, $text, $cliente);
+        try {
+            $this->bot->handle($phone, $text, $cliente);
+        } catch (\Throwable $e) {
+            Log::error('WhatsApp bot error', ['error' => $e->getMessage()]);
+            // Fallback garantido: responde mesmo se o bot falhar
+            $this->whatsapp->send($phone,
+                "Olá! 👋 Sou o assistente da *Future Data*.\n\n" .
+                "Para te atender, preciso te identificar.\n\n" .
+                "Por favor, informe seu *CPF* ou o *código da OS* (ex: OS00001)."
+            );
+        }
     }
 
     /** Repassa o payload bruto para o n8n (agente IA), se configurado. */
