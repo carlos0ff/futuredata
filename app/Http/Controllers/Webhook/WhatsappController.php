@@ -118,12 +118,22 @@ class WhatsappController extends Controller
             Log::info('WhatsApp webhook: cliente não encontrado', ['phone' => $phone]);
         }
 
-        // Aprovação/recusa de orçamento e palavras-chave funcionam 24h
+        // Aprovação/recusa de orçamento, palavras-chave e identificação (CPF/OS) funcionam 24h
         if ($this->bot->tryHandleOrcamento($phone, $text, $cliente)) {
             return;
         }
 
         if ($this->bot->tryHandleKeyword($phone, $text, $cliente)) {
+            return;
+        }
+
+        // CPF (11 dígitos) ou código OS (ex: OS00001) sempre processados pelo bot
+        if ($this->looksLikeIdentification($text)) {
+            try {
+                $this->bot->handle($phone, $text, $cliente);
+            } catch (\Throwable $e) {
+                Log::error('WhatsApp bot error (identificação)', ['error' => $e->getMessage()]);
+            }
             return;
         }
 
@@ -232,6 +242,22 @@ class WhatsappController extends Controller
         } catch (\Throwable) {
             // silencioso — o n8n é opcional
         }
+    }
+
+    /**
+     * Detecta CPF (11 dígitos) ou código de OS (OS + números ou só números curtos).
+     * Esses padrões são processados 24h independentemente do horário.
+     */
+    private function looksLikeIdentification(string $text): bool
+    {
+        $clean = preg_replace('/\D/', '', $text);
+
+        if (strlen($clean) === 11) return true; // CPF
+
+        $trimmed = trim($text);
+        if (preg_match('/^os\d+$/i', $trimmed)) return true; // OS00001
+
+        return false;
     }
 
     /**
