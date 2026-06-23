@@ -33,7 +33,7 @@ class WhatsappBotService
      */
     public function tryHandleOrcamento(string $phone, string $text, ?Cliente $cliente = null): bool
     {
-        $session   = BotSession::forPhone($phone);
+        $session = BotSession::forPhone($phone);
 
         if ($cliente && ! $session->cliente_id) {
             $session->update(['cliente_id' => $cliente->id]);
@@ -43,6 +43,99 @@ class WhatsappBotService
         if (! ($session->cliente_id || $cliente)) return false;
 
         return $this->handleOrcamentoResposta($session, $text, $cliente);
+    }
+
+    /**
+     * Detecta palavras-chave "orçamento" e "laudo técnico" e responde com dados da OS.
+     * Funciona 24h, independentemente do horário comercial.
+     * Retorna true se foi tratado.
+     */
+    public function tryHandleKeyword(string $phone, string $text, ?Cliente $cliente = null): bool
+    {
+        $input = mb_strtolower(trim($text), 'UTF-8');
+
+        $isOrcamento = str_contains($input, 'orçamento') || str_contains($input, 'orcamento')
+                    || str_contains($input, 'valor') || str_contains($input, 'preço')
+                    || str_contains($input, 'preco') || str_contains($input, 'custo');
+
+        $isLaudo     = str_contains($input, 'laudo') || str_contains($input, 'diagnóstico')
+                    || str_contains($input, 'diagnostico') || str_contains($input, 'defeito')
+                    || str_contains($input, 'problema');
+
+        if (! $isOrcamento && ! $isLaudo) return false;
+        if (! $cliente) return false;
+
+        $ordem = Ordem::with('equipamento')
+            ->where('cliente_id', $cliente->id)
+            ->whereNotIn('status', ['cancelado'])
+            ->latest()
+            ->first();
+
+        if (! $ordem) return false;
+
+        if ($isOrcamento) {
+            $this->whatsapp->send($phone, $this->buildOrcamentoMessage($ordem));
+            return true;
+        }
+
+        // isLaudo
+        $this->whatsapp->send($phone, $this->buildLaudoMessage($ordem));
+        return true;
+    }
+
+    private function buildOrcamentoMessage(Ordem $ordem): string
+    {
+        $device = $ordem->equipamento
+            ? trim("{$ordem->equipamento->marca} {$ordem->equipamento->modelo}")
+            : 'Equipamento';
+
+        $msg = "💰 *Orçamento — OS {$ordem->numero}*\n";
+        $msg .= "📱 {$device}\n\n";
+
+        if ($ordem->total > 0) {
+            $msg .= "💵 *Valor:* R$ " . number_format($ordem->total, 2, ',', '.') . "\n";
+        } else {
+            $msg .= "💵 *Valor:* A definir\n";
+        }
+
+        $statusOrc = match ($ordem->status_orcamento) {
+            'pendente'  => '⏳ Aguardando sua aprovação',
+            'aprovado'  => '✅ Aprovado',
+            'recusado'  => '❌ Recusado',
+            default     => '—',
+        };
+        $msg .= "📋 *Status:* {$statusOrc}\n";
+
+        if ($ordem->status_orcamento === 'pendente') {
+            $msg .= "\nPara aprovar, responda *SIM*.\nPara recusar, responda *NÃO*.";
+        }
+
+        return $msg;
+    }
+
+    private function buildLaudoMessage(Ordem $ordem): string
+    {
+        $device = $ordem->equipamento
+            ? trim("{$ordem->equipamento->marca} {$ordem->equipamento->modelo}")
+            : 'Equipamento';
+
+        $msg = "🔧 *Laudo Técnico — OS {$ordem->numero}*\n";
+        $msg .= "📱 {$device}\n\n";
+
+        if ($ordem->diagnostico) {
+            $msg .= "📝 *Diagnóstico:*\n{$ordem->diagnostico}\n";
+        } else {
+            $msg .= "📝 *Diagnóstico:* Em análise\n";
+        }
+
+        $statusLabel = Ordem::STATUS[$ordem->status]['label'] ?? $ordem->status;
+        $msg .= "\n📊 *Status atual:* {$statusLabel}";
+
+        if ($ordem->previsao_entrega) {
+            $msg .= "\n📅 *Previsão de entrega:* " . $ordem->previsao_entrega->format('d/m/Y');
+        }
+
+        return $msg;
     }
 
     public function handle(string $phone, string $text, ?Cliente $cliente = null): void

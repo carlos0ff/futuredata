@@ -118,8 +118,12 @@ class WhatsappController extends Controller
             Log::info('WhatsApp webhook: cliente não encontrado', ['phone' => $phone]);
         }
 
-        // Aprovação/recusa de orçamento funciona 24h — não depende de horário comercial
+        // Aprovação/recusa de orçamento e palavras-chave funcionam 24h
         if ($this->bot->tryHandleOrcamento($phone, $text, $cliente)) {
+            return;
+        }
+
+        if ($this->bot->tryHandleKeyword($phone, $text, $cliente)) {
             return;
         }
 
