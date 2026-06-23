@@ -128,8 +128,17 @@ class WhatsappController extends Controller
             return;
         }
 
-        // CPF (11 dígitos) ou código OS (ex: OS00001) sempre processados pelo bot
+        // CPF (11 dígitos) ou código OS (ex: OS202600008) sempre processados pelo bot
         if ($this->looksLikeIdentification($text)) {
+            if (! $cliente) {
+                // CPF/OS não encontrado no banco — avisa o cliente
+                $this->whatsapp->send($phone,
+                    "😕 Não encontrei nenhum cadastro com esse CPF ou código de OS.\n\n" .
+                    "Verifique os dados e tente novamente, ou entre em contato conosco:\n" .
+                    "_Future Data — (81) 9482-1792_"
+                );
+                return;
+            }
             try {
                 $this->bot->handle($phone, $text, $cliente);
             } catch (\Throwable $e) {
@@ -262,31 +271,25 @@ class WhatsappController extends Controller
 
     /**
      * Busca cliente pelo CPF ou número de OS enviados no texto.
-     * Permite identificação mesmo quando o telefone não está cadastrado.
+     * Tolera CPF formatado (123.456.789-00) ou só dígitos (12345678900).
      */
     private function findClienteByText(string $text): ?Cliente
     {
-        $clean   = preg_replace('/\D/', '', $text);
-        $trimmed = trim($text);
+        $digits = preg_replace('/\D/', '', $text);
+        $upper  = strtoupper(trim($text));
 
-        // Busca por CPF/CNPJ (11 ou 14 dígitos)
-        if (strlen($clean) === 11 || strlen($clean) === 14) {
-            $cliente = Cliente::where('cpf_cnpj', $clean)
-                ->orWhere('cpf_cnpj', preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $clean))
-                ->first();
-            if ($cliente) return $cliente;
+        // CPF (11 dígitos) ou CNPJ (14 dígitos) — ignora formatação do campo armazenado
+        if (strlen($digits) === 11 || strlen($digits) === 14) {
+            return Cliente::whereRaw(
+                "REPLACE(REPLACE(REPLACE(REPLACE(cpf_cnpj, '.', ''), '-', ''), '/', ''), ' ', '') = ?",
+                [$digits]
+            )->first();
         }
 
-        // Busca por número de OS (ex: OS202500001 ou só o número)
-        if (preg_match('/^os\d+$/i', $trimmed)) {
-            $ordem = Ordem::where('numero', strtoupper($trimmed))->first();
-            return $ordem ? Cliente::find($ordem->cliente_id) : null;
-        }
-
-        // Busca por número sequencial da OS (ex: "1", "42")
-        if (ctype_digit($clean) && strlen($clean) <= 6) {
-            $ordem = Ordem::whereRaw("numero LIKE ?", ["%{$clean}"])->first();
-            return $ordem ? Cliente::find($ordem->cliente_id) : null;
+        // Número de OS no formato do sistema: OS202600008
+        if (preg_match('/^OS\d+$/', $upper)) {
+            $ordem = Ordem::where('numero', $upper)->with('cliente')->first();
+            return $ordem?->cliente;
         }
 
         return null;
