@@ -43,4 +43,8 @@ return [
         'webhook_url' => env('N8N_WEBHOOK_URL'),
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+    ],
+
 ];
