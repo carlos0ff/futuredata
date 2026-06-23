@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Webhook;
 
 use App\Http\Controllers\Controller;
+use App\Models\BotSession;
 use App\Models\Cliente;
 use App\Models\Mensagem;
 use App\Models\Ordem;
@@ -10,6 +11,7 @@ use App\Services\WhatsappBotService;
 use App\Services\WhatsappService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -117,7 +119,7 @@ class WhatsappController extends Controller
         }
 
         if (! $this->isBusinessHours()) {
-            $this->whatsapp->send($phone, $this->outOfHoursMessage());
+            $this->maybeSendOutOfHoursMessage($phone);
             return;
         }
 
@@ -134,16 +136,57 @@ class WhatsappController extends Controller
         }
     }
 
-    /** Verifica se está dentro do horário de atendimento (Seg–Sáb 8h–18h, fuso Brasil). */
-    private function isBusinessHours(): bool
+    /**
+     * Envia a mensagem de fora do horário apenas UMA VEZ por período fechado.
+     * Rastreia em BotSession quando foi enviada; só reenvia se houve expediente desde então.
+     */
+    private function maybeSendOutOfHoursMessage(string $phone): void
+    {
+        $session  = BotSession::forPhone($phone);
+        $lastSent = $session->context['fora_horario_enviado_em'] ?? null;
+
+        if ($lastSent && ! $this->hasBusinessHoursPassedSince(Carbon::parse($lastSent))) {
+            return; // já avisamos neste período fechado, não repetir
+        }
+
+        $this->whatsapp->send($phone, $this->outOfHoursMessage());
+
+        $session->transition($session->state, [
+            'fora_horario_enviado_em' => now()->setTimezone('America/Sao_Paulo')->toIso8601String(),
+        ]);
+    }
+
+    /** Verifica se houve pelo menos uma hora de expediente entre $from e agora. */
+    private function hasBusinessHoursPassedSince(Carbon $from): bool
     {
         $now     = now()->setTimezone('America/Sao_Paulo');
-        $weekday = $now->dayOfWeek; // 0=Dom, 1=Seg, ..., 6=Sáb
-        $hour    = $now->hour;
+        $current = $from->copy()->setTimezone('America/Sao_Paulo')->addHour()->startOfHour();
+
+        while ($current->lte($now)) {
+            if ($this->isBusinessHoursAt($current)) return true;
+            $current->addHour();
+        }
+
+        return false;
+    }
+
+    /** Verifica se um instante específico está dentro do horário de atendimento. */
+    private function isBusinessHoursAt(Carbon $at): bool
+    {
+        $weekday = $at->dayOfWeek; // 0=Dom, 6=Sáb
+        $hour    = $at->hour;
 
         if ($weekday === 0) return false; // Domingo fechado
 
-        return $hour >= 8 && $hour < 18;
+        $fechamento = ($weekday === 6) ? 14 : 18; // Sábado fecha às 14h
+
+        return $hour >= 8 && $hour < $fechamento;
+    }
+
+    /** Verifica se está dentro do horário de atendimento agora. */
+    private function isBusinessHours(): bool
+    {
+        return $this->isBusinessHoursAt(now()->setTimezone('America/Sao_Paulo'));
     }
 
     /** Mensagem de fora do horário — meme de madrugada ou aviso padrão. */
@@ -151,19 +194,22 @@ class WhatsappController extends Controller
     {
         $hour = now()->setTimezone('America/Sao_Paulo')->hour;
 
-        // Madrugada: 0h às 6h
-        if ($hour >= 0 && $hour < 6) {
+        // Madrugada: 0h às 8h
+        if ($hour < 8) {
             return "😴 *O PAI TÁ DORMINDO.*\n\n" .
                    "Mano, que horas são essas?! 💀\n" .
                    "Tô no modo avião, no modo soneca, no modo *nem sonho que trabalho agora.*\n\n" .
-                   "⏰ Volta das *8h às 18h* (Seg–Sáb) que aí o pai acorda e te atende direitinho!\n\n" .
+                   "⏰ Volta das *8h às 18h* (Seg–Sex) ou *8h às 14h* (Sáb) que aí o pai acorda e te atende!\n\n" .
                    "_Future Data — sua eletrônica em boas mãos (de dia)._ 🛠️";
         }
 
-        return "Olá! 👋 Obrigado por entrar em contato com a *Future Data*.\n\n" .
-               "⏰ Nosso horário de atendimento é:\n" .
-               "*Segunda a Sábado: 8h às 18h*\n\n" .
-               "Sua mensagem foi registrada e retornaremos assim que possível. 😊";
+        // Após expediente ou fim de semana
+        return "😴 *Eita... pegou a gente no modo economia de energia!* 😂\n\n" .
+               "A equipe da Future Data já foi descansar. 💀\n\n" .
+               "⏰ *Horário de atendimento:*\n" .
+               "📅 Segunda a sexta: *08h às 18h*\n" .
+               "📅 Sábado: *08h às 14h*\n\n" .
+               "Deixa sua mensagem aí que, assim que o expediente começar, a gente responde. Valeu pela paciência! 🚀";
     }
 
     /** Repassa o payload bruto para o n8n (agente IA), se configurado. */
