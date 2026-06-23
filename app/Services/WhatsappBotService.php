@@ -33,11 +33,17 @@ class WhatsappBotService
             return;
         }
 
-        $session = BotSession::forPhone($phone);
+        $session   = BotSession::forPhone($phone);
+        $isNewChat = $session->wasRecentlyCreated || $this->isNewConversationWindow($session);
 
         if ($cliente && ! $session->cliente_id) {
             $session->update(['cliente_id' => $cliente->id]);
             $session->refresh();
+        }
+
+        // Saudação de boas-vindas para novo chat ou retorno após 24h (igual ao WA Business)
+        if ($isNewChat) {
+            $this->whatsapp->send($phone, $this->greetingMessage($cliente));
         }
 
         // Verifica se é resposta de autorização de orçamento
@@ -50,6 +56,25 @@ class WhatsappBotService
             : $this->engine->handle($session, $text, saveReply: true);
 
         $this->whatsapp->send($phone, $reply);
+    }
+
+    /** True se o cliente não manda mensagem há mais de 24h (nova janela de conversa). */
+    private function isNewConversationWindow(BotSession $session): bool
+    {
+        return $session->last_activity && $session->last_activity->lt(now()->subHours(24));
+    }
+
+    /** Mensagem de boas-vindas enviada na abertura de um novo chat. */
+    private function greetingMessage(?Cliente $cliente): string
+    {
+        if ($cliente) {
+            $nome = explode(' ', trim($cliente->nome))[0]; // primeiro nome
+            return "👋 Olá, *{$nome}*! Bem-vindo de volta à *Future Data*.\n\n" .
+                   "Nosso assistente já está aqui para te ajudar. 😊";
+        }
+
+        return "👋 Olá! Seja bem-vindo à *Future Data* — assistência técnica de eletrônicos!\n\n" .
+               "Nosso assistente virtual está aqui para te ajudar. 😊";
     }
 
     /** Detecta SIM/NÃO para orçamento pendente e atualiza a OS. */
