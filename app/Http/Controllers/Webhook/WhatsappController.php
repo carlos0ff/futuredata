@@ -9,6 +9,7 @@ use App\Models\Ordem;
 use App\Services\WhatsappBotService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -47,6 +48,9 @@ class WhatsappController extends Controller
         } catch (\Throwable $e) {
             Log::error('WhatsApp webhook error', ['error' => $e->getMessage()]);
         }
+
+        // Repassa para o n8n (AI agent) de forma assíncrona, sem bloquear a resposta
+        $this->forwardToN8n($request);
 
         return response('', 200);
     }
@@ -108,8 +112,23 @@ class WhatsappController extends Controller
             Log::info('WhatsApp webhook: cliente não encontrado', ['phone' => $phone]);
         }
 
-        // Bot responde em qualquer caso (inclusive número desconhecido)
-        $this->bot->handle($phone, $text, $cliente);
+        // Se n8n está configurado, ele cuida da resposta automática via IA
+        if (! config('services.n8n.webhook_url')) {
+            $this->bot->handle($phone, $text, $cliente);
+        }
+    }
+
+    /** Repassa o payload bruto para o n8n (agente IA), se configurado. */
+    private function forwardToN8n(Request $request): void
+    {
+        $n8nUrl = config('services.n8n.webhook_url');
+        if (! $n8nUrl) return;
+
+        try {
+            Http::timeout(5)->post($n8nUrl, $request->all());
+        } catch (\Throwable) {
+            // silencioso — o n8n é opcional
+        }
     }
 
     /**
