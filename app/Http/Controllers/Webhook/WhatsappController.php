@@ -112,10 +112,7 @@ class WhatsappController extends Controller
             Log::info('WhatsApp webhook: cliente não encontrado', ['phone' => $phone]);
         }
 
-        // Se n8n está configurado, ele cuida da resposta automática via IA
-        if (! config('services.n8n.webhook_url')) {
-            $this->bot->handle($phone, $text, $cliente);
-        }
+        $this->bot->handle($phone, $text, $cliente);
     }
 
     /** Repassa o payload bruto para o n8n (agente IA), se configurado. */
