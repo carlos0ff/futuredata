@@ -9,9 +9,10 @@ return [
     'provider' => env('WHATSAPP_PROVIDER', 'evolution'),
 
     'evolution' => [
-        'url'      => env('WHATSAPP_EVOLUTION_URL'),        // Ex: https://evolution.seudominio.com.br
-        'key'      => env('WHATSAPP_EVOLUTION_KEY'),        // apikey da instância
-        'instance' => env('WHATSAPP_EVOLUTION_INSTANCE', 'futuredata'),
+        'url'          => env('WHATSAPP_EVOLUTION_URL'),
+        'key'          => env('WHATSAPP_EVOLUTION_KEY'),
+        'instance'     => env('WHATSAPP_EVOLUTION_INSTANCE', 'futuredata'),
+        'instance_jid' => env('WHATSAPP_INSTANCE_JID', '558194821792'),
     ],
 
     /*

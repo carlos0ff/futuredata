@@ -225,27 +225,13 @@ class WhatsappController extends Controller
         return $this->isBusinessHoursAt(now()->setTimezone('America/Sao_Paulo'));
     }
 
-    /** Mensagem de fora do horário — meme de madrugada ou aviso padrão. */
+    /** Mensagem de fora do horário — resposta pessoal do Caduco. */
     private function outOfHoursMessage(): string
     {
-        $hour = now()->setTimezone('America/Sao_Paulo')->hour;
+        $ownerJid = config('whatsapp.evolution.instance_jid', '558194821792');
 
-        // Madrugada: 0h às 8h
-        if ($hour < 8) {
-            return "😴 *O PAI TÁ DORMINDO.*\n\n" .
-                   "Mano, que horas são essas?! 💀\n" .
-                   "Tô no modo avião, no modo soneca, no modo *nem sonho que trabalho agora.*\n\n" .
-                   "⏰ Volta das *8h às 18h* (Seg–Sex) ou *8h às 14h* (Sáb) que aí o pai acorda e te atende!\n\n" .
-                   "_Future Data — sua eletrônica em boas mãos (de dia)._ 🛠️";
-        }
-
-        // Após expediente ou fim de semana
-        return "😴 *Eita... pegou a gente no modo economia de energia!* 😂\n\n" .
-               "A equipe da Future Data já foi descansar. \n\n" .
-               "⏰ *Horário de atendimento:*\n" .
-               "📅 Segunda a sexta: *08h às 18h*\n" .
-               "📅 Sábado: *08h às 14h*\n\n" .
-               "Deixa sua mensagem aí, assim que o expediente começar, a gente responde. Valeu pela paciência! 🚀";
+        return "🤖 Opa! Eu sou o *Caduco*, assistente virtual pessoal de *{$ownerJid}@s.whatsapp.net*.\n\n" .
+               "Recebi sua mensagem e já deixei tudo anotado. Assim que ele estiver disponível, responde. 😄";
     }
 
     /** Repassa o payload bruto para o n8n (agente IA), se configurado. */
