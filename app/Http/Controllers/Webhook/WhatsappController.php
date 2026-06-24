@@ -236,6 +236,9 @@ class WhatsappController extends Controller
 
             "📚 O chefe tá matando aula da faculdade, procrastinando ou sendo um inútil como sempre foi. 😂\n\n" .
             "Deixa sua mensagem aí que, quando ele terminar de enrolar, responde.",
+
+            "📱 Ele tá longe do celular agora.\n\n" .
+            "Relaxa, sua mensagem foi recebida. Assim que ele voltar, dá uma olhada e responde. 😄",
         ];
 
         return $messages[array_rand($messages)];
