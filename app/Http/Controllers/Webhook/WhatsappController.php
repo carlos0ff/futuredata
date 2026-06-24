@@ -126,6 +126,11 @@ class WhatsappController extends Controller
             Log::info('WhatsApp webhook: cliente não encontrado', ['phone' => $phone]);
         }
 
+        // Captura identificação de recrutador (24h — responde independente do horário)
+        if ($this->handleRhIdentificacao($phone, $text)) {
+            return;
+        }
+
         // Aprovação/recusa de orçamento, palavras-chave e identificação (CPF/OS) funcionam 24h
         if ($this->bot->tryHandleOrcamento($phone, $text, $cliente)) {
             return;
@@ -180,6 +185,8 @@ class WhatsappController extends Controller
     {
         // Contato de RH/recrutamento — responde sempre com mensagem profissional
         if ($this->looksLikeRecruitment($text)) {
+            $session = BotSession::forPhone($phone);
+            $session->transition($session->state, ['rh_aguardando_identificacao' => true]);
             $this->whatsapp->send($phone, $this->rhMessage());
             return;
         }
@@ -200,6 +207,28 @@ class WhatsappController extends Controller
         $session->transition($session->state, [
             'fora_horario_enviado_em' => now()->setTimezone('America/Sao_Paulo')->toIso8601String(),
         ]);
+    }
+
+    /**
+     * Captura o nome e empresa do recrutador quando o bot está aguardando identificação.
+     * Retorna true se processou a resposta, false se não havia nada pendente.
+     */
+    private function handleRhIdentificacao(string $phone, string $text): bool
+    {
+        $session = BotSession::forPhone($phone);
+
+        if (! ($session->context['rh_aguardando_identificacao'] ?? false)) {
+            return false;
+        }
+
+        $session->transition($session->state, ['rh_aguardando_identificacao' => false]);
+
+        $this->whatsapp->send($phone,
+            "✅ Anotado! *{$text}*\n\n" .
+            "Recado registrado com prioridade. Assim que possível, Carlos responde. 🚀"
+        );
+
+        return true;
     }
 
     /** Detecta mensagens de recrutadores / RH. */
@@ -223,7 +252,7 @@ class WhatsappController extends Controller
     {
         return "📨 Eita, chegou recrutador na área! 👀\n\n" .
                "Se você é do RH e veio falar sobre uma vaga pra qual me candidatei, pode mandar tudo que eu trato com prioridade máxima! 🚀\n\n" .
-               "Para outros assuntos, deixa o recado que respondo logo. 😄";
+               "Me informa seu *nome* e o *nome da empresa* pra eu deixar tudo certinho anotado. 😄";
     }
 
     /** Verifica se houve pelo menos uma hora de expediente entre $from e agora. */
