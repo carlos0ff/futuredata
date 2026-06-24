@@ -225,13 +225,12 @@ class WhatsappController extends Controller
         return $this->isBusinessHoursAt(now()->setTimezone('America/Sao_Paulo'));
     }
 
-    /** Mensagem de fora do horário — resposta pessoal do Caduco. */
+    /** Mensagem de fora do horário. */
     private function outOfHoursMessage(): string
     {
-        $ownerJid = config('whatsapp.evolution.instance_jid', '558194821792');
-
-        return "🤖 Opa! Eu sou o *Caduco*, assistente virtual pessoal de *{$ownerJid}@s.whatsapp.net*.\n\n" .
-               "Recebi sua mensagem e já deixei tudo anotado. Assim que ele estiver disponível, responde. 😄";
+        return "💻 O chefe tá ocupado no momento.\n\n" .
+               "Pode mandar a mensagem que eu entrego o recado. Assim que ele der uma folga, responde. 🚀\n\n" .
+               "Seg–Sex das *8h às 18h* e alguns dias na semana disponível de acordo com o horário de aula da faculdade.";
     }
 
     /** Repassa o payload bruto para o n8n (agente IA), se configurado. */
