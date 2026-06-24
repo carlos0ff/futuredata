@@ -239,6 +239,10 @@ class WhatsappController extends Controller
 
             "📱 Ele tá longe do celular agora.\n\n" .
             "Relaxa, sua mensagem foi recebida. Assim que ele voltar, dá uma olhada e responde. 😄",
+
+            "🤖 Caduco na área!\n\n" .
+            "O humano responsável por este número está temporariamente indisponível. Não se preocupe, ele não fugiu... só tá ocupado. 😂\n\n" .
+            "Manda a boa que eu deixo tudo separado pra ele.",
         ];
 
         return $messages[array_rand($messages)];
