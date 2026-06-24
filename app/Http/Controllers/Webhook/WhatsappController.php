@@ -218,11 +218,12 @@ class WhatsappController extends Controller
         return false;
     }
 
-    /** Mensagem profissional para contatos de RH/recrutamento. */
+    /** Mensagem para contatos de RH/recrutamento. */
     private function rhMessage(): string
     {
-        return "📨 Se você é do RH e está entrando em contato sobre o andamento ou feedback de uma vaga para a qual me candidatei recentemente, por favor, envie sua mensagem. Ela será tratada com prioridade.\n\n" .
-               "Para outros assuntos, deixe seu recado, e responderei assim que possível.";
+        return "📨 Eita, chegou recrutador na área! 👀\n\n" .
+               "Se você é do RH e veio falar sobre uma vaga pra qual me candidatei, pode mandar tudo que eu trato com prioridade máxima! 🚀\n\n" .
+               "Para outros assuntos, deixa o recado que respondo logo. 😄";
     }
 
     /** Verifica se houve pelo menos uma hora de expediente entre $from e agora. */
