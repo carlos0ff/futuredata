@@ -93,6 +93,10 @@ class WhatsappController extends Controller
      */
     private function processMessage(string $phone, string $text, ?string $pushName = null): void
     {
+        if (! config('whatsapp.bot_enabled', true)) {
+            return;
+        }
+
         $cliente = $this->findClienteByPhone($phone)
                 ?? $this->findClienteByText($text);
         $ordem   = null;
