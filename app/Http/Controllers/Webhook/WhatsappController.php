@@ -188,7 +188,11 @@ class WhatsappController extends Controller
         $lastSent = $session->context['fora_horario_enviado_em'] ?? null;
 
         if ($lastSent && ! $this->hasBusinessHoursPassedSince(Carbon::parse($lastSent))) {
-            return; // já avisamos neste período fechado, não repetir
+            // Já enviou a mensagem principal neste período — resposta curta de confirmação
+            $this->whatsapp->send($phone,
+                "✅ Mensagem recebida! Assim que ele estiver disponível, responde. 😄"
+            );
+            return;
         }
 
         $this->whatsapp->send($phone, $this->outOfHoursMessage());
