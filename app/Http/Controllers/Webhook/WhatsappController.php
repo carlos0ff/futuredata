@@ -81,16 +81,17 @@ class WhatsappController extends Controller
 
         if (! $text) return;
 
-        $phone = preg_replace('/\D/', '', explode('@', $jid)[0]);
+        $phone    = preg_replace('/\D/', '', explode('@', $jid)[0]);
+        $pushName = $data['data']['pushName'] ?? null;
 
-        $this->processMessage($phone, $text);
+        $this->processMessage($phone, $text, $pushName);
     }
 
     /**
      * Localiza o cliente, salva a mensagem (se houver OS) e aciona o bot.
      * O bot trata clientes desconhecidos pedindo CPF/código OS.
      */
-    private function processMessage(string $phone, string $text): void
+    private function processMessage(string $phone, string $text, ?string $pushName = null): void
     {
         $cliente = $this->findClienteByPhone($phone)
                 ?? $this->findClienteByText($text);
@@ -127,7 +128,7 @@ class WhatsappController extends Controller
         }
 
         // Captura identificação de recrutador (24h — responde independente do horário)
-        if ($this->handleRhIdentificacao($phone, $text)) {
+        if ($this->handleRhIdentificacao($phone, $text, $pushName)) {
             return;
         }
 
@@ -160,7 +161,7 @@ class WhatsappController extends Controller
         }
 
         if (! $this->isBusinessHours()) {
-            $this->maybeSendOutOfHoursMessage($phone, $text);
+            $this->maybeSendOutOfHoursMessage($phone, $text, $pushName);
             return;
         }
 
@@ -181,11 +182,24 @@ class WhatsappController extends Controller
      * Envia a mensagem de fora do horário apenas UMA VEZ por período fechado.
      * Contatos de RH/recrutamento sempre recebem a mensagem profissional, ignorando o bloqueio.
      */
-    private function maybeSendOutOfHoursMessage(string $phone, string $text = ''): void
+    private function maybeSendOutOfHoursMessage(string $phone, string $text = '', ?string $pushName = null): void
     {
         // Contato de RH/recrutamento — responde sempre com mensagem profissional
         if ($this->looksLikeRecruitment($text)) {
             $session = BotSession::forPhone($phone);
+            $empresa = $this->fetchBizName($phone);
+            $nome    = $pushName;
+
+            // Se já temos nome e empresa (WhatsApp Business), confirma direto sem pedir
+            if ($nome && $empresa) {
+                $this->whatsapp->send($phone,
+                    "📨 Eita, chegou recrutador na área! 👀\n\n" .
+                    "✅ Anotado! *{$nome}* da *{$empresa}* — recado registrado com prioridade. Carlos responde assim que possível. 🚀"
+                );
+                return;
+            }
+
+            // Não tem empresa identificada — pede nome e empresa
             $session->transition($session->state, ['rh_aguardando_identificacao' => true]);
             $this->whatsapp->send($phone, $this->rhMessage());
             return;
@@ -213,7 +227,7 @@ class WhatsappController extends Controller
      * Captura o nome e empresa do recrutador quando o bot está aguardando identificação.
      * Retorna true se processou a resposta, false se não havia nada pendente.
      */
-    private function handleRhIdentificacao(string $phone, string $text): bool
+    private function handleRhIdentificacao(string $phone, string $text, ?string $pushName = null): bool
     {
         $session = BotSession::forPhone($phone);
 
@@ -223,12 +237,46 @@ class WhatsappController extends Controller
 
         $session->transition($session->state, ['rh_aguardando_identificacao' => false]);
 
-        $this->whatsapp->send($phone,
-            "✅ Anotado! *{$text}*\n\n" .
-            "Recado registrado com prioridade. Assim que possível, Carlos responde. 🚀"
-        );
+        // Usa o nome do perfil WhatsApp se disponível, senão usa o texto enviado
+        $nome    = $pushName ?: $text;
+        $empresa = $this->fetchBizName($phone);
+
+        $confirmacao = $empresa
+            ? "✅ Anotado! *{$nome}* da *{$empresa}* — recado registrado com prioridade. Carlos responde assim que possível. 🚀"
+            : "✅ Anotado! *{$nome}* — recado registrado com prioridade. Carlos responde assim que possível. 🚀";
+
+        $this->whatsapp->send($phone, $confirmacao);
 
         return true;
+    }
+
+    /**
+     * Busca o nome da empresa do contato via Evolution API (WhatsApp Business).
+     * Retorna null se não for conta Business ou se a API falhar.
+     */
+    private function fetchBizName(string $phone): ?string
+    {
+        $cfg = config('whatsapp.evolution');
+
+        if (empty($cfg['url']) || empty($cfg['key'])) return null;
+
+        try {
+            $res = Http::timeout(5)
+                ->withHeaders(['apikey' => $cfg['key']])
+                ->post("{$cfg['url']}/chat/fetchProfile/{$cfg['instance']}", [
+                    'number' => $phone,
+                ]);
+
+            if (! $res->successful()) return null;
+
+            $body = $res->json();
+
+            return $body['isBusiness'] ?? false
+                ? ($body['bizName'] ?? $body['verifiedName'] ?? null)
+                : null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /** Detecta mensagens de recrutadores / RH. */
