@@ -228,9 +228,10 @@ class WhatsappController extends Controller
     /** Mensagem de fora do horário. */
     private function outOfHoursMessage(): string
     {
-        return "💻 O chefe tá ocupado no momento.\n\n" .
-               "Pode mandar a mensagem que eu entrego o recado. Assim que ele der uma folga, responde. 🚀\n\n" .
-               "Seg–Sex das *8h às 18h* e alguns dias na semana disponível de acordo com o horário de aula da faculdade.";
+        $ownerName = config('whatsapp.evolution.owner_name', 'CARL0$');
+
+        return "🤖 Opa! Eu sou o *Caduco*, assistente virtual pessoal de *{$ownerName}*.\n\n" .
+               "Recebi sua mensagem e já deixei tudo anotado. Assim que ele estiver disponível, responde. 😄";
     }
 
     /** Repassa o payload bruto para o n8n (agente IA), se configurado. */

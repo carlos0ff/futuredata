@@ -13,6 +13,7 @@ return [
         'key'          => env('WHATSAPP_EVOLUTION_KEY'),
         'instance'     => env('WHATSAPP_EVOLUTION_INSTANCE', 'futuredata'),
         'instance_jid' => env('WHATSAPP_INSTANCE_JID', '558194821792'),
+        'owner_name'   => env('WHATSAPP_OWNER_NAME', 'CARL0$'),
     ],
 
     /*
