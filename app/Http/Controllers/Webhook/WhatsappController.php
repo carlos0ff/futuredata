@@ -155,7 +155,7 @@ class WhatsappController extends Controller
         }
 
         if (! $this->isBusinessHours()) {
-            $this->whatsapp->send($phone, $this->outOfHoursMessage());
+            $this->maybeSendOutOfHoursMessage($phone, $text);
             return;
         }
 
@@ -174,10 +174,16 @@ class WhatsappController extends Controller
 
     /**
      * Envia a mensagem de fora do horário apenas UMA VEZ por período fechado.
-     * Rastreia em BotSession quando foi enviada; só reenvia se houve expediente desde então.
+     * Contatos de RH/recrutamento sempre recebem a mensagem profissional, ignorando o bloqueio.
      */
-    private function maybeSendOutOfHoursMessage(string $phone): void
+    private function maybeSendOutOfHoursMessage(string $phone, string $text = ''): void
     {
+        // Contato de RH/recrutamento — responde sempre com mensagem profissional
+        if ($this->looksLikeRecruitment($text)) {
+            $this->whatsapp->send($phone, $this->rhMessage());
+            return;
+        }
+
         $session  = BotSession::forPhone($phone);
         $lastSent = $session->context['fora_horario_enviado_em'] ?? null;
 
@@ -190,6 +196,29 @@ class WhatsappController extends Controller
         $session->transition($session->state, [
             'fora_horario_enviado_em' => now()->setTimezone('America/Sao_Paulo')->toIso8601String(),
         ]);
+    }
+
+    /** Detecta mensagens de recrutadores / RH. */
+    private function looksLikeRecruitment(string $text): bool
+    {
+        $input = mb_strtolower($text, 'UTF-8');
+
+        $keywords = ['vaga', 'currículo', 'curriculo', 'recrutamento', 'recrutador',
+                     ' rh ', 'seleção', 'selecao', 'entrevista', 'oportunidade',
+                     'processo seletivo', 'candidatura', 'candidatei'];
+
+        foreach ($keywords as $kw) {
+            if (str_contains($input, $kw)) return true;
+        }
+
+        return false;
+    }
+
+    /** Mensagem profissional para contatos de RH/recrutamento. */
+    private function rhMessage(): string
+    {
+        return "📨 Se você é do RH e está entrando em contato sobre o andamento ou feedback de uma vaga para a qual me candidatei recentemente, por favor, envie sua mensagem. Ela será tratada com prioridade.\n\n" .
+               "Para outros assuntos, deixe seu recado, e responderei assim que possível.";
     }
 
     /** Verifica se houve pelo menos uma hora de expediente entre $from e agora. */
@@ -255,8 +284,6 @@ class WhatsappController extends Controller
             "🎮 O pai tá em missão.\n\n" .
             "Assim que salvar o jogo (ou perder a partida 😅), ele responde.",
 
-            "📨 Se você é do RH e está entrando em contato sobre o andamento ou feedback de uma vaga para a qual me candidatei recentemente, por favor, envie sua mensagem. Ela será tratada com prioridade.\n\n" .
-            "Para outros assuntos, deixe seu recado, e responderei assim que possível.",
         ];
 
         return $messages[array_rand($messages)];
