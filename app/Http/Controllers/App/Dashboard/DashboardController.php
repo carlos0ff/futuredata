@@ -112,10 +112,13 @@ class DashboardController extends Controller
             ->whereNull('lida_em')
             ->count();
 
+        $botEnabled = config('whatsapp.bot_enabled', true);
+
         return view('app.dashboard.index', compact(
             'stats', 'recentes', 'contagemStatus', 'ultimos7dias',
             'porTecnico', 'equipamentosEmServico', 'urgentes',
-            'atividadesRecentes', 'mensagensClientes', 'totalMensagensNaoLidas'
+            'atividadesRecentes', 'mensagensClientes', 'totalMensagensNaoLidas',
+            'botEnabled'
         ));
     }
 
