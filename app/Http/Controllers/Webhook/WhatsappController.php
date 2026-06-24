@@ -243,6 +243,20 @@ class WhatsappController extends Controller
             "🤖 Caduco na área!\n\n" .
             "O humano responsável por este número está temporariamente indisponível. Não se preocupe, ele não fugiu... só tá ocupado. 😂\n\n" .
             "Manda a boa que eu deixo tudo separado pra ele.",
+
+            "😴🤖 Caduco na área!\n\n" .
+            "O humano responsável por *{$ownerName}* está dormindo no momento. Não tive coragem de acordar. 😂\n\n" .
+            "Pode mandar sua mensagem que, quando ele acordar, eu entrego o recado.",
+
+            "⌨️ O pai tá codando.\n\n" .
+            "Se eu interromper agora, pode nascer mais um bug. 😅\n\n" .
+            "Deixa o recado que ele responde depois.",
+
+            "🎮 O pai tá em missão.\n\n" .
+            "Assim que salvar o jogo (ou perder a partida 😅), ele responde.",
+
+            "📨 Se você é do RH e está entrando em contato sobre o andamento ou feedback de uma vaga para a qual me candidatei recentemente, por favor, envie sua mensagem. Ela será tratada com prioridade.\n\n" .
+            "Para outros assuntos, deixe seu recado, e responderei assim que possível.",
         ];
 
         return $messages[array_rand($messages)];
