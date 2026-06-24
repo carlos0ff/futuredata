@@ -155,7 +155,7 @@ class WhatsappController extends Controller
         }
 
         if (! $this->isBusinessHours()) {
-            $this->maybeSendOutOfHoursMessage($phone);
+            $this->whatsapp->send($phone, $this->outOfHoursMessage());
             return;
         }
 
