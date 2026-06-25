@@ -229,11 +229,7 @@ class WhatsappController extends Controller
         $lastSent = $session->context['fora_horario_enviado_em'] ?? null;
 
         if ($lastSent && ! $this->hasBusinessHoursPassedSince(Carbon::parse($lastSent))) {
-            // Já enviou a mensagem principal neste período — mensagem padrão de confirmação
-            $this->whatsapp->send($phone,
-                "Aqui é o Caduco, assistente virtual dele. No momento, ele está temporariamente indisponível.\n\n" .
-                "Sua mensagem foi registrada com sucesso e será respondida assim que possível."
-            );
+            // Já enviou a mensagem fora do horário neste período — silencia as demais
             return;
         }
 
@@ -362,34 +358,9 @@ class WhatsappController extends Controller
     {
         $ownerName = config('whatsapp.evolution.owner_name', 'CARL0$');
 
-        $messages = [
-            "Opa! Eu sou o *Caduco*, assistente virtual pessoal de *{$ownerName}*.\n\n" .
-            "Recebi sua mensagem e já deixei tudo anotado. Assim que ele estiver disponível, responde. ",
+        $message = "Opa! Eu sou o *Caduco*, assistente virtual dele. No momento, ele está temporariamente indisponível.\n\n" . "Sua mensagem foi registrada com sucesso e será respondida assim que possível.";
 
-            "O chefe tá matando aula da faculdade, procrastinando ou sendo um inútil como sempre foi. \n\n" .
-            "Deixa sua mensagem aí que, quando ele terminar de enrolar, responde.",
-
-           "Aqui é o Caduco, assistente virtual dele. No momento, ele está temporariamente indisponível.\n\n" .
-            "Sua mensagem foi registrada com sucesso e será respondida assim que possível.",
-
-            "Caduco na área!\n\n" .
-            "O humano responsável por este número está temporariamente indisponível. Não se preocupe, ele não fugiu... só tá ocupado. 😂\n\n" .
-            "Manda a boa que eu deixo tudo separado pra ele.",
-
-            "Caduco na área!\n\n" .
-            "O humano responsável por *{$ownerName}* está dormindo no momento. Não tive coragem de acordar. \n\n" .
-            "Pode mandar sua mensagem que, quando ele acordar, eu entrego o recado.",
-
-            "O pai tá codando.\n\n" .
-            "Se eu interromper agora, pode nascer mais um bug. 😅\n\n" .
-            "Deixa o recado que ele responde depois.",
-
-            "🎮 O pai tá em missão.\n\n" .
-            "Assim que salvar o jogo (ou perder a partida 😅), ele responde.",
-
-        ];
-
-        return $messages[array_rand($messages)];
+        return $message;
     }
 
     /** Repassa o payload bruto para o n8n (agente IA), se configurado. */

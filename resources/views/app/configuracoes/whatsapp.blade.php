@@ -422,7 +422,9 @@ function whatsappPage() {
             this.n8nMsg     = '';
             try {
                 const res  = await fetch('{{ route('app.whatsapp.test-n8n') }}', {
-                    method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url }),
                 });
                 const data = await res.json();
                 if (data.ok) {

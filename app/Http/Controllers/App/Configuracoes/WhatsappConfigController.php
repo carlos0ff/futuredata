@@ -157,9 +157,9 @@ class WhatsappConfigController extends Controller
     }
 
     /** Testa o webhook n8n disparando um evento de teste. */
-    public function testN8n(): JsonResponse
+    public function testN8n(Request $request): JsonResponse
     {
-        $url = config('services.n8n.webhook_url');
+        $url = $request->input('url') ?: config('services.n8n.webhook_url');
 
         if (! $url) {
             return response()->json(['error' => 'URL do n8n não configurada.'], 422);
