@@ -9,15 +9,6 @@ use App\Models\Ordem;
 /**
  * Bot de atendimento WhatsApp — usa Gemini IA quando configurado,
  * ou cai no BotEngine (menu fixo) como fallback.
- *
- * Fluxo com Gemini:
- *   1. Recupera/cria BotSession para o número.
- *   2. Monta system prompt com dados do cliente e OS.
- *   3. Gemini gera resposta contextualizada.
- *   4. WhatsappService envia via Evolution API.
- *
- * Fluxo sem Gemini (fallback):
- *   1-4 igual, mas BotEngine gera resposta por menu fixo.
  */
 class WhatsappBotService
 {
@@ -269,12 +260,10 @@ class WhatsappBotService
 
         $reply = $this->gemini->chat($text, $systemPrompt);
 
-        // Fallback para o menu fixo se Gemini falhar
         if (! $reply) {
             return $this->engine->handle($session, $text, saveReply: true);
         }
 
-        // Marca que o status foi enviado ao menos uma vez
         if (! $statusJaEnviado) {
             $session->transition($session->state, ['status_enviado' => true]);
         }

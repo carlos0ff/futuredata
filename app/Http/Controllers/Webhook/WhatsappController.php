@@ -12,6 +12,7 @@ use App\Services\WhatsappService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -72,7 +73,19 @@ class WhatsappController extends Controller
         $fromMe = $key['fromMe'] ?? true;
         $jid    = $key['remoteJid'] ?? '';
 
+        // Ignora mensagens enviadas pelo próprio bot ou de grupos
         if ($fromMe || str_contains($jid, '@g.us')) return;
+
+        // Deduplicação: evita processar o mesmo message ID duas vezes (webhook duplicado)
+        $msgId = $key['id'] ?? null;
+        if ($msgId) {
+            $cacheKey = 'whatsapp_msg_processed:' . $msgId;
+            if (Cache::has($cacheKey)) {
+                Log::debug('WhatsApp webhook: mensagem duplicada ignorada', ['msg_id' => $msgId]);
+                return;
+            }
+            Cache::put($cacheKey, true, now()->addMinutes(10));
+        }
 
         $msgData = $data['data']['message'] ?? [];
         $text    = $msgData['conversation']
@@ -83,6 +96,9 @@ class WhatsappController extends Controller
 
         $phone    = preg_replace('/\D/', '', explode('@', $jid)[0]);
         $pushName = $data['data']['pushName'] ?? null;
+
+        // Delay de 3 segundos antes de responder (evita resposta imediata e possíveis loops)
+        sleep(3);
 
         $this->processMessage($phone, $text, $pushName);
     }

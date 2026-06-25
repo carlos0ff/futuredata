@@ -47,4 +47,8 @@ return [
         'key' => env('GEMINI_API_KEY'),
     ],
 
+    'meta_ai' => [
+        'key' => env('META_AI_API_KEY'),
+    ],
+
 ];
