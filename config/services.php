@@ -51,4 +51,8 @@ return [
         'key' => env('META_AI_API_KEY'),
     ],
 
+    'n8n' => [
+        'token' => env('N8N_INTERNAL_TOKEN'),
+    ],
+
 ];
