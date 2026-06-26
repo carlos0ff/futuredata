@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\BotSession;
 use App\Models\Cliente;
 use App\Models\Ordem;
+use App\Models\OrdemHistorico;
+use App\Services\OrdemWhatsappNotificacaoService;
 
 /**
  * Bot de atendimento WhatsApp — usa Gemini IA quando configurado,
@@ -13,9 +15,10 @@ use App\Models\Ordem;
 class WhatsappBotService
 {
     public function __construct(
-        private WhatsappService $whatsapp,
-        private BotEngine       $engine,
-        private GeminiService   $gemini,
+        private WhatsappService                 $whatsapp,
+        private BotEngine                       $engine,
+        private GeminiService                   $gemini,
+        private OrdemWhatsappNotificacaoService $waNotif,
     ) {}
 
     /**
@@ -121,6 +124,7 @@ class WhatsappBotService
             'recusado'  => '❌ Recusado',
             default     => '—',
         };
+
         $msg .= "📋 *Status:* {$statusOrc}\n";
 
         if ($ordem->status_orcamento === 'pendente') {
@@ -178,6 +182,7 @@ class WhatsappBotService
 
         // Se o cliente acabou de se identificar e havia keyword pendente (orçamento/laudo), despacha direto
         $keywordPendente = $session->context['keyword_pendente'] ?? null;
+        
         if ($keywordPendente && $cliente) {
             $session->transition($session->state, ['keyword_pendente' => null]);
             $ordem = Ordem::with('equipamento')
@@ -230,7 +235,16 @@ class WhatsappBotService
                "Nosso assistente virtual está aqui para te ajudar. 😊";
     }
 
-    /** Detecta SIM/NÃO para orçamento pendente e atualiza a OS. */
+    /**
+     * Detecta resposta de aprovação/recusa de orçamento via WhatsApp e atualiza a OS.
+     *
+     * Palavras de aprovação (insensível a acentos, maiúsculas e espaços):
+     *   aprovar, aprovo, pode continuar, sim, sim pode continuar, autorizo,
+     *   autorizado, pode prosseguir, pode fazer o servico, ok, confirmo, de acordo,
+     *   pode fazer, s, pode.
+     *
+     * Palavras de recusa: nao, n, recuso, recusar, recusado, negar, negado, cancelar.
+     */
     private function handleOrcamentoResposta(BotSession $session, string $text, ?Cliente $cliente = null): bool
     {
         $clienteId = $session->cliente_id ?? $cliente?->id;
@@ -244,21 +258,73 @@ class WhatsappBotService
 
         if (! $ordem) return false;
 
-        $input = mb_strtolower(trim(preg_replace('/\s+/', '', $text)));
-        $sim   = in_array($input, ['sim', 's', 'autorizo', 'autorizar', 'aprovar', 'aprovado', 'ok', 'pode']);
-        $nao   = in_array($input, ['nao', 'não', 'n', 'recuso', 'recusar', 'recusado', 'negar', 'negado']);
+        $input = $this->normalizar($text);
+
+        $sim = in_array($input, [
+            'sim', 's', 'ok',
+            'aprovar', 'aprovo', 'aprovado',
+            'autorizo', 'autorizado', 'autorizar',
+            'confirmo',
+            'pode', 'podefazer', 'podefazer', 'podefazeroservico', 'podefazerservico',
+            'podecontinuar', 'simpodecontinuar', 'simpodecontinuar',
+            'podeprosseguir',
+            'deacordo',
+        ]);
+
+        $nao = in_array($input, [
+            'nao', 'n', 'cancelar',
+            'recuso', 'recusar', 'recusado',
+            'negar', 'negado',
+        ]);
 
         if (! $sim && ! $nao) return false;
 
-        $ordem->update(['status_orcamento' => $sim ? 'aprovado' : 'recusado']);
+        if ($sim) {
+            $ordem->update([
+                'status_orcamento'      => 'aprovado',
+                'orcamento_aprovado_em' => now(),
+                'orcamento_aprovado_via' => 'whatsapp',
+            ]);
 
-        $reply = $sim
-            ? "✅ *Serviço autorizado!*\n\nPerfeito! Nossa equipe já foi notificada e dará andamento ao conserto.\nEntraremos em contato quando estiver pronto. 😊"
-            : "❌ *Serviço recusado.*\n\nEntendemos! Sua OS foi marcada como recusada.\nEntre em contato conosco para combinar a devolução do equipamento.\n\n_Future Data — (81) 9482-1792_";
+            OrdemHistorico::create([
+                'ordem_id'        => $ordem->id,
+                'user_id'         => null,
+                'status_anterior' => null,
+                'status_novo'     => $ordem->status,
+                'observacao'      => 'Orçamento aprovado via WhatsApp pelo cliente.',
+            ]);
 
-        $this->whatsapp->send($session->phone, $reply);
+            $this->waNotif->notificarOrcamentoAprovado($ordem->fresh(['cliente', 'equipamento']));
+        } else {
+            $ordem->update(['status_orcamento' => 'recusado']);
+
+            OrdemHistorico::create([
+                'ordem_id'        => $ordem->id,
+                'user_id'         => null,
+                'status_anterior' => null,
+                'status_novo'     => $ordem->status,
+                'observacao'      => 'Orçamento recusado via WhatsApp pelo cliente.',
+            ]);
+
+            $this->whatsapp->send($session->phone,
+                "❌ *Serviço recusado.*\n\n" .
+                "Entendemos! Sua OS foi marcada como recusada.\n" .
+                "Entre em contato conosco para combinar a devolução do equipamento.\n\n" .
+                "_Future Data — (81) 9482-1792_"
+            );
+        }
 
         return true;
+    }
+
+    /**
+     * Normaliza texto para comparação: remove acentos, espaços, pontuação e converte para minúsculas.
+     * Ex.: "Sim, pode continuar!" → "simpodecontinuar"
+     */
+    private function normalizar(string $text): string
+    {
+        $ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', mb_strtolower(trim($text), 'UTF-8'));
+        return preg_replace('/[^a-z]/', '', $ascii ?? '');
     }
 
     private function replyWithGemini(BotSession $session, string $text, ?Cliente $cliente): string

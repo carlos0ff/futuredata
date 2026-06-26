@@ -29,7 +29,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property float       $valor_servico
  * @property float       $valor_pecas
  * @property float       $desconto
- * @property string|null $status_orcamento  pendente|aprovado|recusado
+ * @property string|null $status_orcamento      pendente|aprovado|recusado
+ * @property \Carbon\Carbon|null $orcamento_aprovado_em
+ * @property string|null $orcamento_aprovado_via whatsapp|portal|manual
  * @property string|null $observacoes
  * @property \Carbon\Carbon|null $previsao_entrega
  * @property \Carbon\Carbon|null $finalizado_em
@@ -68,6 +70,8 @@ class Ordem extends Model
         'valor_pecas',
         'desconto',
         'status_orcamento',
+        'orcamento_aprovado_em',
+        'orcamento_aprovado_via',
         'observacoes',
         'previsao_entrega',
         'finalizado_em',
@@ -77,8 +81,9 @@ class Ordem extends Model
         'valor_servico'    => 'decimal:2',
         'valor_pecas'      => 'decimal:2',
         'desconto'         => 'decimal:2',
-        'previsao_entrega' => 'date',
-        'finalizado_em'    => 'datetime',
+        'previsao_entrega'      => 'date',
+        'finalizado_em'         => 'datetime',
+        'orcamento_aprovado_em' => 'datetime',
     ];
 
     /**

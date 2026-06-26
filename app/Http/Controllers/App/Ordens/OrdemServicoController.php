@@ -13,7 +13,7 @@ use App\Models\User;
 use App\Notifications\OrdemCriada;
 use App\Notifications\OrdemStatusAlterado;
 use App\Services\N8nService;
-use App\Services\WhatsappService;
+use App\Services\OrdemWhatsappNotificacaoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
@@ -45,7 +45,10 @@ use Illuminate\View\View;
  */
 class OrdemServicoController extends Controller
 {
-    public function __construct(private N8nService $n8n) {}
+    public function __construct(
+        private N8nService                      $n8n,
+        private OrdemWhatsappNotificacaoService $waNotif,
+    ) {}
     /**
      * Lista paginada de OS com filtros por busca e status.
      * Técnicos veem apenas suas próprias OS.
@@ -242,31 +245,15 @@ class OrdemServicoController extends Controller
 
         $this->n8n->dispatch('os.criada', $ordem->load('cliente', 'equipamento'));
 
-        // Monta link do WhatsApp para envio manual pelo atendente
-        $nomeEquip  = trim("{$equipamento->marca} {$equipamento->modelo}") ?: $equipamento->tipo;
+        // Envia notificação automática de entrada ao cliente via WhatsApp
+        $this->waNotif->notificarEntrada($ordem);
+
         $linkPortal = route('portal.token', $ordem->token);
-
-        $msgWa = urlencode(
-            "Olá, {$cliente->nome}!\n" .
-            "Seu equipamento foi recebido com sucesso em nossa assistência técnica.\n\n" .
-            "📄 OS: {$ordem->codigo_publico}\n" .
-            "📱 Equipamento: {$nomeEquip}\n" .
-            "📍 Status atual: Equipamento recebido\n\n" .
-            "Para acompanhar sua OS, acesse o portal do cliente:\n" .
-            "🔑 Token de acesso: {$ordem->token}\n" .
-            "🔗 Link direto: {$linkPortal}\n\n" .
-            "Ou acesse em futuredata.carlos0ff.dev/portal e informe o código {$ordem->codigo_publico}.\n\n" .
-            "Em caso de dúvidas, estamos à disposição."
-        );
-
-        $telLimpo = preg_replace('/\D/', '', $cliente->telefone ?? '');
-        $waLink   = $telLimpo ? "https://wa.me/55{$telLimpo}?text={$msgWa}" : null;
 
         return redirect()
             ->route('app.os.show', $ordem)
             ->with('entrada_sucesso', [
                 'os'       => $ordem->numero,
-                'wa_link'  => $waLink,
                 'telefone' => $cliente->telefone,
                 'portal'   => $linkPortal,
                 'token'    => $ordem->token,
@@ -366,9 +353,9 @@ class OrdemServicoController extends Controller
         $orcamentoAnterior = $ordemServico->status_orcamento;
         $ordemServico->update($dados);
 
-        // Notifica cliente via WhatsApp quando orçamento é definido como pendente
+        // Notifica cliente via WhatsApp quando orçamento fica disponível para aprovação
         if (($dados['status_orcamento'] ?? null) === 'pendente' && $orcamentoAnterior !== 'pendente') {
-            $this->notificarOrcamentoWhatsapp($ordemServico->fresh(['cliente', 'equipamento']));
+            $this->waNotif->notificarOrcamentoPendente($ordemServico->fresh(['cliente', 'equipamento']));
         }
 
         if ($dados['status'] !== $statusAnterior) {
@@ -385,6 +372,7 @@ class OrdemServicoController extends Controller
             }
 
             $this->notificarMudancaStatus($ordemServico, $statusAnterior, $dados['status']);
+            $this->waNotif->notificarStatusAlterado($ordemServico->fresh(['cliente', 'equipamento']), $dados['status']);
         }
 
         return redirect()->route('app.os.show', $ordemServico)
@@ -424,6 +412,7 @@ class OrdemServicoController extends Controller
         }
 
         $this->notificarMudancaStatus($ordemServico, $anterior, $dados['status']);
+        $this->waNotif->notificarStatusAlterado($ordemServico->fresh(['cliente', 'equipamento']), $dados['status']);
 
         if ($dados['status'] !== $anterior) {
             $this->n8n->dispatch('os.status_alterado', $ordemServico->load('cliente', 'equipamento'), [
@@ -450,39 +439,6 @@ class OrdemServicoController extends Controller
         } elseif ($ordem->tecnico_id && $ordem->tecnico_id !== $usuario->id) {
             $ordem->tecnico->notify($notificacao);
         }
-    }
-
-    /** Envia notificação de orçamento pendente para o cliente via WhatsApp. */
-    private function notificarOrcamentoWhatsapp(Ordem $ordem): void
-    {
-        $cliente = $ordem->cliente;
-        if (! $cliente?->telefone) return;
-
-        $whatsapp = app(WhatsappService::class);
-        $device   = $ordem->equipamento
-            ? trim("{$ordem->equipamento->marca} {$ordem->equipamento->modelo}")
-            : 'Equipamento';
-
-        $total   = 'R$ ' . number_format($ordem->total, 2, ',', '.');
-        $servico = $ordem->valor_servico > 0 ? 'R$ ' . number_format($ordem->valor_servico, 2, ',', '.') : null;
-        $pecas   = $ordem->valor_pecas   > 0 ? 'R$ ' . number_format($ordem->valor_pecas,   2, ',', '.') : null;
-
-        $msg  = "💰 *Orçamento pronto para aprovação!*\n";
-        $msg .= "────────────────────\n";
-        $msg .= "🔢 OS: *{$ordem->numero}*\n";
-        $msg .= "📱 Equipamento: *{$device}*\n";
-        if ($ordem->diagnostico) $msg .= "🔬 Diagnóstico: {$ordem->diagnostico}\n";
-        $msg .= "────────────────────\n";
-        if ($servico) $msg .= "🔧 Mão de obra: *{$servico}*\n";
-        if ($pecas)   $msg .= "🔩 Peças: *{$pecas}*\n";
-        $msg .= "💵 *Total: {$total}*\n";
-        $msg .= "────────────────────\n\n";
-        $msg .= "Para *AUTORIZAR* o serviço, responda: *SIM*\n";
-        $msg .= "Para *RECUSAR*, responda: *NÃO*\n\n";
-        $msg .= "_Você também pode responder pelo portal:_\n";
-        $msg .= url("/portal/{$ordem->token}");
-
-        $whatsapp->send($cliente->telefone, $msg);
     }
 
     /**
