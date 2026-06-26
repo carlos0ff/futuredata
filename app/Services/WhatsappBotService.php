@@ -196,9 +196,15 @@ class WhatsappBotService
             return;
         }
 
-        $reply = $this->gemini->isConfigured()
-            ? $this->replyWithGemini($session, $text, $cliente)
-            : $this->engine->handle($session, $text, saveReply: true);
+        // Comandos de menu (0–3), palavras de encerramento e códigos OS sempre vão
+        // pelo engine — o Gemini não conhece o contexto do menu estruturado.
+        $cmd = trim(preg_replace('/\s+/', ' ', mb_strtolower($text, 'UTF-8')));
+        $isMenuCommand = in_array($cmd, ['0', '1', '2', '3', 'encerrar', 'tchau', 'sair', 'fim', 'bye', 'cancelar', 'trocar', 'outra'])
+            || preg_match('/^os\d+$/i', trim($text));
+
+        $reply = ($isMenuCommand || ! $this->gemini->isConfigured())
+            ? $this->engine->handle($session, $text, saveReply: true)
+            : $this->replyWithGemini($session, $text, $cliente);
 
         $this->whatsapp->send($phone, $reply);
     }

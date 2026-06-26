@@ -86,6 +86,24 @@ class BotEngine
             return $this->promptCpf();
         }
 
+        // Detecta código de OS digitado no menu — troca para aquela OS (somente do cliente atual)
+        $upperText = strtoupper(trim($text));
+        if (preg_match('/^OS\d+$/i', $upperText)) {
+            $outraOrdem = Ordem::with('equipamento')
+                ->where('cliente_id', $session->cliente_id)
+                ->where(fn ($q) => $q->where('codigo_publico', $upperText)->orWhere('numero', $upperText))
+                ->first();
+
+            if ($outraOrdem) {
+                $session->transition('menu');
+                $session->update(['ordem_id' => $outraOrdem->id]);
+                return $this->menuPrincipal($cliente, $outraOrdem);
+            }
+
+            return "🔒 OS *{$upperText}* não encontrada ou não pertence à sua conta.\n\n"
+                . $this->menuPrincipal($cliente, $ordem);
+        }
+
         return match (true) {
             $opt === '1'                                             => $this->replyDetalhes($session, $ordem),
             $opt === '2'                                             => $this->replyEquipe($session, $cliente),
@@ -99,6 +117,13 @@ class BotEngine
     /** Estado waiting_cpf — cliente desconhecido, aguardando CPF ou código OS. */
     private function handleWaitingCpf(BotSession $session, string $text): string
     {
+        $opt = $this->normalize($text);
+
+        if ($opt === '0' || in_array($opt, ['encerrar', 'tchau', 'sair', 'fim', 'bye', 'cancelar'])) {
+            $session->reset();
+            return "Atendimento encerrado. Até logo! 👋\n\n_Future Data — sua eletrônica em boas mãos._";
+        }
+
         $input = preg_replace('/\D/', '', $text);
 
         // Tenta por CPF/CNPJ
@@ -115,12 +140,23 @@ class BotEngine
             $codigo = 'OS' . str_pad($input, 5, '0', STR_PAD_LEFT);
         }
 
-        $ordem = Ordem::with('cliente')
-            ->where('codigo_publico', $codigo)
-            ->orWhere('numero', $codigo)
-            ->first();
+        $ordemQuery = Ordem::with('cliente')
+            ->where(fn ($q) => $q->where('codigo_publico', $codigo)->orWhere('numero', $codigo));
+
+        // Segurança: se o cliente já foi identificado, a OS deve pertencer a ele
+        if ($session->cliente_id) {
+            $ordemQuery->where('cliente_id', $session->cliente_id);
+        }
+
+        $ordem = $ordemQuery->first();
 
         if ($ordem) {
+            // Valida que a OS pertence ao cliente correto (dupla checagem)
+            if ($session->cliente_id && $ordem->cliente_id !== $session->cliente_id) {
+                $attempts = ($session->context['attempts'] ?? 0) + 1;
+                $session->transition('waiting_cpf', ['attempts' => $attempts]);
+                return "🔒 Essa OS não pertence à sua conta.\n\nPor favor, informe seu *CPF* ou o código de uma OS sua.";
+            }
             return $this->clienteEncontrado($session, $ordem->cliente, $ordem);
         }
 
@@ -144,13 +180,28 @@ class BotEngine
     /** Estado waiting_os — cliente com múltiplas OS, aguardando escolha. */
     private function handleWaitingOs(BotSession $session, string $text): string
     {
-        $opt   = (int) $this->normalize($text);
-        $lista = $session->context['os_list'] ?? [];
+        $opt    = $this->normalize($text);
+        $lista  = $session->context['os_list'] ?? [];
+        $cliente = Cliente::find($session->cliente_id);
 
-        if ($opt >= 1 && $opt <= count($lista)) {
-            $ordemId = $lista[$opt - 1];
+        // Permite encerrar mesmo durante a seleção de OS
+        if ($opt === '0' || in_array($opt, ['encerrar', 'tchau', 'sair', 'fim', 'bye', 'cancelar'])) {
+            return $cliente
+                ? $this->replyEncerrar($session, $cliente)
+                : ($session->reset() ?: "Atendimento encerrado. Até logo! 👋");
+        }
+
+        $num = (int) $opt;
+
+        if ($num >= 1 && $num <= count($lista)) {
+            $ordemId = $lista[$num - 1];
             $ordem   = Ordem::with(['equipamento', 'cliente'])->find($ordemId);
-            $cliente = Cliente::find($session->cliente_id);
+
+            // Segurança: garante que a OS pertence ao cliente da sessão
+            if (! $ordem || $ordem->cliente_id !== $session->cliente_id) {
+                $session->reset();
+                return "Sessão inválida. Por favor, inicie novamente.\n\n" . $this->promptCpf();
+            }
 
             $session->transition('menu', ['selected_os' => $ordemId]);
             $session->update(['ordem_id' => $ordemId]);
@@ -158,7 +209,7 @@ class BotEngine
             return $this->menuPrincipal($cliente, $ordem);
         }
 
-        return "Por favor, escolha um número entre 1 e " . count($lista) . ".\n\n"
+        return "Por favor, escolha um número entre *1* e *" . count($lista) . "*, ou *0* para encerrar.\n\n"
             . $this->buildOsList($lista);
     }
 
