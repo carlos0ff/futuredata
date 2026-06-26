@@ -133,26 +133,45 @@ return new class extends Migration
             ]);
 
             [$status, $statusOrc, $diagnostico, $valorServico, $diasEntrega] = $dados['os'];
+            [, , , $condicao] = $dados['equip'];
 
-            $ano = date('Y');
-            $seq = str_pad(DB::table('ordens')->count() + 1, 5, '0', STR_PAD_LEFT);
+            $ano   = date('Y');
+            $seq   = str_pad(DB::table('ordens')->count() + 1, 5, '0', STR_PAD_LEFT);
+            $token = $this->gerarToken();
 
-            DB::table('ordens')->insert(array_filter([
-                'numero'           => "OS{$ano}{$seq}",
-                'token'            => strtoupper(substr(md5(uniqid()), 0, 7)),
-                'cliente_id'       => $clienteId,
-                'equipamento_id'   => $equipamentoId,
-                'status'           => $status,
-                'status_orcamento' => $statusOrc,
-                'diagnostico'      => $diagnostico,
-                'valor_servico'    => $valorServico,
-                'valor_pecas'      => 0.00,
-                'desconto'         => 0.00,
-                'previsao_entrega' => $diasEntrega !== null ? now()->addDays($diasEntrega)->toDateString() : null,
-                'created_at'       => now(),
-                'updated_at'       => now(),
+            $ordemId = DB::table('ordens')->insertGetId(array_filter([
+                'numero'            => "OS{$ano}{$seq}",
+                'token'             => $token,
+                'cliente_id'        => $clienteId,
+                'equipamento_id'    => $equipamentoId,
+                'status'            => $status,
+                'problema_relatado' => $condicao,
+                'status_orcamento'  => $statusOrc,
+                'diagnostico'       => $diagnostico,
+                'valor_servico'     => $valorServico,
+                'valor_pecas'       => 0.00,
+                'desconto'          => 0.00,
+                'previsao_entrega'  => $diasEntrega !== null ? now()->addDays($diasEntrega)->toDateString() : null,
+                'created_at'        => now(),
+                'updated_at'        => now(),
             ], fn($v) => $v !== null));
+
+            DB::table('ordens')->where('id', $ordemId)
+                ->update(['codigo_publico' => 'OS' . str_pad($ordemId, 5, '0', STR_PAD_LEFT)]);
         }
+    }
+
+    private function gerarToken(): string
+    {
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        do {
+            $token = '';
+            for ($i = 0; $i < 7; $i++) {
+                $token .= $chars[random_int(0, 35)];
+            }
+        } while (DB::table('ordens')->where('token', $token)->exists());
+
+        return $token;
     }
 
     public function down(): void

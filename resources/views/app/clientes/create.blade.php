@@ -381,7 +381,7 @@
                 <svg class="h-4 w-4 text-blue-600 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                 <div>
                     <p class="text-[12px] font-semibold text-blue-800">Portal do Cliente</p>
-                    <p class="text-[11.5px] text-blue-600 mt-0.5 leading-relaxed">Informe o CPF e a data de nascimento para que o cliente acesse o portal.</p>
+                    <p class="text-[11.5px] text-blue-600 mt-0.5 leading-relaxed">O acesso ao portal é feito pelo código ou token da OS, gerados automaticamente ao registrar a entrada.</p>
                 </div>
             </div>
         </div>

@@ -630,7 +630,7 @@ $formas = [
         <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3.5 text-[11.5px]">
             <p class="font-bold text-blue-900">Portal do cliente</p>
             <p class="mt-1 leading-relaxed text-blue-700">
-                Login com <strong>CPF</strong> e <strong>data de nascimento</strong>. Mensagem de boas-vindas enviada automaticamente pelo WhatsApp após a entrada.
+                O cliente acessa o portal com o <strong>código da OS</strong> (ex: OS00001) ou o <strong>token de 7 caracteres</strong> gerado automaticamente. O link é enviado via WhatsApp ao registrar a entrada.
             </p>
         </div>
     </div>

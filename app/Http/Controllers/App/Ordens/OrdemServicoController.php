@@ -245,21 +245,17 @@ class OrdemServicoController extends Controller
         // Monta link do WhatsApp para envio manual pelo atendente
         $nomeEquip  = trim("{$equipamento->marca} {$equipamento->modelo}") ?: $equipamento->tipo;
         $linkPortal = route('portal.token', $ordem->token);
-        $cpfExibido = $request->cpf_cnpj ?: '—';
-        $nascimento = $request->data_nascimento
-            ? \Carbon\Carbon::parse($request->data_nascimento)->format('d/m/Y')
-            : '—';
 
         $msgWa = urlencode(
             "Olá, {$cliente->nome}!\n" .
             "Seu equipamento foi recebido com sucesso em nossa assistência técnica.\n\n" .
-            "📄 OS: {$ordem->numero}\n" .
+            "📄 OS: {$ordem->codigo_publico}\n" .
             "📱 Equipamento: {$nomeEquip}\n" .
             "📍 Status atual: Equipamento recebido\n\n" .
             "Para acompanhar sua OS, acesse o portal do cliente:\n" .
-            "CPF: {$cpfExibido}\n" .
-            "Senha: sua data de nascimento ({$nascimento})\n\n" .
-            "🔗 Link do portal: {$linkPortal}\n\n" .
+            "🔑 Token de acesso: {$ordem->token}\n" .
+            "🔗 Link direto: {$linkPortal}\n\n" .
+            "Ou acesse em futuredata.carlos0ff.dev/portal e informe o código {$ordem->codigo_publico}.\n\n" .
             "Em caso de dúvidas, estamos à disposição."
         );
 
