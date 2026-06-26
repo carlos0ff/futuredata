@@ -350,7 +350,7 @@ class WhatsappController extends Controller
     /** Verifica se está dentro do horário de atendimento agora. */
     private function isBusinessHours(): bool
     {
-        return $this->isBusinessHoursAt(now()->setTimezone('America/Sao_Paulo'));
+        return true; // TESTE: sempre em horário comercial
     }
 
     /** Mensagem de fora do horário — alterna aleatoriamente entre as opções. */
