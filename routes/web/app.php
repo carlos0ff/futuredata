@@ -34,10 +34,8 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     });
 
     // ── Clientes ──────────────────────────────────────────────────────────────
-    Route::middleware('role:gerente,admin,atendente')
-        ->prefix('clientes')->name('clientes.')
-        ->controller(ClienteController::class)
-        ->group(function () {
+    Route::middleware('role:gerente,admin,atendente')->prefix('clientes')->name('clientes.')
+        ->controller(ClienteController::class)->group(function () {
             Route::get('/',                       'index')->name('index');
             Route::get('/novo',                   'create')->name('create');
             Route::post('/',                      'store')->name('store');
@@ -69,8 +67,7 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
         });
 
     // ── Ordens de Serviço ─────────────────────────────────────────────────────
-    Route::prefix('ordens-servico')->name('os.')
-        ->controller(OrdemServicoController::class)
+    Route::prefix('ordens-servico')->name('os.')->controller(OrdemServicoController::class)
         ->group(function () {
             Route::get('/',                        'index')->name('index');
             Route::get('/nova',                    'create')->name('create');
@@ -92,8 +89,9 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
             Route::delete('/{arquivo}',       'destroy')->name('destroy');
         });
 
-    // ── Serviços ──────────────────────────────────────────────────────────────
-    Route::prefix('servicos')->name('servicos.')->controller(ServiceController::class)
+        // ── Serviços ──────────────────────────────────────────────────────────────
+        Route::prefix('servicos')->name('servicos.')
+        ->controller(ServiceController::class)
         ->group(function () {
             Route::get('/',          'index')->name('index');
             Route::post('/',         'store')->name('store');
@@ -101,14 +99,12 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
             Route::delete('/{service}', 'destroy')->name('destroy');
         });
 
-    // ── Estoque ───────────────────────────────────────────────────────────────
-    Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
+        // ── Estoque ───────────────────────────────────────────────────────────────
+        Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
 
-    // ── Financeiro ────────────────────────────────────────────────────────────
-    Route::middleware('role:gerente,admin')
-        ->prefix('financeiro')->name('financeiro.')
-        ->controller(FinanceiroController::class)
-        ->group(function () {
+        // ── Financeiro ────────────────────────────────────────────────────────────
+        Route::middleware('role:gerente,admin')->prefix('financeiro')->name('financeiro.')
+        ->controller(FinanceiroController::class)->group(function () {
             Route::get('/',               'index')->name('index');
             Route::get('/receitas',       'receitas')->name('receitas');
             Route::get('/despesas',       'despesas')->name('despesas');
@@ -116,11 +112,9 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
             Route::get('/fluxo-de-caixa', 'fluxoCaixa')->name('fluxo-caixa');
         });
 
-    // ── Relatórios ────────────────────────────────────────────────────────────
-    Route::middleware('role:gerente,admin')
-        ->prefix('relatorios')->name('relatorios.')
-        ->controller(RelatorioController::class)
-        ->group(function () {
+        // ── Relatórios ────────────────────────────────────────────────────────────
+        Route::middleware('role:gerente,admin')->prefix('relatorios')->name('relatorios.')
+        ->controller(RelatorioController::class)->group(function () {
             Route::get('/',               'index')->name('index');
             Route::get('/clientes',       'clientes')->name('clientes');
             Route::get('/ordens-servico', 'ordensServico')->name('os');
@@ -128,9 +122,8 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
             Route::get('/tecnicos',       'tecnicos')->name('tecnicos');
         });
 
-    // ── Notificações ──────────────────────────────────────────────────────────
-    Route::prefix('notificacoes')->name('notificacoes.')
-        ->controller(NotificacaoController::class)
+        // ── Notificações ──────────────────────────────────────────────────────────
+        Route::prefix('notificacoes')->name('notificacoes.')->controller(NotificacaoController::class)
         ->group(function () {
             Route::get('/',                'index')->name('index');
             Route::get('/{id}/abrir',      'open')->name('open');
@@ -140,35 +133,29 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
             Route::delete('/{id}',         'destroy')->name('destroy');
         });
 
-    // ── Usuários ──────────────────────────────────────────────────────────────
-    Route::middleware('role:gerente,admin')
-        ->prefix('usuarios')->name('usuarios.')
-        ->controller(UsuarioController::class)
-        ->group(function () {
-            Route::get('/',                 'index')->name('index');
-            Route::get('/novo',             'create')->name('create');
-            Route::post('/',                'store')->name('store');
-            Route::get('/{usuario}/editar', 'edit')->name('edit');
-            Route::put('/{usuario}',        'update')->name('update');
-            Route::delete('/{usuario}',     'destroy')->name('destroy');
+        // ── Usuários ──────────────────────────────────────────────────────────────
+        Route::middleware('role:gerente,admin')->prefix('usuarios')->name('usuarios.')
+            ->controller(UsuarioController::class)->group(function () {
+                Route::get('/',                 'index')->name('index');
+                Route::get('/novo',             'create')->name('create');
+                Route::post('/',                'store')->name('store');
+                Route::get('/{usuario}/editar', 'edit')->name('edit');
+                Route::put('/{usuario}',        'update')->name('update');
+                Route::delete('/{usuario}',     'destroy')->name('destroy');
         });
 
-    // ── Configurações ─────────────────────────────────────────────────────────
-    Route::middleware('role:gerente,admin')
-    ->prefix('configuracoes')->name('configuracoes.')
-        ->controller(ConfiguracaoController::class)
-        ->group(function () {
+        // ── Configurações ─────────────────────────────────────────────────────────
+        Route::middleware('role:gerente,admin')->prefix('configuracoes')->name('configuracoes.')
+        ->controller(ConfiguracaoController::class)->group(function () {
             Route::get('/',        'index')->name('index');
             Route::put('/empresa', 'empresa')->name('empresa');
             Route::put('/sistema', 'sistema')->name('sistema');
             Route::put('/email',   'email')->name('email');
         });
 
-    // ── WhatsApp / Bot ────────────────────────────────────────────────────────
-    Route::middleware('role:gerente,admin')
-        ->prefix('whatsapp')->name('whatsapp.')
-        ->controller(WhatsappConfigController::class)
-        ->group(function () {
+        // ── WhatsApp / Bot ────────────────────────────────────────────────────────
+        Route::middleware('role:gerente,admin')->prefix('whatsapp')->name('whatsapp.')
+        ->controller(WhatsappConfigController::class)->group(function () {
             Route::get('/',                    'index')->name('index');
             Route::post('/save',               'save')->name('save');
             Route::get('/status',              'status')->name('status');
