@@ -68,6 +68,17 @@ class BotEngine
     {
         $opt = $this->normalize($text);
 
+        // "0" e palavras de encerramento fecham imediatamente — mesmo sem OS vinculada
+        if ($opt === '0' || in_array($opt, ['encerrar', 'tchau', 'sair', 'fim', 'bye'])) {
+            $cliente = $session->cliente_id ? Cliente::find($session->cliente_id) : null;
+            $session->reset();
+            if ($cliente) {
+                $nome = explode(' ', $cliente->nome)[0];
+                return "Obrigado, *{$nome}*! 😊\n\nQualquer dúvida, é só chamar. Até logo! 👋\n\n_Future Data — sua eletrônica em boas mãos._";
+            }
+            return "Atendimento encerrado. Até logo! 👋\n\n_Future Data — sua eletrônica em boas mãos._";
+        }
+
         if (! $session->cliente_id) {
             $session->transition('waiting_cpf');
             return $this->promptCpf();
@@ -108,7 +119,6 @@ class BotEngine
             $opt === '1'                                             => $this->replyDetalhes($session, $ordem),
             $opt === '2'                                             => $this->replyEquipe($session, $cliente),
             $opt === '3' && $ordem->status_orcamento === 'pendente' => $this->replyOrcamento($session, $ordem),
-            $opt === '0' || in_array($opt, ['encerrar','tchau','sair','fim','bye']) => $this->replyEncerrar($session, $cliente),
             $opt === 'trocar' || $opt === 'outra'                   => $this->resolveOrdem($session, $cliente, force: true),
             default                                                   => $this->menuPrincipal($cliente, $ordem),
         };

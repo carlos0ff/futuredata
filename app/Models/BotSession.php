@@ -82,6 +82,7 @@ class BotSession extends Model
             'state'         => 'idle',
             'context'       => null,
             'ordem_id'      => null,
+            'cliente_id'    => null,
             'last_activity' => now(),
         ]);
     }

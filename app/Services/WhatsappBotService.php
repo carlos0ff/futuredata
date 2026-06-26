@@ -26,8 +26,8 @@ class WhatsappBotService
     {
         $session = BotSession::forPhone($phone);
 
-        if ($cliente && ! $session->cliente_id) {
-            $session->update(['cliente_id' => $cliente->id]);
+        if ($cliente && $session->cliente_id !== $cliente->id) {
+            $session->update(['cliente_id' => $cliente->id, 'ordem_id' => null]);
             $session->refresh();
         }
 
@@ -164,8 +164,10 @@ class WhatsappBotService
         $session   = BotSession::forPhone($phone);
         $isNewChat = $session->wasRecentlyCreated || $this->isNewConversationWindow($session);
 
-        if ($cliente && ! $session->cliente_id) {
-            $session->update(['cliente_id' => $cliente->id]);
+        if ($cliente && $session->cliente_id !== $cliente->id) {
+            // Cliente identificado pelo telefone é diferente do que está na sessão —
+            // atualiza e limpa a OS vinculada para evitar mostrar dados de outro cliente
+            $session->update(['cliente_id' => $cliente->id, 'ordem_id' => null]);
             $session->refresh();
         }
 
