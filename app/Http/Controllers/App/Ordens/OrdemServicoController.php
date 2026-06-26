@@ -250,6 +250,13 @@ class OrdemServicoController extends Controller
 
         $linkPortal = route('portal.token', $ordem->token);
 
+        $phoneDigits = preg_replace('/\D/', '', $cliente->telefone ?? '');
+        if (strlen($phoneDigits) === 11 || strlen($phoneDigits) === 10) {
+            $phoneDigits = '55' . $phoneDigits;
+        }
+        $waMsg  = urlencode("Olá {$cliente->nome}! Sua OS #{$ordem->numero} foi registrada. Acompanhe pelo portal: {$linkPortal}");
+        $waLink = $phoneDigits ? "https://wa.me/{$phoneDigits}?text={$waMsg}" : null;
+
         return redirect()
             ->route('app.os.show', $ordem)
             ->with('entrada_sucesso', [
@@ -257,6 +264,7 @@ class OrdemServicoController extends Controller
                 'telefone' => $cliente->telefone,
                 'portal'   => $linkPortal,
                 'token'    => $ordem->token,
+                'wa_link'  => $waLink,
             ]);
     }
 
