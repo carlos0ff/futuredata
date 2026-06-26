@@ -20,35 +20,26 @@ use Illuminate\View\View;
  */
 class ServiceController extends Controller
 {
-    private const FREE_LIMIT = 5;
-
     public function index(): View
     {
         $services = Service::where('user_id', auth()->id())->latest()->get();
 
         return view('app.servicos.index', [
-            'services'  => $services,
-            'atLimit'   => $services->count() >= self::FREE_LIMIT,
-            'freeLimit' => self::FREE_LIMIT,
+            'services'   => $services,
             'categories' => $this->categories(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $userId = auth()->id();
-
-        if (Service::where('user_id', $userId)->count() >= self::FREE_LIMIT) {
-            return back()->with('error', 'Limite de ' . self::FREE_LIMIT . ' serviços atingido no plano gratuito.');
-        }
-
         $data = $request->validate([
             'name'       => ['required', 'string', 'max:100'],
             'category'   => ['required', 'string', 'max:60'],
             'base_price' => ['required', 'numeric', 'min:0', 'max:99999.99'],
+            'status'     => ['sometimes', 'string', 'in:ativo,feito,notificado_whatsapp'],
         ]);
 
-        Service::create(array_merge($data, ['user_id' => $userId]));
+        Service::create(array_merge($data, ['user_id' => auth()->id()]));
 
         return back()->with('success', 'Serviço adicionado com sucesso.');
     }
@@ -61,11 +52,25 @@ class ServiceController extends Controller
             'name'       => ['required', 'string', 'max:100'],
             'category'   => ['required', 'string', 'max:60'],
             'base_price' => ['required', 'numeric', 'min:0', 'max:99999.99'],
+            'status'     => ['sometimes', 'string', 'in:ativo,feito,notificado_whatsapp'],
         ]);
 
         $service->update($data);
 
         return back()->with('success', 'Serviço atualizado com sucesso.');
+    }
+
+    public function updateStatus(Request $request, Service $service): JsonResponse
+    {
+        abort_if($service->user_id !== auth()->id(), 403);
+
+        $data = $request->validate([
+            'status' => ['required', 'string', 'in:ativo,feito,notificado_whatsapp'],
+        ]);
+
+        $service->update($data);
+
+        return response()->json(['ok' => true]);
     }
 
     public function destroy(Service $service): RedirectResponse

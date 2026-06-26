@@ -55,7 +55,7 @@
 
 @include('layouts.partials.sidebar')
 
-<div :class="collapsed ? 'lg:ml-[68px]' : 'lg:ml-[252px]'" class="flex min-h-screen flex-1 flex-col transition-[margin] duration-300 ease-in-out">
+<div :class="collapsed ? 'lg:ml-[68px]' : 'lg:ml-[252px]'" class="@hasSection('fullpage') flex h-screen overflow-hidden flex-col @else flex min-h-screen flex-1 flex-col @endif transition-[margin] duration-300 ease-in-out">
     @include('layouts.partials.header')
 
     @hasSection('breadcrumbs')

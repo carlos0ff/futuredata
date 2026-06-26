@@ -144,7 +144,7 @@ class BotEngine
         $opt = $this->normalize($text);
 
         if ($opt === '0' || in_array($opt, ['encerrar', 'tchau', 'sair', 'fim', 'bye', 'cancelar'])) {
-            $session->reset();
+            $session->update(['state' => 'encerrado', 'context' => null, 'ordem_id' => null, 'cliente_id' => null, 'last_activity' => now()]);
             return "Atendimento encerrado. Até logo! 👋\n\n_Future Data — sua eletrônica em boas mãos._";
         }
 

@@ -127,7 +127,7 @@
       </div>
       <div>
         <div class="text-lg font-bold leading-none">Lista de OS</div>
-        <div class="text-[11px] text-zinc-400 mt-0.5">VOLX Assistência Técnica • ENIAC</div>
+        <div class="text-[11px] text-zinc-400 mt-0.5">FutureData Assistência Técnica</div>
       </div>
     </div>
     <div class="flex items-center gap-3">
@@ -163,32 +163,32 @@
   <div class="flex flex-wrap gap-2 mb-4" id="status-tabs">
     <button class="tab-btn active flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-300"
             style="--tab-color:#3b82f6" data-status="all" onclick="setTab(this,'all')">
-      Todas <span class="badge bg-zinc-700 text-zinc-300 ml-1">34</span>
+      Todas <span class="badge bg-zinc-700 text-zinc-300 ml-1" id="tab-cnt-all">0</span>
     </button>
     <button class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-400 hover:text-white"
-            style="--tab-color:#3b82f6" data-status="Em Aberto" onclick="setTab(this,'Em Aberto')">
+            style="--tab-color:#3b82f6" data-status="entrada" onclick="setTab(this,'entrada')">
       <span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
-      Em Aberto <span class="badge bg-blue-500/20 text-blue-300 ml-1">8</span>
+      Entrada <span class="badge bg-blue-500/20 text-blue-300 ml-1" id="tab-cnt-entrada">0</span>
     </button>
     <button class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-400 hover:text-white"
-            style="--tab-color:#10b981" data-status="Em Andamento" onclick="setTab(this,'Em Andamento')">
+            style="--tab-color:#10b981" data-status="analise" onclick="setTab(this,'analise')">
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block"></span>
-      Em Andamento <span class="badge bg-emerald-500/20 text-emerald-300 ml-1">6</span>
+      Análise <span class="badge bg-emerald-500/20 text-emerald-300 ml-1" id="tab-cnt-analise">0</span>
     </button>
     <button class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-400 hover:text-white"
-            style="--tab-color:#f97316" data-status="Aguardando Peças" onclick="setTab(this,'Aguardando Peças')">
+            style="--tab-color:#f97316" data-status="execucao" onclick="setTab(this,'execucao')">
       <span class="w-2 h-2 rounded-full bg-orange-400 inline-block"></span>
-      Aguardando Peças <span class="badge bg-orange-500/20 text-orange-300 ml-1">5</span>
+      Execução <span class="badge bg-orange-500/20 text-orange-300 ml-1" id="tab-cnt-execucao">0</span>
     </button>
     <button class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-400 hover:text-white"
-            style="--tab-color:#ef4444" data-status="Atrasada" onclick="setTab(this,'Atrasada')">
-      <span class="w-2 h-2 rounded-full bg-red-400 sla-critical inline-block"></span>
-      Atrasadas <span class="badge bg-red-500/20 text-red-300 ml-1">3</span>
+            style="--tab-color:#f59e0b" data-status="aguardando" onclick="setTab(this,'aguardando')">
+      <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+      Aguardando <span class="badge bg-amber-500/20 text-amber-300 ml-1" id="tab-cnt-aguardando">0</span>
     </button>
     <button class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-700 text-zinc-400 hover:text-white"
-            style="--tab-color:#059669" data-status="Finalizada" onclick="setTab(this,'Finalizada')">
-      <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-      Finalizadas <span class="badge bg-emerald-600/20 text-emerald-300 ml-1">12</span>
+            style="--tab-color:#6b7280" data-status="finalizado" onclick="setTab(this,'finalizado')">
+      <span class="w-2 h-2 rounded-full bg-zinc-400 inline-block"></span>
+      Finalizado <span class="badge bg-zinc-600/20 text-zinc-300 ml-1" id="tab-cnt-finalizado">0</span>
     </button>
   </div>
 
@@ -207,9 +207,12 @@
 
   <!-- ROWS -->
   <div class="space-y-1.5" id="os-list">
+    <div id="os-loading" class="text-center py-10 text-zinc-500 text-sm">
+      <i class="fas fa-circle-notch fa-spin mr-2"></i>Carregando ordens…
+    </div>
 
-    <!-- ─── EM ABERTO ─── -->
-    <div class="os-row" data-status="Em Aberto" data-text="joão silva #012 notebook dell inspiron 15 lucas mendes">
+    <!-- ─── EM ABERTO (removido — dados carregados via API) ─── -->
+    <div class="os-row hidden" data-status="entrada" data-text="">
       <div onclick='openModal({id:"#012",client:"João Silva",contact:"(11) 98765-4321",device:"Notebook Dell Inspiron 15",defect:"Não liga — sem sinal de vida ao pressionar o botão",tech:"Lucas Mendes",timeOpen:"Há 2h 15min",obs:"Suspeita de falha na placa-mãe ou fonte interna. Aguardando diagnóstico.",value:"R$ 280,00",deadline:"Hoje 18:00",status:"Em Aberto",priority:"Alta",phone:"5511987654321"})'
            class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border border-zinc-800 rounded-2xl cursor-pointer">
         <div class="w-2 h-2 rounded-full bg-blue-400 mx-auto"></div>
@@ -641,17 +644,17 @@
   <!-- FOOTER -->
   <footer class="mt-6 py-3 border-t border-zinc-800">
     <div class="flex flex-wrap items-center justify-center gap-6 text-xs text-zinc-500">
-      <span><span class="text-blue-400 font-bold text-sm">8</span> Em Aberto</span>
+      <span><span class="text-blue-400 font-bold text-sm" id="footer-entrada">0</span> Entrada</span>
       <span class="text-zinc-700">•</span>
-      <span><span class="text-emerald-400 font-bold text-sm">6</span> Em Andamento</span>
+      <span><span class="text-emerald-400 font-bold text-sm" id="footer-analise">0</span> Análise</span>
       <span class="text-zinc-700">•</span>
-      <span><span class="text-orange-400 font-bold text-sm">5</span> Aguardando Peças</span>
+      <span><span class="text-orange-400 font-bold text-sm" id="footer-execucao">0</span> Execução</span>
       <span class="text-zinc-700">•</span>
-      <span><span class="text-red-400 font-bold text-sm">3</span> Atrasadas</span>
+      <span><span class="text-amber-400 font-bold text-sm" id="footer-aguardando">0</span> Aguardando</span>
       <span class="text-zinc-700">•</span>
-      <span><span class="text-emerald-400 font-bold text-sm">12</span> Finalizadas Hoje</span>
+      <span><span class="text-zinc-200 font-bold text-sm" id="footer-finalizado">0</span> Finalizado</span>
     </div>
-    <div class="text-center text-[10px] text-zinc-700 mt-2">VOLX KDS v2.0 • ENIAC</div>
+    <div class="text-center text-[10px] text-zinc-700 mt-2">FutureData KDS v1.0</div>
   </footer>
 
 </div><!-- /wrapper -->
@@ -669,7 +672,9 @@
   updateClock();
 
   // ── Tabs ─────────────────────────────────────────────
+  let _activeTab = 'all';
   function setTab(btn, status) {
+    _activeTab = status;
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.os-row').forEach(row => {
@@ -681,22 +686,19 @@
   function filterRows() {
     const q = (document.getElementById('search-input')?.value || '').toLowerCase();
     document.querySelectorAll('.os-row').forEach(row => {
-      row.style.display = row.dataset.text.includes(q) ? '' : 'none';
+      const match = !q || row.textContent.toLowerCase().includes(q);
+      row.style.display = match ? '' : 'none';
     });
   }
 
   // ── Modal ─────────────────────────────────────────────
-  const priorityColors = {
-    'Alta':  'bg-red-500/15 text-red-400 border border-red-500/20',
-    'Média': 'bg-amber-500/15 text-amber-400 border border-amber-500/20',
-    'Baixa': 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
-  };
-  const statusColors = {
-    'Em Aberto':        'bg-blue-500/15 text-blue-400 border border-blue-500/20',
-    'Em Andamento':     'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
-    'Aguardando Peças': 'bg-orange-500/15 text-orange-400 border border-orange-500/20',
-    'Atrasada':         'bg-red-500/15 text-red-400 border border-red-500/20',
-    'Finalizada':       'bg-emerald-600/15 text-emerald-300 border border-emerald-600/20',
+  const _listStatusColors = {
+    'Entrada':            'bg-blue-500/15 text-blue-400 border border-blue-500/20',
+    'Em Análise':         'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
+    'Em Execução':        'bg-orange-500/15 text-orange-400 border border-orange-500/20',
+    'Aguardando Cliente': 'bg-amber-500/15 text-amber-400 border border-amber-500/20',
+    'Em Teste':           'bg-purple-500/15 text-purple-400 border border-purple-500/20',
+    'Finalizado':         'bg-zinc-600/15 text-zinc-300 border border-zinc-600/20',
   };
 
   function openModal(d) {
@@ -716,16 +718,16 @@
     else        { obsWrap.style.display = 'none'; }
 
     const sb = document.getElementById('modal-status-badge');
-    sb.className = 'badge text-[10px] ' + (statusColors[d.status] || '');
+    sb.className = 'badge text-[10px] ' + (_listStatusColors[d.status] || 'bg-zinc-700 text-zinc-300');
     sb.textContent = d.status;
 
     const pb = document.getElementById('modal-priority-badge');
-    pb.className = 'badge text-[10px] ' + (priorityColors[d.priority] || '');
-    pb.textContent = d.priority;
+    pb.className = 'badge text-[10px]';
+    pb.textContent = '';
 
     document.getElementById('modal-whatsapp').href =
       'https://wa.me/' + d.phone + '?text=' +
-      encodeURIComponent('Olá ' + d.client + ', temos uma atualização sobre sua OS ' + d.id + ' na VOLX Assistência Técnica.');
+      encodeURIComponent('Olá ' + d.client + ', temos uma atualização sobre sua OS ' + d.id + ' na FutureData Assistência Técnica.');
 
     document.getElementById('modal').classList.add('open');
   }
@@ -738,6 +740,121 @@
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') document.getElementById('modal').classList.remove('open');
   });
+
+  // ── API KDS — lista de ordens reais ──────────────────
+  const _listColStyles = {
+    entrada:    { dot: 'bg-blue-400',    num: 'text-blue-400',    badge: 'bg-blue-500/15 text-blue-400 border border-blue-500/20',       border: 'border-zinc-800' },
+    analise:    { dot: 'bg-emerald-400', num: 'text-emerald-400', badge: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20', border: 'border-emerald-800/30' },
+    execucao:   { dot: 'bg-orange-400',  num: 'text-orange-400',  badge: 'bg-orange-500/15 text-orange-400 border border-orange-500/20',   border: 'border-orange-800/30' },
+    aguardando: { dot: 'bg-amber-400',   num: 'text-amber-400',   badge: 'bg-amber-500/15 text-amber-400 border border-amber-500/20',     border: 'border-amber-800/30' },
+    finalizado: { dot: 'bg-zinc-400',    num: 'text-zinc-400',    badge: 'bg-zinc-600/15 text-zinc-300 border border-zinc-600/20',        border: 'border-zinc-800/50' },
+    teste:      { dot: 'bg-purple-400',  num: 'text-purple-400',  badge: 'bg-purple-500/15 text-purple-400 border border-purple-500/20',  border: 'border-purple-800/30' },
+  };
+
+  function _listDevIcon(device) {
+    const d = (device || '').toLowerCase();
+    if (d.includes('iphone') || d.includes('samsung') || d.includes('galaxy') || d.includes('celular')) return 'mobile-screen';
+    if (d.includes('notebook') || d.includes('laptop') || d.includes('macbook')) return 'laptop';
+    if (d.includes('tablet') || d.includes('ipad')) return 'tablet-screen-button';
+    if (d.includes('tv') || d.includes('televisão')) return 'tv';
+    if (d.includes('impressora')) return 'print';
+    if (d.includes('monitor')) return 'display';
+    if (d.includes('playstation') || d.includes('xbox')) return 'gamepad';
+    return 'desktop';
+  }
+
+  function _listEsc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function _buildRow(o) {
+    const s   = _listColStyles[o.status] || _listColStyles.entrada;
+    const div = document.createElement('div');
+    div.className    = 'os-row';
+    div.dataset.status = o.status;
+
+    div.innerHTML = `
+      <div class="row-card grid grid-cols-[2rem_5rem_1fr_1fr_1fr_1fr_6rem_6rem_7rem] gap-3 items-center px-4 py-3 bg-[#111113] border ${s.border} rounded-2xl cursor-pointer">
+        <div class="w-2 h-2 rounded-full ${s.dot} mx-auto"></div>
+        <div class="font-bold ${s.num} text-sm">#${_listEsc(o.numero)}</div>
+        <div>
+          <div class="font-semibold text-sm text-white">${_listEsc(o.client)}</div>
+          <div class="text-[11px] text-zinc-500">${_listEsc(o.contact)}</div>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <i class="fas fa-${_listDevIcon(o.device)} text-zinc-500 text-[10px]"></i>
+          ${_listEsc(o.device)}
+        </div>
+        <div class="text-[12px] text-zinc-400 line-clamp-2 pr-2">${_listEsc(o.defect)}</div>
+        <div class="flex items-center gap-1.5 text-[12px] text-zinc-300">
+          <div class="w-5 h-5 rounded-full bg-zinc-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">${_listEsc(o.techInitials)}</div>
+          ${_listEsc(o.tech)}
+        </div>
+        <div class="text-[12px] font-medium text-zinc-400">${_listEsc(o.deadline)}</div>
+        <div class="text-[12px] font-semibold text-emerald-400">${_listEsc(o.value)}</div>
+        <div><span class="badge ${s.badge}">${_listEsc(o.statusLabel)}</span></div>
+      </div>`;
+
+    div.querySelector('.row-card').addEventListener('click', () => openModal({
+      id:       '#' + o.numero,
+      client:   o.client,
+      contact:  o.contact,
+      device:   o.device,
+      defect:   o.defect,
+      obs:      o.obs,
+      tech:     o.tech,
+      timeOpen: o.timeOpen,
+      value:    o.value,
+      deadline: o.deadline,
+      status:   o.statusLabel,
+      priority: '',
+      phone:    o.phone,
+    }));
+
+    return div;
+  }
+
+  async function loadLista() {
+    try {
+      const res = await fetch('/api/kds/ordens');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      const list = document.getElementById('os-list');
+      list.innerHTML = '';
+
+      const colMap = { teste: 'finalizado' };
+      (data.ordens || []).forEach(o => {
+        const colKey = colMap[o.status] || o.status;
+        const row    = _buildRow({ ...o, status: colKey });
+        if (_activeTab !== 'all' && colKey !== _activeTab) row.style.display = 'none';
+        list.appendChild(row);
+      });
+
+      const c   = data.counts || {};
+      const fin = (c.finalizado || 0) + (c.teste || 0);
+      const tot = (c.entrada || 0) + (c.analise || 0) + (c.execucao || 0) + (c.aguardando || 0) + fin;
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+      set('tab-cnt-all',       tot);
+      set('tab-cnt-entrada',   c.entrada    || 0);
+      set('tab-cnt-analise',   c.analise    || 0);
+      set('tab-cnt-execucao',  c.execucao   || 0);
+      set('tab-cnt-aguardando',c.aguardando || 0);
+      set('tab-cnt-finalizado',fin);
+
+      set('footer-entrada',    c.entrada    || 0);
+      set('footer-analise',    c.analise    || 0);
+      set('footer-execucao',   c.execucao   || 0);
+      set('footer-aguardando', c.aguardando || 0);
+      set('footer-finalizado', fin);
+    } catch (e) {
+      console.warn('KDS lista: falha ao carregar ordens', e);
+    }
+  }
+
+  loadLista();
+  setInterval(loadLista, 30000);
 </script>
 </body>
 </html>

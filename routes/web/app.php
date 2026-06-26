@@ -93,10 +93,11 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
         Route::prefix('servicos')->name('servicos.')
         ->controller(ServiceController::class)
         ->group(function () {
-            Route::get('/',          'index')->name('index');
-            Route::post('/',         'store')->name('store');
-            Route::put('/{service}', 'update')->name('update');
-            Route::delete('/{service}', 'destroy')->name('destroy');
+            Route::get('/',                    'index')->name('index');
+            Route::post('/',                   'store')->name('store');
+            Route::put('/{service}',           'update')->name('update');
+            Route::patch('/{service}/status',  'updateStatus')->name('status');
+            Route::delete('/{service}',        'destroy')->name('destroy');
         });
 
         // ── Estoque ───────────────────────────────────────────────────────────────

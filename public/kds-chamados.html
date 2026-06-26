@@ -348,9 +348,9 @@
       <div class="flex flex-col items-center gap-0.5">
         <div class="flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
-          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Em Aberto</span>
+          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Entrada</span>
         </div>
-        <span class="font-bold text-blue-400 text-lg leading-none tabular-nums" id="stat-aberto">8</span>
+        <span class="font-bold text-blue-400 text-lg leading-none tabular-nums" id="stat-entrada">0</span>
       </div>
 
       <div class="w-px h-8 bg-zinc-800/80"></div>
@@ -358,9 +358,9 @@
       <div class="flex flex-col items-center gap-0.5">
         <div class="flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-md bg-emerald-500 inline-block"></span>
-          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Em Andamento</span>
+          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Análise</span>
         </div>
-        <span class="font-bold text-emerald-400 text-lg leading-none tabular-nums" id="stat-andamento">6</span>
+        <span class="font-bold text-emerald-400 text-lg leading-none tabular-nums" id="stat-analise">0</span>
       </div>
 
       <div class="w-px h-8 bg-zinc-800/80"></div>
@@ -368,19 +368,19 @@
       <div class="flex flex-col items-center gap-0.5">
         <div class="flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-md bg-orange-500 inline-block"></span>
-          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Aguardando Peças</span>
+          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Execução</span>
         </div>
-        <span class="font-bold text-orange-400 text-lg leading-none tabular-nums" id="stat-aguardando">5</span>
+        <span class="font-bold text-orange-400 text-lg leading-none tabular-nums" id="stat-execucao">0</span>
       </div>
 
       <div class="w-px h-8 bg-zinc-800/80"></div>
 
-      <div class="flex flex-col items-center gap-0.5 sla-critical">
+      <div class="flex flex-col items-center gap-0.5">
         <div class="flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-md bg-red-500 inline-block"></span>
-          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Atrasadas</span>
+          <span class="w-2 h-2 rounded-md bg-amber-500 inline-block"></span>
+          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Aguardando</span>
         </div>
-        <span class="font-bold text-red-400 text-lg leading-none tabular-nums" id="stat-atrasadas">3</span>
+        <span class="font-bold text-amber-400 text-lg leading-none tabular-nums" id="stat-aguardando">0</span>
       </div>
 
       <div class="w-px h-8 bg-zinc-800/80"></div>
@@ -388,9 +388,9 @@
       <div class="flex flex-col items-center gap-0.5">
         <div class="flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-zinc-400 inline-block"></span>
-          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Finalizadas hoje</span>
+          <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">Finalizado</span>
         </div>
-        <span class="font-bold text-zinc-200 text-lg leading-none tabular-nums" id="stat-finalizadas">12</span>
+        <span class="font-bold text-zinc-200 text-lg leading-none tabular-nums" id="stat-finalizado">0</span>
       </div>
     </div>
   </header>
@@ -423,11 +423,11 @@
       <div class="col-header bg-blue-600/10 border border-blue-500/40 px-4 py-3 flex items-center justify-between mb-3 rounded-md">
         <div class="flex items-center gap-2">
           <div class="w-2 h-2 rounded-full bg-blue-400"></div>
-          <span class="font-semibold text-sm">Em Aberto</span>
+          <span class="font-semibold text-sm">Entrada</span>
         </div>
-        <span class="badge bg-blue-500/20 text-blue-300 border border-blue-500/30 col-count">8</span>
+        <span class="badge bg-blue-500/20 text-blue-300 border border-blue-500/30" id="cnt-entrada">0</span>
       </div>
-      <div class="col-cards space-y-2.5" data-col="aberto">
+      <div class="col-cards space-y-2.5" data-col="entrada">
 
         <div class="card bg-[#111113] border border-zinc-800 hover:border-blue-500/50 rounded-2xl overflow-hidden" data-priority="alta" data-client="João Silva" data-id="012" onclick='openModal({id:"#012",client:"João Silva",contact:"(11) 98765-4321",device:"Notebook Dell Inspiron 15",defect:"Não liga — sem sinal de vida ao pressionar o botão",tech:"Lucas Mendes",timeOpen:"Há 2h 15min",obs:"Suspeita de falha na placa-mãe ou fonte interna. Aguardando diagnóstico.",value:"R$ 280,00",deadline:"Hoje 18:00",status:"Em Aberto",priority:"Alta",phone:"5511987654321"})'>
           <div class="h-0.5 bg-blue-500/70"></div>
@@ -593,11 +593,11 @@
       <div class="col-header bg-emerald-600/10 border border-emerald-500/40 px-4 py-3 flex items-center justify-between mb-3 rounded-md">
         <div class="flex items-center gap-2">
           <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-          <span class="font-semibold text-sm">Em Andamento</span>
+          <span class="font-semibold text-sm">Análise</span>
         </div>
-        <span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 col-count">6</span>
+        <span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" id="cnt-analise">0</span>
       </div>
-      <div class="col-cards space-y-2.5" data-col="andamento">
+      <div class="col-cards space-y-2.5" data-col="analise">
 
         <!-- #008 Carlos Mendes -->
         <div class="card bg-[#111113] border border-zinc-800 hover:border-emerald-500/50 overflow-hidden"
@@ -748,11 +748,11 @@
       <div class="col-header bg-orange-600/10 border border-orange-500/40 px-4 py-3 flex items-center justify-between mb-3 rounded-xl">
         <div class="flex items-center gap-2">
           <div class="w-2 h-2 rounded-full bg-orange-400"></div>
-          <span class="font-semibold text-sm">Aguardando Peças</span>
+          <span class="font-semibold text-sm">Execução</span>
         </div>
-        <span class="badge bg-orange-500/20 text-orange-300 border border-orange-500/30 col-count">5</span>
+        <span class="badge bg-orange-500/20 text-orange-300 border border-orange-500/30" id="cnt-execucao">0</span>
       </div>
-      <div class="col-cards space-y-2.5" data-col="aguardando">
+      <div class="col-cards space-y-2.5" data-col="execucao">
 
         <!-- #005 Ana Costa -->
         <div class="card bg-[#111113] border border-zinc-800 hover:border-orange-500/50 overflow-hidden"
@@ -890,14 +890,14 @@
     </div>
 
     <div class="flex flex-col">
-      <div class="col-header bg-red-600/10 border border-red-500/40 px-4 py-3 flex items-center justify-between mb-3 rounded-md">
+      <div class="col-header bg-amber-600/10 border border-amber-500/40 px-4 py-3 flex items-center justify-between mb-3 rounded-md">
         <div class="flex items-center gap-2">
-          <div class="w-2 h-2 rounded-md bg-red-400 sla-critical"></div>
-          <span class="font-semibold text-sm">Atrasadas</span>
+          <div class="w-2 h-2 rounded-md bg-amber-400"></div>
+          <span class="font-semibold text-sm">Aguardando</span>
         </div>
-        <span class="badge bg-red-500/20 text-red-300 border border-red-500/30 col-count">3</span>
+        <span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/30" id="cnt-aguardando">0</span>
       </div>
-      <div class="col-cards space-y-2.5" data-col="atrasada">
+      <div class="col-cards space-y-2.5" data-col="aguardando">
 
         <!-- #003 Roberto Lima -->
         <div class="card pulse-red bg-[#111113] border border-red-500/50  overflow-hidden"
@@ -1037,17 +1037,17 @@
       </div>
     </div>
 
-    <!-- ── 5. FINALIZADAS ── -->
+    <!-- ── 5. FINALIZADO ── -->
     <div class="flex flex-col">
-      <div class="col-header bg-emerald-600/10 border border-emerald-600/40 px-4 py-3 flex items-center justify-between mb-3 rounded-md">
+      <div class="col-header bg-zinc-700/20 border border-zinc-600/40 px-4 py-3 flex items-center justify-between mb-3 rounded-md">
         <div class="flex items-center gap-2">
-          <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-          <span class="font-semibold text-sm">Finalizadas</span>
+          <div class="w-2 h-2 rounded-full bg-zinc-400"></div>
+          <span class="font-semibold text-sm">Finalizado</span>
         </div>
-        <span class="badge bg-emerald-600/20 text-emerald-300 border border-emerald-600/30 col-count">12</span>
+        <span class="badge bg-zinc-600/20 text-zinc-300 border border-zinc-600/30" id="cnt-finalizado">0</span>
       </div>
 
-      <div class="col-cards space-y-2.5" data-col="finalizada">
+      <div class="col-cards space-y-2.5" data-col="finalizado">
         <div class="card bg-[#111113] border border-zinc-800/50 hover:border-emerald-600/40 overflow-hidden opacity-80"
              data-priority="baixa" data-client="Fernanda Santos" data-id="007"
              onclick='openModal({id:"#007",client:"Fernanda Santos",contact:"(11) 97777-8888", device:"Impressora HP DeskJet 2775",defect:"Não imprime. Cabeçote de impressão entupido.",tech:"Lucas Mendes",timeOpen:"Finalizado",obs:"Cabeçote limpo com kit de limpeza. Impressão testada e aprovada. Aguarda retirada.",value:"R$ 120,00",deadline:"Hoje — concluído",status:"Finalizada",priority:"Baixa",phone:"5511977778888"})'>
@@ -1189,17 +1189,17 @@
   <!-- ═══ FOOTER ═══ -->
   <footer class="mt-5 py-3 border-t border-zinc-800">
     <div class="flex flex-wrap items-center justify-center gap-6 text-xs text-zinc-500">
-      <span><span class="text-blue-400 font-bold text-sm">8</span> Em Aberto</span>
+      <span><span class="text-blue-400 font-bold text-sm" id="footer-entrada">0</span> Entrada</span>
       <span class="text-zinc-700">•</span>
-      <span><span class="text-emerald-400 font-bold text-sm">6</span> Em Andamento</span>
+      <span><span class="text-emerald-400 font-bold text-sm" id="footer-analise">0</span> Análise</span>
       <span class="text-zinc-700">•</span>
-      <span><span class="text-orange-400 font-bold text-sm">5</span> Aguardando Peças</span>
+      <span><span class="text-orange-400 font-bold text-sm" id="footer-execucao">0</span> Execução</span>
       <span class="text-zinc-700">•</span>
-      <span><span class="text-red-400 font-bold text-sm">3</span> Atrasadas</span>
+      <span><span class="text-amber-400 font-bold text-sm" id="footer-aguardando">0</span> Aguardando</span>
       <span class="text-zinc-700">•</span>
-      <span><span class="text-emerald-400 font-bold text-sm">12</span> Finalizadas Hoje</span>
+      <span><span class="text-zinc-200 font-bold text-sm" id="footer-finalizado">0</span> Finalizado</span>
     </div>
-    <div class="text-center text-[10px] text-zinc-700 mt-2">VOLX KDS v2.0 • ENIAC</div>
+    <div class="text-center text-[10px] text-zinc-700 mt-2">FutureData KDS v1.0</div>
   </footer>
 
 </div>
@@ -1224,11 +1224,12 @@
   };
 
   const statusColors = {
-    'Em Aberto':       'bg-blue-500/15 text-blue-400 border border-blue-500/20',
-    'Em Andamento':    'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
-    'Aguardando Peças':'bg-orange-500/15 text-orange-400 border border-orange-500/20',
-    'Atrasada':        'bg-red-500/15 text-red-400 border border-red-500/20',
-    'Finalizada':      'bg-emerald-600/15 text-emerald-300 border border-emerald-600/20',
+    'Entrada':            'bg-blue-500/15 text-blue-400 border border-blue-500/20',
+    'Em Análise':         'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
+    'Em Execução':        'bg-orange-500/15 text-orange-400 border border-orange-500/20',
+    'Aguardando Cliente': 'bg-amber-500/15 text-amber-400 border border-amber-500/20',
+    'Em Teste':           'bg-purple-500/15 text-purple-400 border border-purple-500/20',
+    'Finalizado':         'bg-zinc-600/15 text-zinc-300 border border-zinc-600/20',
   };
 
   function openModal(d) {
@@ -1375,7 +1376,7 @@
   const MAX_ABERTO = 8;
 
   function addNewOSCard(data) {
-    const col = document.querySelector('[data-col="aberto"]');
+    const col = document.querySelector('[data-col="entrada"]');
     if (!col) return;
 
     if (col.querySelectorAll('.card').length >= MAX_ABERTO) {
@@ -1454,7 +1455,7 @@
     }, 1800);
 
     // Incrementa contador da barra de status
-    const stat = document.getElementById('stat-aberto');
+    const stat = document.getElementById('stat-entrada');
     if (stat) stat.textContent = parseInt(stat.textContent||'0') + 1;
     _lastUpdateSec = 0;
   }
@@ -1462,7 +1463,7 @@
   // ── Aviso de fila cheia ───────────────────────────────
   function showLimitWarning() {
     // Flash na borda do col-header de Em Aberto
-    const header = document.querySelector('[data-col="aberto"]')?.previousElementSibling;
+    const header = document.querySelector('[data-col="entrada"]')?.previousElementSibling;
     if (header) {
       header.classList.remove('col-limit-flash');
       void header.offsetWidth; // reflow para reiniciar animação
@@ -1477,7 +1478,7 @@
     const toast = document.createElement('div');
     toast.id = 'limit-toast';
     toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 bg-[#1a0f0f] border border-red-500/40 text-red-300 text-sm font-medium px-4 py-2.5 rounded-2xl shadow-xl shadow-black/50 toast-in';
-    toast.innerHTML = `<i class="fas fa-triangle-exclamation text-red-400 text-xs"></i>Fila cheia — Em Aberto atingiu o limite de ${MAX_ABERTO} OS`;
+    toast.innerHTML = `<i class="fas fa-triangle-exclamation text-red-400 text-xs"></i>Fila cheia — Entrada atingiu o limite de ${MAX_ABERTO} OS`;
     document.body.appendChild(toast);
 
     setTimeout(() => {
@@ -1502,6 +1503,136 @@
     addNewOSCard(data);
     addNotifItem(data);
   }
+
+  // ── API KDS — carrega ordens reais ───────────────────
+  const _colColors = {
+    entrada:    { accent: 'h-0.5 bg-blue-500/70',    border: 'border-zinc-800 hover:border-blue-500/50',    numColor: 'text-blue-400' },
+    analise:    { accent: 'h-0.5 bg-emerald-500/70', border: 'border-zinc-800 hover:border-emerald-500/50', numColor: 'text-emerald-400' },
+    execucao:   { accent: 'h-0.5 bg-orange-500/70',  border: 'border-zinc-800 hover:border-orange-500/50',  numColor: 'text-orange-400' },
+    aguardando: { accent: 'h-0.5 bg-amber-500/70',   border: 'border-zinc-800 hover:border-amber-500/50',   numColor: 'text-amber-400' },
+    finalizado: { accent: 'h-0.5 bg-zinc-500/60',    border: 'border-zinc-800/50 hover:border-zinc-600/40', numColor: 'text-zinc-400' },
+  };
+
+  function _kdsDevIcon(device) {
+    const d = (device || '').toLowerCase();
+    if (d.includes('iphone') || d.includes('samsung') || d.includes('galaxy') || d.includes('celular')) return 'mobile-screen';
+    if (d.includes('notebook') || d.includes('laptop') || d.includes('macbook')) return 'laptop';
+    if (d.includes('tablet') || d.includes('ipad')) return 'tablet-screen-button';
+    if (d.includes('tv') || d.includes('televisão')) return 'tv';
+    if (d.includes('impressora')) return 'print';
+    if (d.includes('monitor')) return 'display';
+    if (d.includes('playstation') || d.includes('xbox')) return 'gamepad';
+    return 'desktop';
+  }
+
+  function _esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function _buildKdsCard(o, colKey) {
+    const c = _colColors[colKey] || _colColors.entrada;
+    const div = document.createElement('div');
+    div.className = `card bg-[#111113] border ${c.border} rounded-2xl overflow-hidden`;
+    div.dataset.client = o.client;
+    div.dataset.id     = o.id;
+
+    div.innerHTML = `
+      <div class="${c.accent}"></div>
+      <div class="p-4">
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-bold ${c.numColor} text-sm tracking-wide">#${_esc(o.numero)}</span>
+          <span class="text-zinc-600 text-[10px]">${_esc(o.timeOpen)}</span>
+        </div>
+        <div class="flex items-center gap-2.5 mb-3">
+          <div class="w-9 h-9 rounded-xl bg-zinc-700/30 border border-zinc-600/25 flex items-center justify-center flex-shrink-0">
+            <span class="text-zinc-300 font-bold text-xs">${_esc(o.initials)}</span>
+          </div>
+          <div class="min-w-0">
+            <div class="font-bold text-white text-[13px] leading-tight">${_esc(o.client)}</div>
+            <div class="text-[10px] text-zinc-500 mt-0.5">${_esc(o.contact)}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 bg-zinc-900/70 rounded-lg px-2.5 py-1.5 mb-2.5">
+          <i class="fas fa-${_kdsDevIcon(o.device)} text-zinc-500 text-[11px] w-3 text-center"></i>
+          <span class="text-[11px] text-zinc-300 truncate">${_esc(o.device)}</span>
+        </div>
+        <p class="text-[11px] text-zinc-400 leading-snug mb-2.5 line-clamp-2">${_esc(o.defect)}</p>
+        <div class="flex items-center justify-between pt-2.5 border-t border-zinc-800">
+          <div class="flex items-center gap-1.5 text-[11px]">
+            <i class="fas fa-clock text-zinc-500"></i>
+            <span class="text-zinc-400 font-medium">${_esc(o.deadline)}</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+            <div class="w-5 h-5 rounded-full bg-zinc-600 flex items-center justify-center text-[9px] font-bold text-white">${_esc(o.techInitials)}</div>
+            <span>${_esc(o.tech)}</span>
+          </div>
+        </div>
+      </div>`;
+
+    div.addEventListener('click', () => openModal({
+      id:       '#' + o.numero,
+      client:   o.client,
+      contact:  o.contact,
+      device:   o.device,
+      defect:   o.defect,
+      obs:      o.obs,
+      tech:     o.tech,
+      timeOpen: o.timeOpen,
+      value:    o.value,
+      deadline: o.deadline,
+      status:   o.statusLabel,
+      priority: '',
+      phone:    o.phone,
+    }));
+
+    return div;
+  }
+
+  async function loadOrdens() {
+    try {
+      const res = await fetch('/api/kds/ordens');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      document.querySelectorAll('[data-col]').forEach(col => { col.innerHTML = ''; });
+
+      const colMap = { teste: 'finalizado' };
+      (data.ordens || []).forEach(o => {
+        const colKey = colMap[o.status] || o.status;
+        const col    = document.querySelector(`[data-col="${colKey}"]`);
+        if (col) col.appendChild(_buildKdsCard(o, colKey));
+      });
+
+      const c   = data.counts || {};
+      const fin = (c.finalizado || 0) + (c.teste || 0);
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+      set('cnt-entrada',      c.entrada    || 0);
+      set('cnt-analise',      c.analise    || 0);
+      set('cnt-execucao',     c.execucao   || 0);
+      set('cnt-aguardando',   c.aguardando || 0);
+      set('cnt-finalizado',   fin);
+
+      set('stat-entrada',     c.entrada    || 0);
+      set('stat-analise',     c.analise    || 0);
+      set('stat-execucao',    c.execucao   || 0);
+      set('stat-aguardando',  c.aguardando || 0);
+      set('stat-finalizado',  fin);
+
+      set('footer-entrada',    c.entrada    || 0);
+      set('footer-analise',    c.analise    || 0);
+      set('footer-execucao',   c.execucao   || 0);
+      set('footer-aguardando', c.aguardando || 0);
+      set('footer-finalizado', fin);
+
+      _lastUpdateSec = 0;
+    } catch (e) {
+      console.warn('KDS: falha ao carregar ordens', e);
+    }
+  }
+
+  loadOrdens();
+  setInterval(loadOrdens, 30000);
 </script>
 
 </body>

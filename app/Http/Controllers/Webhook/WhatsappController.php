@@ -404,13 +404,10 @@ class WhatsappController extends Controller
             // CPF (11 dígitos) ou CNPJ (14 dígitos)
             if (strlen($digits) === 11 || strlen($digits) === 14) {
                 // Busca exata (sem formatação) ou formatada com pontos e traço
-                $formatted = strlen($digits) === 11
-                    ? substr($digits, 0, 3) . '.' . substr($digits, 3, 3) . '.' . substr($digits, 6, 3) . '-' . substr($digits, 9, 2)
+                $formatted = strlen($digits) === 11 ? substr($digits, 0, 3) . '.' . substr($digits, 3, 3) . '.' . substr($digits, 6, 3) . '-' . substr($digits, 9, 2)
                     : substr($digits, 0, 2) . '.' . substr($digits, 2, 3) . '.' . substr($digits, 5, 3) . '/' . substr($digits, 8, 4) . '-' . substr($digits, 12, 2);
 
-                return Cliente::where('cpf_cnpj', $digits)
-                    ->orWhere('cpf_cnpj', $formatted)
-                    ->first();
+                return Cliente::where('cpf_cnpj', $digits)->orWhere('cpf_cnpj', $formatted)->first();
             }
 
             // Número de OS no formato do sistema: OS202600008
@@ -444,6 +441,7 @@ class WhatsappController extends Controller
         }
 
         $suffixes = [];
+        
         foreach ($phones as $p) {
             $suffixes[] = substr($p, -9);
             $suffixes[] = substr($p, -10);

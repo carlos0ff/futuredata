@@ -39,18 +39,11 @@ $getMeta = fn($cat) => $categoryMeta[$cat] ?? $categoryMeta['Outros'];
                 {{ $total }} serviço{{ $total !== 1 ? 's' : '' }} cadastrado{{ $total !== 1 ? 's' : '' }} · portfólio de R$ {{ number_format($totalValue, 2, ',', '.') }}
             </p>
         </div>
-        @if(!$atLimit)
         <button @click="openModal()"
                 class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-[13px] font-semibold text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700">
             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
             Novo Serviço
         </button>
-        @else
-        <button disabled class="inline-flex shrink-0 cursor-not-allowed items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-[13px] font-semibold text-slate-400">
-            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
-            Limite atingido
-        </button>
-        @endif
     </div>
 
     {{-- ── Stats ───────────────────────────────────────────────────────────── --}}
@@ -58,13 +51,7 @@ $getMeta = fn($cat) => $categoryMeta[$cat] ?? $categoryMeta['Outros'];
         <div class="rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-black/[0.05]">
             <p class="text-[10.5px] font-semibold uppercase tracking-widest text-slate-400">Serviços</p>
             <p class="mt-1 text-[28px] font-black leading-none tabular-nums text-slate-900">{{ $total }}</p>
-            <p class="mt-1 text-[11px] text-slate-400">de {{ $freeLimit }} disponíveis</p>
-            {{-- barra de progresso --}}
-            <div class="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                <div class="h-full rounded-full transition-all duration-500
-                            {{ $total >= $freeLimit ? 'bg-amber-400' : ($total >= $freeLimit - 1 ? 'bg-amber-400' : 'bg-blue-500') }}"
-                     style="width: {{ $freeLimit > 0 ? min(100, round($total / $freeLimit * 100)) : 0 }}%"></div>
-            </div>
+            <p class="mt-1 text-[11px] text-slate-400">no portfólio</p>
         </div>
 
         <div class="rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-black/[0.05]">
@@ -94,25 +81,6 @@ $getMeta = fn($cat) => $categoryMeta[$cat] ?? $categoryMeta['Outros'];
         </div>
     </div>
 
-    {{-- ── Alerta de limite ────────────────────────────────────────────────── --}}
-    @if($atLimit)
-    <div class="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-5 py-4 sm:flex-row sm:items-center">
-        <div class="flex items-start gap-3 flex-1">
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100">
-                <svg class="h-5 w-5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
-                </svg>
-            </div>
-            <div>
-                <p class="text-[13px] font-bold text-amber-900">Limite do plano gratuito atingido</p>
-                <p class="mt-0.5 text-[12px] text-amber-700">Você usou todos os {{ $freeLimit }} serviços disponíveis no plano gratuito. Faça upgrade para adicionar mais.</p>
-            </div>
-        </div>
-        <button class="shrink-0 self-start rounded-xl bg-amber-500 px-4 py-2 text-[12.5px] font-semibold text-white transition hover:bg-amber-600 sm:self-auto">
-            Ver planos
-        </button>
-    </div>
-    @endif
 
     {{-- ── Busca + filtros ─────────────────────────────────────────────────── --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -162,7 +130,6 @@ $getMeta = fn($cat) => $categoryMeta[$cat] ?? $categoryMeta['Outros'];
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
         {{-- Card adicionar --}}
-        @if(!$atLimit)
         <button @click="openModal()"
                 class="group relative flex min-h-[190px] flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 transition-all duration-200 hover:border-blue-400 hover:bg-blue-50/40 hover:shadow-md">
             <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 ring-8 ring-slate-50 transition duration-200 group-hover:bg-blue-100 group-hover:ring-blue-50">
@@ -172,10 +139,9 @@ $getMeta = fn($cat) => $categoryMeta[$cat] ?? $categoryMeta['Outros'];
             </div>
             <div class="text-center">
                 <p class="text-[13px] font-semibold text-slate-500 transition group-hover:text-blue-600">Adicionar serviço</p>
-                <p class="mt-0.5 text-[11.5px] text-slate-400">{{ $total }}/{{ $freeLimit }} utilizados</p>
+                <p class="mt-0.5 text-[11.5px] text-slate-400">{{ $total }} cadastrado{{ $total !== 1 ? 's' : '' }}</p>
             </div>
         </button>
-        @endif
 
         {{-- Cards de serviços --}}
         @foreach($services as $service)
@@ -248,7 +214,39 @@ $getMeta = fn($cat) => $categoryMeta[$cat] ?? $categoryMeta['Outros'];
                 </div>
 
                 {{-- Nome --}}
-                <p class="mb-auto pr-14 text-[14px] font-bold leading-snug text-slate-900">{{ $service->name }}</p>
+                <p class="mb-3 pr-14 text-[14px] font-bold leading-snug text-slate-900">{{ $service->name }}</p>
+
+                {{-- Status badge --}}
+                @php
+                $statusInfo = \App\Models\Service::STATUS[$service->status ?? 'ativo'] ?? \App\Models\Service::STATUS['ativo'];
+                @endphp
+                <div class="mb-auto flex items-center justify-between gap-2">
+                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10.5px] font-semibold ring-1 {{ $statusInfo['color'] }}">
+                        @if(($service->status ?? 'ativo') === 'feito')
+                            <svg class="mr-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                        @elseif(($service->status ?? 'ativo') === 'notificado_whatsapp')
+                            <svg class="mr-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                        @endif
+                        {{ $statusInfo['label'] }}
+                    </span>
+                    <div class="flex items-center gap-1">
+                        <button onclick="updateStatus({{ $service->id }}, 'feito', this)"
+                                title="Marcar como Feito"
+                                class="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600">
+                            <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                        </button>
+                        <button onclick="updateStatus({{ $service->id }}, 'notificado_whatsapp', this)"
+                                title="Marcar como Notificado por WhatsApp"
+                                class="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:border-green-300 hover:bg-green-50 hover:text-green-600">
+                            <svg class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                        </button>
+                        <button onclick="updateStatus({{ $service->id }}, 'ativo', this)"
+                                title="Resetar para Ativo"
+                                class="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:border-slate-400 hover:bg-slate-50">
+                            <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                        </button>
+                    </div>
+                </div>
 
                 {{-- Preço --}}
                 <div class="mt-4 flex items-end justify-between border-t border-slate-100 pt-4">
@@ -281,13 +279,11 @@ $getMeta = fn($cat) => $categoryMeta[$cat] ?? $categoryMeta['Outros'];
             </div>
             <p class="mt-4 text-[15px] font-semibold text-slate-700">Nenhum serviço cadastrado</p>
             <p class="mt-1 text-[13px] text-slate-400">Clique em "Novo Serviço" para começar.</p>
-            @if(!$atLimit)
             <button @click="openModal()"
                     class="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-[13px] font-semibold text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700">
                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
                 Adicionar primeiro serviço
             </button>
-            @endif
         </div>
         @endif
 
@@ -691,6 +687,21 @@ function servicosApp() {
             this.deleteModal  = true;
         },
     };
+}
+
+async function updateStatus(id, status, btn) {
+    const card = btn.closest('.group');
+    try {
+        const res = await fetch(`/app/servicos/${id}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify({ status }),
+        });
+        if (res.ok) window.location.reload();
+    } catch (e) {}
 }
 </script>
 @endpush

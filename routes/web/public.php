@@ -15,3 +15,6 @@ Route::get('/webhook/whatsapp', fn () => response()->json(['ok' => true]))->name
 
 /** API interna para o n8n (token via header X-N8N-Token) */
 Route::get('/api/n8n/cliente', [N8nController::class, 'buscarCliente'])->name('n8n.cliente');
+
+/** KDS — endpoint público para o painel de chamados na rede interna */
+Route::get('/api/kds/ordens', [\App\Http\Controllers\Api\KdsController::class, 'ordens'])->name('kds.ordens');
