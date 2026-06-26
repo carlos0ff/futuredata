@@ -75,9 +75,23 @@ class BotEngine
             if ($cliente) {
                 return $this->replyEncerrar($session, $cliente);
             }
-            $session->reset();
+            // Sem cliente identificado: vai para 'encerrado' para não re-abrir menu na próxima mensagem
+            $session->update(['state' => 'encerrado', 'context' => null, 'ordem_id' => null, 'cliente_id' => null, 'last_activity' => now()]);
             return "Atendimento encerrado. Até logo! 👋\n\n_Future Data — sua eletrônica em boas mãos._";
         }
+
+        // Saudações — detecta antes de carregar OS para mostrar resposta contextual
+        $saudacoes = [
+            'bomdia'   => 'Bom dia',
+            'boatarde' => 'Boa tarde',
+            'boanoite' => 'Boa noite',
+            'oi'       => 'Olá',
+            'ola'      => 'Olá',
+            'olá'      => 'Olá',
+            'hello'    => 'Olá',
+            'hey'      => 'Olá',
+        ];
+        $saudacao = $saudacoes[$opt] ?? null;
 
         if (! $session->cliente_id) {
             $session->transition('waiting_cpf');
@@ -87,7 +101,7 @@ class BotEngine
         $cliente = Cliente::find($session->cliente_id);
 
         if (! $session->ordem_id) {
-            return $this->resolveOrdem($session, $cliente);
+            return $this->resolveOrdem($session, $cliente, saudacao: $saudacao);
         }
 
         $ordem = Ordem::with(['equipamento', 'cliente'])->find($session->ordem_id);
@@ -108,7 +122,7 @@ class BotEngine
             if ($outraOrdem) {
                 $session->transition('menu');
                 $session->update(['ordem_id' => $outraOrdem->id]);
-                return $this->menuPrincipal($cliente, $outraOrdem);
+                return $this->menuPrincipal($cliente, $outraOrdem, $saudacao);
             }
 
             return "🔒 OS *{$upperText}* não encontrada ou não pertence à sua conta.\n\n"
@@ -120,7 +134,7 @@ class BotEngine
             $opt === '2'                                             => $this->replyEquipe($session, $cliente),
             $opt === '3' && $ordem->status_orcamento === 'pendente' => $this->replyOrcamento($session, $ordem),
             $opt === 'trocar' || $opt === 'outra'                   => $this->resolveOrdem($session, $cliente, force: true),
-            default                                                   => $this->menuPrincipal($cliente, $ordem),
+            default                                                   => $this->menuPrincipal($cliente, $ordem, $saudacao),
         };
     }
 
@@ -331,8 +345,8 @@ class BotEngine
     {
         $opt = $this->normalize($text);
 
-        // Permite voltar ao atendimento automático
-        if (in_array($opt, ['menu', '1', 'oi', 'olá', 'ola', 'iniciar', 'comecar', 'começar'])) {
+        // Saudações e comandos de retorno — volta ao atendimento automático
+        if (in_array($opt, ['menu', '1', 'oi', 'olá', 'ola', 'hello', 'hey', 'bomdia', 'boatarde', 'boanoite', 'iniciar', 'comecar', 'começar'])) {
             $session->update(['state' => 'idle', 'context' => null, 'last_activity' => now()]);
             $session->refresh();
             return $this->handleMenu($session, $text);
@@ -362,12 +376,12 @@ class BotEngine
     }
 
     /** Seleciona ou lista as OS do cliente. */
-    private function resolveOrdem(BotSession $session, Cliente $cliente, ?Ordem $ordemForced = null, bool $force = false): string
+    private function resolveOrdem(BotSession $session, Cliente $cliente, ?Ordem $ordemForced = null, bool $force = false, ?string $saudacao = null): string
     {
         if ($ordemForced) {
             $session->transition('menu');
             $session->update(['ordem_id' => $ordemForced->id]);
-            return $this->menuPrincipal($cliente, $ordemForced->load(['equipamento']));
+            return $this->menuPrincipal($cliente, $ordemForced->load(['equipamento']), $saudacao);
         }
 
         $ordens = Ordem::with('equipamento')
@@ -397,7 +411,7 @@ class BotEngine
             $ordem = $ordens->first();
             $session->transition('menu');
             $session->update(['ordem_id' => $ordem->id]);
-            return $this->menuPrincipal($cliente, $ordem);
+            return $this->menuPrincipal($cliente, $ordem, $saudacao);
         }
 
         // Múltiplas OS — pede para escolher
@@ -413,13 +427,17 @@ class BotEngine
     }
 
     /** Monta o menu principal para um cliente e OS identificados. */
-    private function menuPrincipal(Cliente $cliente, Ordem $ordem): string
+    private function menuPrincipal(Cliente $cliente, Ordem $ordem, ?string $saudacao = null): string
     {
         $nome        = explode(' ', $cliente->nome)[0];
         $statusLabel = Ordem::STATUS[$ordem->status]['label'] ?? $ordem->status;
         $orcPendente = $ordem->status_orcamento === 'pendente';
 
-        $msg  = "Olá, *{$nome}*! 👋 Sou o assistente da *Future Data*.\n\n";
+        $abertura = $saudacao
+            ? "{$saudacao}, *{$nome}*! 😊 Sou o assistente da *Future Data*."
+            : "Olá, *{$nome}*! 👋 Sou o assistente da *Future Data*.";
+
+        $msg  = "{$abertura}\n\n";
         $msg .= "Sua OS *{$ordem->numero}* está: *{$statusLabel}*\n\n";
         $msg .= "Como posso te ajudar?\n\n";
         $msg .= "1️⃣  Ver detalhes da minha OS\n";

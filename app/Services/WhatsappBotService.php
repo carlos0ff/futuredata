@@ -201,7 +201,7 @@ class WhatsappBotService
         // Comandos de menu (0–3), palavras de encerramento e códigos OS sempre vão
         // pelo engine — o Gemini não conhece o contexto do menu estruturado.
         $cmd = trim(preg_replace('/\s+/', ' ', mb_strtolower($text, 'UTF-8')));
-        $isMenuCommand = in_array($cmd, ['0', '1', '2', '3', 'menu', 'encerrar', 'tchau', 'sair', 'fim', 'bye', 'cancelar', 'trocar', 'outra', 'oi', 'olá', 'ola', 'iniciar'])
+        $isMenuCommand = in_array($cmd, ['0', '1', '2', '3', 'menu', 'bom dia', 'boa tarde', 'boa noite', 'encerrar', 'tchau', 'sair', 'fim', 'bye', 'cancelar', 'trocar', 'outra', 'oi', 'olá', 'ola', 'hello', 'hey', 'iniciar'])
             || preg_match('/^os\d+$/i', trim($text));
 
         $reply = ($isMenuCommand || ! $this->gemini->isConfigured())
