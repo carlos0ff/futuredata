@@ -46,6 +46,7 @@ class BotEngine
         $reply = match ($session->state) {
             'waiting_cpf'    => $this->handleWaitingCpf($session, $text),
             'waiting_os'     => $this->handleWaitingOs($session, $text),
+            'encerrado'      => $this->handleEncerrado($session, $text),
             default          => $this->handleMenu($session, $text),
         };
 
@@ -71,11 +72,10 @@ class BotEngine
         // "0" e palavras de encerramento fecham imediatamente — mesmo sem OS vinculada
         if ($opt === '0' || in_array($opt, ['encerrar', 'tchau', 'sair', 'fim', 'bye'])) {
             $cliente = $session->cliente_id ? Cliente::find($session->cliente_id) : null;
-            $session->reset();
             if ($cliente) {
-                $nome = explode(' ', $cliente->nome)[0];
-                return "Obrigado, *{$nome}*! 😊\n\nQualquer dúvida, é só chamar. Até logo! 👋\n\n_Future Data — sua eletrônica em boas mãos._";
+                return $this->replyEncerrar($session, $cliente);
             }
+            $session->reset();
             return "Atendimento encerrado. Até logo! 👋\n\n_Future Data — sua eletrônica em boas mãos._";
         }
 
@@ -311,11 +311,38 @@ class BotEngine
     private function replyEncerrar(BotSession $session, Cliente $cliente): string
     {
         $nome = explode(' ', $cliente->nome)[0];
-        $session->reset();
 
-        return "Obrigado, *{$nome}*! 😊\n\n"
-             . "Qualquer dúvida, é só chamar. Até logo! 👋\n\n"
+        // Transiciona para 'encerrado' — próxima mensagem redireciona para a equipe
+        $session->update([
+            'state'         => 'encerrado',
+            'context'       => null,
+            'ordem_id'      => null,
+            'cliente_id'    => null,
+            'last_activity' => now(),
+        ]);
+
+        return "✅ Sua conversa foi encerrada, *{$nome}*!\n\n"
+             . "Se precisar de ajuda novamente, estaremos aqui. Até logo! 👋\n\n"
              . "_Future Data — sua eletrônica em boas mãos._";
+    }
+
+    /** Estado encerrado — cliente voltou após encerrar a sessão. */
+    private function handleEncerrado(BotSession $session, string $text): string
+    {
+        $opt = $this->normalize($text);
+
+        // Permite voltar ao atendimento automático
+        if (in_array($opt, ['menu', '1', 'oi', 'olá', 'ola', 'iniciar', 'comecar', 'começar'])) {
+            $session->update(['state' => 'idle', 'context' => null, 'last_activity' => now()]);
+            $session->refresh();
+            return $this->handleMenu($session, $text);
+        }
+
+        return "Olá! 👋 Sua conversa anterior foi encerrada.\n\n"
+             . "Para continuar, nossa equipe técnica está à disposição:\n\n"
+             . "📞 *(81) 9482-1792*\n"
+             . "🕐 Seg–Sex: 9h às 19h | Sáb: 9h às 14h\n\n"
+             . "Ou envie *menu* para voltar ao atendimento automático.";
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
