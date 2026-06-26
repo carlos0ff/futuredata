@@ -243,7 +243,7 @@
                             <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
                             <rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h.01M18 14h3M14 18v3M18 18h3"/>
                         </svg>
-                        <span x-text="loading ? 'Aguarde...' : 'Gerar QR Code'"></span>
+                        <span x-text="loading ? 'Aguarde...' : (connected ? 'Reconectar' : 'Verificar / Gerar QR')"></span>
                     </button>
                 </div>
 
@@ -254,14 +254,25 @@
                             <p class="mt-3 text-[12px] text-slate-500">Abra o WhatsApp → Dispositivos vinculados</p>
                         </div>
                     </template>
-                    <template x-if="!qr && !error">
+                    <template x-if="connected">
+                        <div class="text-center">
+                            <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+                                <svg class="h-7 w-7 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
+                            <p class="text-[14px] font-semibold text-emerald-700">WhatsApp Conectado</p>
+                            <p class="mt-1 text-[12px] text-slate-500">O número está vinculado e o bot está ativo.</p>
+                        </div>
+                    </template>
+                    <template x-if="!qr && !connected && !error">
                         <div class="text-center text-slate-400">
                             <svg class="mx-auto mb-3 h-12 w-12 opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                 <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
                                 <rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h.01M18 14h3M14 18v3M18 18h3"/>
                             </svg>
-                            <p class="text-[13px]">Clique em "Gerar QR Code"</p>
-                            <p class="mt-1 text-[11.5px]">para conectar o número.</p>
+                            <p class="text-[13px]">Clique em "Verificar / Gerar QR"</p>
+                            <p class="mt-1 text-[11.5px]">para checar o status ou conectar.</p>
                         </div>
                     </template>
                     <template x-if="error">
@@ -442,13 +453,14 @@ function whatsappPage() {
 
 function qrcodePanel() {
     return {
-        qr: null, error: null, loading: false,
+        qr: null, error: null, connected: false, loading: false,
         async loadQr() {
-            this.loading = true; this.error = null; this.qr = null;
+            this.loading = true; this.error = null; this.qr = null; this.connected = false;
             try {
                 const res  = await fetch('{{ route('app.whatsapp.qrcode') }}');
                 const data = await res.json();
-                if (data.qr) this.qr = data.qr;
+                if (data.connected) this.connected = true;
+                else if (data.qr) this.qr = data.qr;
                 else this.error = data.error ?? 'Erro ao gerar QR Code.';
             } catch { this.error = 'Falha de comunicação.'; }
             this.loading = false;

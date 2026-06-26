@@ -110,11 +110,18 @@ class WhatsappConfigController extends Controller
                 return response()->json(['error' => 'Falha ao obter QR code (HTTP ' . $res->status() . ')'], 422);
             }
 
-            $body = $res->json();
-            $qr   = $body['base64'] ?? $body['qrcode']['base64'] ?? null;
+            $body  = $res->json();
+            $state = $body['instance']['state'] ?? $body['state'] ?? null;
+
+            // Instância já conectada — não há QR a mostrar
+            if ($state === 'open') {
+                return response()->json(['connected' => true]);
+            }
+
+            $qr = $body['base64'] ?? $body['qrcode']['base64'] ?? null;
 
             if (! $qr) {
-                return response()->json(['error' => 'Instância já conectada ou QR indisponível.'], 422);
+                return response()->json(['error' => 'QR Code indisponível. Tente desconectar e reconectar a instância no Evolution Manager.'], 422);
             }
 
             return response()->json(['qr' => $qr]);
