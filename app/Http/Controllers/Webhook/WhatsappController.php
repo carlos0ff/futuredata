@@ -94,24 +94,47 @@ class WhatsappController extends Controller
 
         if (! $text) return;
 
-        $phone    = preg_replace('/\D/', '', explode('@', $jid)[0]);
+        // WhatsApp usa @lid (Linked Device ID) em vez do número real para novos contatos.
+        // Mensagens endereçadas com @lid entregam com sucesso; via @s.whatsapp.net retornam ERROR.
+        // Para @lid: usa JID completo como replyTo + número real (remoteJidAlt) para busca no banco.
+        // Para @s.whatsapp.net: extrai o número limpo como antes (comportamento original).
+        $isLid    = str_ends_with($jid, '@lid');
+        $altJid   = $key['remoteJidAlt'] ?? null;
         $pushName = $data['data']['pushName'] ?? null;
+
+        if ($isLid) {
+            // Endereço de resposta = JID completo do LID (≤ 20 chars — cabe em BotSession.phone)
+            $replyTo     = $jid;
+            $lookupPhone = $altJid
+                ? preg_replace('/\D/', '', explode('@', $altJid)[0])
+                : preg_replace('/\D/', '', explode('@', $jid)[0]);
+        } else {
+            // Comportamento original: usa só os dígitos do número
+            $replyTo     = preg_replace('/\D/', '', explode('@', $jid)[0]);
+            $lookupPhone = $replyTo;
+        }
 
         // Delay de 3 segundos antes de responder (evita resposta imediata e possíveis loops)
         sleep(3);
 
-        $this->processMessage($phone, $text, $pushName);
+        $this->processMessage($replyTo, $text, $pushName, $lookupPhone);
     }
 
     /**
      * Localiza o cliente, salva a mensagem (se houver OS) e aciona o bot.
      * O bot trata clientes desconhecidos pedindo CPF/código OS.
+     *
+     * @param string      $replyTo     JID completo para resposta (pode ser @lid ou @s.whatsapp.net)
+     * @param string|null $lookupPhone Número real para busca no banco (sem @domínio)
      */
-    private function processMessage(string $phone, string $text, ?string $pushName = null): void
+    private function processMessage(string $replyTo, string $text, ?string $pushName = null, ?string $lookupPhone = null): void
     {
         if (! config('whatsapp.bot_enabled', true)) {
             return;
         }
+
+        // Número usado para busca no banco (real) vs JID para resposta (LID ou phone)
+        $phone = $lookupPhone ?? preg_replace('/\D/', '', explode('@', $replyTo)[0]);
 
         $cliente = $this->findClienteByPhone($phone)
                 ?? $this->findClienteByText($text);
@@ -148,13 +171,13 @@ class WhatsappController extends Controller
         }
 
         // Captura identificação de recrutador (24h — responde independente do horário)
-        if ($this->handleRhIdentificacao($phone, $text, $pushName)) {
+        if ($this->handleRhIdentificacao($replyTo, $text, $pushName)) {
             return;
         }
 
         // Aprovação/recusa de orçamento, palavras-chave e identificação (CPF/OS) funcionam 24h
         try {
-            if ($this->bot->tryHandleOrcamento($phone, $text, $cliente)) {
+            if ($this->bot->tryHandleOrcamento($replyTo, $text, $cliente)) {
                 return;
             }
         } catch (\Throwable $e) {
@@ -164,7 +187,7 @@ class WhatsappController extends Controller
         }
 
         try {
-            if ($this->bot->tryHandleKeyword($phone, $text, $cliente)) {
+            if ($this->bot->tryHandleKeyword($replyTo, $text, $cliente)) {
                 return;
             }
         } catch (\Throwable $e) {
@@ -175,7 +198,7 @@ class WhatsappController extends Controller
         if ($this->looksLikeIdentification($text)) {
             if (! $cliente) {
                 // CPF/OS não encontrado no banco — avisa o cliente
-                $this->whatsapp->send($phone,
+                $this->whatsapp->send($replyTo,
                     "😕 Não encontrei nenhum cadastro com esse CPF ou código de OS.\n\n" .
                     "Verifique os dados e tente novamente, ou entre em contato conosco:\n" .
                     "_Future Data — (81) 9482-1792_"
@@ -183,7 +206,7 @@ class WhatsappController extends Controller
                 return;
             }
             try {
-                $this->bot->handle($phone, $text, $cliente);
+                $this->bot->handle($replyTo, $text, $cliente);
             } catch (\Throwable $e) {
                 Log::error('WhatsApp bot error (identificação)', ['error' => $e->getMessage()]);
             }
@@ -191,16 +214,16 @@ class WhatsappController extends Controller
         }
 
         if (! $this->isBusinessHours()) {
-            $this->maybeSendOutOfHoursMessage($phone, $text, $pushName);
+            $this->maybeSendOutOfHoursMessage($replyTo, $text, $pushName);
             return;
         }
 
         try {
-            $this->bot->handle($phone, $text, $cliente);
+            $this->bot->handle($replyTo, $text, $cliente);
         } catch (\Throwable $e) {
             Log::error('WhatsApp bot error', ['error' => $e->getMessage()]);
             // Fallback garantido: responde mesmo se o bot falhar
-            $this->whatsapp->send($phone,
+            $this->whatsapp->send($replyTo,
                 "Olá! 👋 Sou o assistente da *Future Data*.\n\n" .
                 "Para te atender, preciso te identificar.\n\n" .
                 "Por favor, informe seu *CPF* ou o *código da OS* (ex: OS00001)."

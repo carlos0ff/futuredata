@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\BotSession;
+use App\Models\Cliente;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -49,6 +51,22 @@ class WhatsappService
     }
 
     /**
+     * Envia mensagem para um cliente, preferindo o JID LID armazenado na sessão.
+     * Quando o cliente enviou mensagens antes, o LID está salvo em BotSession.phone.
+     * Envios via LID entregam com sucesso; via @s.whatsapp.net retornam ERROR.
+     */
+    public function sendToCliente(Cliente $cliente, string $text): bool
+    {
+        $lidJid = BotSession::where('channel', 'whatsapp')
+            ->where('cliente_id', $cliente->id)
+            ->where('phone', 'like', '%@lid')
+            ->latest('last_activity')
+            ->value('phone');
+
+        return $this->send($lidJid ?? $cliente->telefone, $text);
+    }
+
+    /**
      * Normaliza o número para o formato internacional (DDI 55 + número).
      * Remove caracteres não numéricos e adiciona "55" se necessário.
      *
@@ -70,14 +88,19 @@ class WhatsappService
 
     /**
      * Envia via Evolution API usando o endpoint sendText.
+     * Aceita número puro ("5581999999999") ou JID completo ("xxxx@lid", "xxxx@s.whatsapp.net").
+     * JIDs @lid são passados diretamente — entrega via Linked Device ID funciona de forma confiável.
      */
     private function sendEvolution(string $phone, string $text): bool
     {
         $cfg = config('whatsapp.evolution');
 
+        // JID completo (contém @): usa diretamente sem normalizar
+        $number = str_contains($phone, '@') ? $phone : $this->normalizePhone($phone);
+
         $response = Http::withHeaders(['apikey' => $cfg['key']])
             ->post("{$cfg['url']}/message/sendText/{$cfg['instance']}", [
-                'number' => $this->normalizePhone($phone),
+                'number' => $number,
                 'text'   => $text,
             ]);
 

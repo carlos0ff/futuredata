@@ -62,7 +62,7 @@ class OrdemWhatsappNotificacaoService
         $msg .= "ou o *token de acesso* (_" . $ordem->token . "_).\n\n";
         $msg .= "_Future Data — assistência técnica de eletrônicos_ 🛠️";
 
-        $this->enviar($ordem, $cliente->telefone, $msg, 'entrada');
+        $this->enviar($ordem, $cliente, $msg, 'entrada');
     }
 
     /**
@@ -94,7 +94,7 @@ class OrdemWhatsappNotificacaoService
         $msg .= "_{$info['resumo']}_\n\n";
         $msg .= "Acompanhe pelo portal:\n🔗 {$link}";
 
-        $this->enviar($ordem, $cliente->telefone, $msg, "status:{$statusNovo}");
+        $this->enviar($ordem, $cliente, $msg, "status:{$statusNovo}");
     }
 
     /**
@@ -133,7 +133,7 @@ class OrdemWhatsappNotificacaoService
         $msg .= "*Não* | *Recuso* | *Cancelar*\n\n";
         $msg .= "Ou decida pelo portal:\n🔗 {$link}";
 
-        $this->enviar($ordem, $cliente->telefone, $msg, 'orcamento_pendente');
+        $this->enviar($ordem, $cliente, $msg, 'orcamento_pendente');
     }
 
     /**
@@ -155,7 +155,7 @@ class OrdemWhatsappNotificacaoService
         $msg .= "🔗 {$link}";
 
         // Confirmação de aprovação não tem deduplicação — deve sempre ser enviada
-        if ($this->whatsapp->send($cliente->telefone, $msg)) {
+        if ($this->whatsapp->sendToCliente($cliente, $msg)) {
             $this->registrarMensagem($ordem, $msg);
         }
     }
@@ -163,9 +163,9 @@ class OrdemWhatsappNotificacaoService
     // ── Helpers privados ─────────────────────────────────────────────────────
 
     /** Envia e registra a mensagem; marca evento no cache anti-duplicata. */
-    private function enviar(Ordem $ordem, string $telefone, string $msg, string $evento): void
+    private function enviar(Ordem $ordem, \App\Models\Cliente $cliente, string $msg, string $evento): void
     {
-        if ($this->whatsapp->send($telefone, $msg)) {
+        if ($this->whatsapp->sendToCliente($cliente, $msg)) {
             $this->registrarMensagem($ordem, $msg);
             $this->marcarEnviado($ordem, $evento);
         }
