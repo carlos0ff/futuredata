@@ -153,12 +153,22 @@ class WhatsappController extends Controller
         }
 
         // Aprovação/recusa de orçamento, palavras-chave e identificação (CPF/OS) funcionam 24h
-        if ($this->bot->tryHandleOrcamento($phone, $text, $cliente)) {
-            return;
+        try {
+            if ($this->bot->tryHandleOrcamento($phone, $text, $cliente)) {
+                return;
+            }
+        } catch (\Throwable $e) {
+            Log::warning('WhatsApp: falha no check de orçamento (coluna ausente?)', [
+                'error' => $e->getMessage(),
+            ]);
         }
 
-        if ($this->bot->tryHandleKeyword($phone, $text, $cliente)) {
-            return;
+        try {
+            if ($this->bot->tryHandleKeyword($phone, $text, $cliente)) {
+                return;
+            }
+        } catch (\Throwable $e) {
+            Log::warning('WhatsApp: falha no check de keyword', ['error' => $e->getMessage()]);
         }
 
         // CPF (11 dígitos) ou código OS (ex: OS202600008) sempre processados pelo bot
