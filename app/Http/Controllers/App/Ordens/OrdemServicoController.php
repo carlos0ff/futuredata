@@ -60,15 +60,21 @@ class OrdemServicoController extends Controller
         $base = Ordem::query()
             ->when($user->isTecnico(), fn ($q) => $q->where('tecnico_id', $user->id));
 
+        try {
+            $atrasadas = (clone $base)
+                ->whereNotIn('status', ['finalizado', 'cancelado'])
+                ->whereNotNull('previsao_entrega')
+                ->whereDate('previsao_entrega', '<', today())
+                ->count();
+        } catch (\Throwable) {
+            $atrasadas = 0;
+        }
+
         $stats = [
             'total'     => (clone $base)->count(),
             'abertas'   => (clone $base)->whereNotIn('status', ['finalizado', 'cancelado'])->count(),
             'execucao'  => (clone $base)->where('status', 'execucao')->count(),
-            'atrasadas' => (clone $base)
-                ->whereNotIn('status', ['finalizado', 'cancelado'])
-                ->whereNotNull('previsao_entrega')
-                ->whereDate('previsao_entrega', '<', today())
-                ->count(),
+            'atrasadas' => $atrasadas,
         ];
 
         $ordens = (clone $base)
