@@ -70,27 +70,35 @@ class OrdemServicoController extends Controller
             $atrasadas = 0;
         }
 
-        $stats = [
-            'total'     => (clone $base)->count(),
-            'abertas'   => (clone $base)->whereNotIn('status', ['finalizado', 'cancelado'])->count(),
-            'execucao'  => (clone $base)->where('status', 'execucao')->count(),
-            'atrasadas' => $atrasadas,
-        ];
+        try {
+            $stats = [
+                'total'     => (clone $base)->count(),
+                'abertas'   => (clone $base)->whereNotIn('status', ['finalizado', 'cancelado'])->count(),
+                'execucao'  => (clone $base)->where('status', 'execucao')->count(),
+                'atrasadas' => $atrasadas,
+            ];
+        } catch (\Throwable) {
+            $stats = ['total' => 0, 'abertas' => 0, 'execucao' => 0, 'atrasadas' => 0];
+        }
 
-        $ordens = (clone $base)
-            ->with(['cliente', 'equipamento', 'tecnico'])
-            ->when($request->filled('busca'), fn ($q) =>
-                $q->where(fn ($sub) =>
-                    $sub->where('numero', 'like', "%{$request->busca}%")
-                        ->orWhereHas('cliente', fn ($c) =>
-                            $c->where('nome', 'like', "%{$request->busca}%")
-                        )
+        try {
+            $ordens = (clone $base)
+                ->with(['cliente', 'equipamento', 'tecnico'])
+                ->when($request->filled('busca'), fn ($q) =>
+                    $q->where(fn ($sub) =>
+                        $sub->where('numero', 'like', "%{$request->busca}%")
+                            ->orWhereHas('cliente', fn ($c) =>
+                                $c->where('nome', 'like', "%{$request->busca}%")
+                            )
+                    )
                 )
-            )
-            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+                ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
+                ->latest()
+                ->paginate(15)
+                ->withQueryString();
+        } catch (\Throwable) {
+            $ordens = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
+        }
 
         return view('app.ordens.index', [
             'ordens'  => $ordens,
@@ -105,9 +113,7 @@ class OrdemServicoController extends Controller
      */
     public function create(): View
     {
-        $clientes = Cliente::orderBy('nome')
-            ->get(['id', 'nome', 'telefone', 'cpf_cnpj', 'data_nascimento',
-                   'email', 'cidade', 'estado', 'cep', 'endereco', 'numero', 'complemento', 'bairro']);
+        $clientes = Cliente::orderBy('nome')->get();
 
         $clientesData = $clientes->map(fn ($c) => [
             'id'              => $c->id,

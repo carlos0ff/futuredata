@@ -57,11 +57,15 @@ class WhatsappService
      */
     public function sendToCliente(Cliente $cliente, string $text): bool
     {
-        $lidJid = BotSession::where('channel', 'whatsapp')
-            ->where('cliente_id', $cliente->id)
-            ->where('phone', 'like', '%@lid')
-            ->latest('last_activity')
-            ->value('phone');
+        try {
+            $lidJid = BotSession::where('channel', 'whatsapp')
+                ->where('cliente_id', $cliente->id)
+                ->where('phone', 'like', '%@lid')
+                ->latest('last_activity')
+                ->value('phone');
+        } catch (\Throwable) {
+            $lidJid = null;
+        }
 
         return $this->send($lidJid ?? $cliente->telefone, $text);
     }
