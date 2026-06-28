@@ -248,17 +248,28 @@ class OrdemServicoController extends Controller
             }
         }
 
-        $gerentes = User::where('role', 'gerente')->where('id', '!=', auth()->id())->get();
-        Notification::send($gerentes, new OrdemCriada($ordem));
+        try {
+            $gerentes = User::where('role', 'gerente')->where('id', '!=', auth()->id())->get();
+            Notification::send($gerentes, new OrdemCriada($ordem));
 
-        if ($ordem->tecnico_id && $ordem->tecnico_id !== auth()->id()) {
-            $ordem->tecnico->notify(new OrdemCriada($ordem));
+            if ($ordem->tecnico_id && $ordem->tecnico_id !== auth()->id()) {
+                $ordem->tecnico->notify(new OrdemCriada($ordem));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('store: falha ao notificar equipe', ['erro' => $e->getMessage()]);
         }
 
-        $this->n8n->dispatch('os.criada', $ordem->load('cliente', 'equipamento'));
+        try {
+            $this->n8n->dispatch('os.criada', $ordem->load('cliente', 'equipamento'));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('store: falha ao disparar n8n', ['erro' => $e->getMessage()]);
+        }
 
-        // Envia notificação automática de entrada ao cliente via WhatsApp
-        $this->waNotif->notificarEntrada($ordem);
+        try {
+            $this->waNotif->notificarEntrada($ordem);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('store: falha ao enviar WA de entrada', ['erro' => $e->getMessage()]);
+        }
 
         $linkPortal = route('portal.token', $ordem->token);
 
@@ -373,9 +384,12 @@ class OrdemServicoController extends Controller
         $orcamentoAnterior = $ordemServico->status_orcamento;
         $ordemServico->update($dados);
 
-        // Notifica cliente via WhatsApp quando orçamento fica disponível para aprovação
-        if (($dados['status_orcamento'] ?? null) === 'pendente' && $orcamentoAnterior !== 'pendente') {
-            $this->waNotif->notificarOrcamentoPendente($ordemServico->fresh(['cliente', 'equipamento']));
+        try {
+            if (($dados['status_orcamento'] ?? null) === 'pendente' && $orcamentoAnterior !== 'pendente') {
+                $this->waNotif->notificarOrcamentoPendente($ordemServico->fresh(['cliente', 'equipamento']));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('update: falha ao notificar orçamento pendente', ['erro' => $e->getMessage()]);
         }
 
         if ($dados['status'] !== $statusAnterior) {
@@ -391,8 +405,12 @@ class OrdemServicoController extends Controller
                 $ordemServico->update(['finalizado_em' => now()]);
             }
 
-            $this->notificarMudancaStatus($ordemServico, $statusAnterior, $dados['status']);
-            $this->waNotif->notificarStatusAlterado($ordemServico->fresh(['cliente', 'equipamento']), $dados['status']);
+            try {
+                $this->notificarMudancaStatus($ordemServico, $statusAnterior, $dados['status']);
+                $this->waNotif->notificarStatusAlterado($ordemServico->fresh(['cliente', 'equipamento']), $dados['status']);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('update: falha ao notificar mudança de status', ['erro' => $e->getMessage()]);
+            }
         }
 
         return redirect()->route('app.os.show', $ordemServico)
@@ -431,14 +449,22 @@ class OrdemServicoController extends Controller
             $ordemServico->update(['finalizado_em' => now()]);
         }
 
-        $this->notificarMudancaStatus($ordemServico, $anterior, $dados['status']);
-        $this->waNotif->notificarStatusAlterado($ordemServico->fresh(['cliente', 'equipamento']), $dados['status']);
+        try {
+            $this->notificarMudancaStatus($ordemServico, $anterior, $dados['status']);
+            $this->waNotif->notificarStatusAlterado($ordemServico->fresh(['cliente', 'equipamento']), $dados['status']);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('updateStatus: falha ao notificar', ['erro' => $e->getMessage()]);
+        }
 
         if ($dados['status'] !== $anterior) {
-            $this->n8n->dispatch('os.status_alterado', $ordemServico->load('cliente', 'equipamento'), [
-                'status_anterior'       => $anterior,
-                'status_anterior_label' => Ordem::STATUS[$anterior]['label'] ?? $anterior,
-            ]);
+            try {
+                $this->n8n->dispatch('os.status_alterado', $ordemServico->load('cliente', 'equipamento'), [
+                    'status_anterior'       => $anterior,
+                    'status_anterior_label' => Ordem::STATUS[$anterior]['label'] ?? $anterior,
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('updateStatus: falha ao disparar n8n', ['erro' => $e->getMessage()]);
+            }
         }
 
         return back()->with('success', 'Status atualizado com sucesso.');
